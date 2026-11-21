@@ -48,9 +48,13 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
    "enforced by platform policy").
 10. **Search and command palette** (`Ctrl/⌘ K`) across users, apps, settings and docs.
 11. **Accessible and international:** WCAG 2.2 AA, keyboard navigation, screen
-   reader labels, 40+ languages, right-to-left layouts, light and dark themes.
-12. **Help in context:** each screen links to docs, quick-starts and example
-    configurations.
+   reader labels, 40+ languages, right-to-left layouts, light and dark themes;
+   each admin chooses their language, time zone and formats
+   ([21](21-localization.md)).
+12. **Help in context and tours:** each screen has a "?" menu with "Take a
+    tour", docs, quick-starts and example configurations; a learning center
+    tracks tour progress, and practice mode lets admins try everything on
+    sample data ([20](20-guided-tours.md)).
 13. **AI admin assistant.** Describe a change in plain language and get a
     draft to review; ask questions about the configuration and audit trail.
     Drafts are never published without review and respect the admin's
@@ -63,7 +67,7 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 | Screen | What it shows or configures |
 |--------|-----------------------------|
 | Dashboard | Logins, sign-ups, MFA adoption, failures, risk events, active users, usage against plan; setup checklist; alerts |
-| Getting started | Guided setup: create first app → choose login methods → brand the login page → test login → go live |
+| Getting started | Welcome tour, then guided setup: create first app → choose login methods → brand the login page → test login → go live |
 
 ### 3.2 Applications and APIs
 
@@ -176,6 +180,7 @@ All of these work without code; see [16 — Look & feel](16-look-and-feel.md).
 | **Asset library** | Logos, images, icons and fonts, with where-used |
 | **Custom domains** | Guided wizard: choose what the domain serves, copy DNS records, live verification, automatic or uploaded certificate, primary and aliases; email sender and SMS sender setup; app association files; health dashboard ([17](17-white-label-domains.md)) |
 | **White-label** | Product name, logo, colors, domain and support links for console, portals and emails |
+| **Tour builder** | Tours and announcements for organization admins and end users, with targeting, languages and analytics (UX-24) |
 | **Design publishing** | Preview links, approvals, visual diff, schedules, A/B experiments |
 
 ### 3.10 Governance and privacy

@@ -280,6 +280,12 @@ it('offers only the roles the current admin may assign', async () => {
 - **Accessibility:** axe runs in component and E2E tests; any WCAG 2.2 AA
   violation fails the build. A pseudo-locale run catches hard-coded strings and
   layouts that break with longer text or right-to-left scripts.
+- **Localization:** formatting tests against CLDR, normalization and confusable
+  property tests, language-choice tests, and rendering checks for CJK, Arabic,
+  Indic and Thai scripts ([21 §10](21-localization.md#10-how-it-is-tested)).
+- **Tours:** every tour step is anchored to a stable element identifier; a
+  missing anchor fails the build, and an end-to-end test walks every tour in
+  every role ([20 §6](20-guided-tours.md#6-quality)).
 
 ## 8. Fuzzing, performance and resilience
 

@@ -343,7 +343,7 @@ else, and is never needed for anything the no-code tools can do.
 | Saved views and bulk actions | Filtered user lists, multi-select actions |
 | Presence and conflict warnings | See who else is editing an object; no silent overwrites |
 | Helpful empty states | Every empty list explains what to do next, with a one-click start |
-| Guided setup | Checklists and wizards for first app, SSO, branding and go-live |
+| Guided setup and tours | Checklists and wizards for first app, SSO, branding and go-live; interactive "Take a tour" on every screen, with practice mode ([20](20-guided-tours.md)) |
 | Personalization | Light, dark or system theme; optional glass (translucent) surfaces; compact or comfortable density; pinned and recent items |
 | Notifications center | Pending approvals, push progress, alerts |
 

@@ -87,6 +87,10 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices).
 |----------|-----|
 | OpenAPI 3.2, JSON Schema 2020-12 | Contracts for every public API and configuration object ([10](10-api-standards.md)) |
 | AsyncAPI 3.1.0, Arazzo 1 | Event and webhook contracts; multi-step API workflows |
+| BCP 47, Unicode CLDR, ICU | Language tags, locale data and formatting ([21](21-localization.md)) |
+| PRECIS (RFC 8264, RFC 8265), Unicode normalization (UAX #15), Unicode security (UTS #39) | Preparing and comparing usernames and passwords; confusable detection |
+| IDNA 2008, SMTPUTF8 (RFC 6531) | Internationalized domain names and email addresses |
+| E.164, ISO 3166, ISO 4217, IANA time zone database | Phone numbers, countries, currencies, time zones |
 | ACME (RFC 8555) | Automatic certificates for customer domains ([17](17-white-label-domains.md)) |
 | SPF (RFC 7208), DKIM (RFC 6376), DMARC (RFC 7489), BIMI | Authenticated, branded email from customer sender domains |
 | RFC 7396, RFC 9745, RFC 8594 | JSON Merge Patch; `Deprecation` and `Sunset` headers |

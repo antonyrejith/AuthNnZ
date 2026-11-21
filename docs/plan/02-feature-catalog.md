@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 275 features are part of the first release** (decision D-23). None is
+**All 281 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -263,6 +263,8 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DYN-12 | Gradual rollout | Release a configuration version to a percentage of traffic, with automatic rollback on error spikes |
 | DYN-13 | Forms builder | Registration and profile forms generated from the user schema |
 | DYN-14 | Branded message senders | Verified email sender domains (SPF, DKIM, DMARC, optional BIMI) and SMS sender IDs, short codes and long codes per country |
+| DYN-15 | Locale-aware formats and input | Dates, times and time zones, numbers, currencies, names, addresses and phone numbers per locale (CLDR/ICU); language-aware sorting and search; PRECIS normalization; internationalized email and domain names; confusable and hidden-character protection |
+| DYN-16 | Language selection and regional content | Language order including OIDC `ui_locales`, `claims_locales` and the `locale` claim; legal texts, consent ages, required fields, sign-in options and language rules per country |
 
 ## K. Security & threat protection (`SEC`)
 
@@ -337,6 +339,10 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | UX-20 | Rich console interactions | Command palette, shortcuts, side panels, inline editing, undo everywhere, saved views, bulk actions, presence and conflict warnings, guided setup, personalization |
 | UX-21 | Visual effects | Glass with per-surface control of blur, transparency, tint, saturation, edge highlights, texture and depth; gradients, mesh gradients, animated backgrounds, shadows, glow, shapes and motion; contrast kept at WCAG 2.2 AA behind glass; automatic solid fallbacks for reduced transparency or motion, high contrast, unsupported browsers, low-power devices and email; native platform materials in mobile SDKs. See [16 §2.2](16-look-and-feel.md#22-visual-effects-including-glass) |
 | UX-22 | AI admin assistant | Describe a change in plain language ("require passkeys for finance admins") and get a ready-to-review draft: settings, roles, policies, flows or CEL and Cedar expressions; explains decisions and audit events; answers questions about the tenant's configuration. Drafts only, never published without review; respects the admin's permissions; audited; can be turned off |
+| UX-23 | Guided tours | "Take a tour" in every UI: interactive tours per role and per feature, "?" on every screen, learning center, resumable, permission-aware, accessible and localized; practice mode with sample data. See [20](20-guided-tours.md) |
+| UX-24 | Tour builder | No-code tours and announcements built by tenants and partners for organization admins, end users and white-labeled consoles; versioned, inherited, with completion analytics |
+| UX-25 | What's new | Short tours and in-product announcements of new and changed features after each release, per role, with an opt-out |
+| UX-26 | Localized product | Every UI, tour, message and API error in 40+ languages, professionally translated and reviewed in-country; per-admin language, time zone and formats; continuous localization with pseudo-localization. See [21](21-localization.md) |
 
 ## N. Developer experience (`DX`)
 
@@ -355,7 +361,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details |
 |----|-----------|---------|
-| OPS-01 | Metering and billing | Usage metering, billing integration and invoices |
+| OPS-01 | Metering and billing | Usage metering, billing integration and invoices; multiple currencies, local taxes (VAT, GST, sales tax) and local payment methods |
 | OPS-02 | Status and SLA | Public status page; per-tenant SLA reporting |
 | OPS-03 | Backup and restore | Per-tenant restore, point-in-time recovery |
 | OPS-04 | Multi-region | Active-active for global tenants; regional failover |
@@ -405,7 +411,7 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 So that nothing is assumed silently, these items are listed explicitly and need
 a decision (D-24 in [06](06-decisions.md)).
 
-**Optional additions (not in the 275 features yet):**
+**Optional additions (not in the 281 features yet):**
 
 | Item | What it is | Recommendation |
 |------|-----------|----------------|

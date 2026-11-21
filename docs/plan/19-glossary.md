@@ -94,8 +94,12 @@ Terms used across the plan, in alphabetical order within each group.
 |------|---------|
 | **ADR** | Architecture decision record: a short document explaining a significant decision |
 | **Design tokens** | Named design values (colors, spacing, effects) shared by every UI surface |
+| **Locale** | A language and region combination (for example `fr-CA`) that decides language and formats |
+| **Practice mode** | A sample environment where admins can try every feature without touching real data |
+| **Pseudo-localization** | Automatically altered text (longer, accented, mirrored) used to find layout and translation problems before real translation |
 | **LTS** | Long-term support release of the self-hosted edition |
 | **RPO / RTO** | How much data may be lost / how long recovery may take after a disaster |
+| **RTL** | Right-to-left scripts such as Arabic and Hebrew, which need mirrored layouts |
 | **SBOM** | Software bill of materials: the exact list of components and versions in a release |
 | **Server-driven UI** | Screens described as data by the server and rendered by web and native clients |
 | **SLA / SLO** | Contractual service level / internal reliability target |

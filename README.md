@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (275), with an ID and its owning workstream; all ship in the first release |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (281), with an ID and its owning workstream; all ship in the first release |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -40,6 +40,8 @@ engineering plan. Code follows once the decisions in
 | 17 | [White-label domains & URLs](docs/plan/17-white-label-domains.md) | Customer domains for every surface and protocol endpoint, partner base domains, certificates, email and SMS senders, passkeys on custom domains, safe domain changes, takeover protection |
 | 18 | [Operating the service](docs/plan/18-operating-the-service.md) | Support tiers, incidents, breach notification, releases and LTS after GA, trust center, abuse prevention, private connectivity, integration health, tenant moves, cost |
 | 19 | [Glossary](docs/plan/19-glossary.md) | Plain-language meaning of every term used in the plan |
+| 20 | [Guided tours](docs/plan/20-guided-tours.md) | "Take a tour" in every UI, per role and feature; practice mode; tour builder for customers; what's new |
+| 21 | [Localization](docs/plan/21-localization.md) | 40+ languages everywhere, language selection, local formats, names and addresses, Unicode safety, country-specific content, translation process |
 
 **Delivery**
 
@@ -90,11 +92,11 @@ on either side.
 
 **Delivery: one release, everything included** (indicative; weeks from kickoff):
 
-All 275 features ship together at GA; nothing is split into phases. Thirteen
-workstreams (about 71 engineers, about 99 people) build in parallel, with an
+All 281 features ship together at GA; nothing is split into phases. Thirteen
+workstreams (about 72 engineers, about 101 people) build in parallel, with an
 integration checkpoint every six weeks and design partners testing pre-release
 builds. A 16-person operations team (SRE, support, customer success, security
-operations, trust and safety) joins before GA, for about 115 people at GA.
+operations, trust and safety) joins before GA, for about 117 people at GA.
 
 | Stage | Weeks | Outcome |
 |-------|-------|---------|
@@ -102,7 +104,7 @@ operations, trust and safety) joins before GA, for about 115 people at GA.
 | Parallel build | 8–64 | All workstreams build their catalog sections; checkpoint every 6 weeks |
 | Hardening and certification | 64–80 | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
 | Release candidate | 80–90 | Design partners run the release candidate; fixes only |
-| **GA** | **90 (about 21 months)** | **All 275 features, every deployment model, every industry pack** |
+| **GA** | **90 (about 21 months)** | **All 281 features, every deployment model, every industry pack** |
 
 **Next step:** confirm the open decisions in
 [`06-decisions.md`](docs/plan/06-decisions.md), including team and budget
