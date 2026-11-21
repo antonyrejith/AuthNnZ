@@ -29,10 +29,13 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 5. **History on every object.** Who changed what, when, from which channel
    and why, with a diff, one-click restore and an "as of" date picker to see
    the object at any past moment.
-6. **Inheritance badges.** Every setting shows where its value comes from
-   (*inherited from Acme*, *overridden here*, *locked by platform*, *from
-   template v4*, *shared*), with "revert to inherited" and a diff against the
-   parent ([15](15-hierarchy-and-shared-settings.md)).
+6. **Setting modes and reset.** Every setting shows its mode (Default,
+   Parent, Template, Own) and source (*inherited from Acme*, *locked by
+   platform*, *from template v4*, *shared*), with a mode selector, "show only
+   changed settings", comparison with defaults or parent, and a **Reset** menu
+   for this setting, selected settings, a section or everything, optionally
+   with descendants, followed by preview, simulation and undo
+   ([15 §2](15-hierarchy-and-shared-settings.md#2-setting-modes-defaults-and-resets)).
 7. **Reason prompts.** Sensitive actions (delete, impersonate, weaken a policy,
    break-glass) ask for a reason and optional ticket reference, recorded in the
    audit log.
@@ -179,7 +182,8 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 | Screen | What it shows or configures |
 |--------|-----------------------------|
 | **Hierarchy explorer** | Tree of partners, tenants, environments, organizations and sub-organizations; search; drift and override markers |
-| **Effective settings** | Any node's resolved settings with sources; diff against parent or template; revert overrides |
+| **Effective settings** | Any node's resolved settings with mode and source; counts per mode; "show only changed"; compare with defaults, parent or template; switch modes; reset (one, selected, section, all, with descendants) with preview and undo |
+| **Defaults versions** | Product defaults version in use; diff of a new defaults version against every setting in Default mode; adopt with preview and simulation |
 | **Override policies** | Per setting, what descendants may do: inherit, override, bounded (limits), additive, locked |
 | **Shared library** | Objects shared with descendants; where-used; impact analysis before changes |
 | **Templates and push** | Template versions, linked children, push wizard (mode, waves, conflict rule, preview and simulation), live push status, rollback, drift report |

@@ -133,7 +133,9 @@ Required properties include: a `forbid` always wins; adding a grant never
 removes access; removing a grant never adds access; decisions never cross
 tenants; refresh-token reuse always revokes the whole family; every issued token
 verifies with the published JWKS; a locked setting never differs from its
-parent and a "strictest" setting is never weaker than any ancestor's
+parent; a "strictest" setting is never weaker than any ancestor's; with no
+changes anywhere every level equals the product defaults; a reset followed by
+undo restores the exact previous settings
 ([15 §8](15-hierarchy-and-shared-settings.md#8-how-it-is-tested)).
 
 ## 3. Integration tests

@@ -35,30 +35,153 @@ flowchart TB
 Every level has the same configuration capabilities. A level can only see and
 change itself and its descendants, never its siblings or ancestors.
 
-## 2. Four ways a child gets a setting
+## 2. Setting modes, defaults and resets
 
-| Mode | What happens | Parent changes reach the child? | Example |
-|------|--------------|---------------------------------|---------|
-| **Inherited** (live) | The child has no value of its own and uses the nearest ancestor's | **Immediately**, unless the child overrides it | Acme changes the default session timeout; every organization without its own value gets it at once |
-| **Shared reference** | The child points to one object owned by an ancestor (flow, theme, SSO connection, email provider, role set) | **Immediately**: there is only one object | Globex EU and Globex US both use Globex's single Entra ID connection |
-| **Linked template** | The child was created from a versioned template and stays linked to it | **When the parent pushes a new version**, using the push mode chosen (§4) | Acme's "Standard customer organization" template v4 adds an Auditor role |
-| **Copy** | The child gets an independent copy at creation | **Never**; the child may see an "update available" notice | A partner clones a reference tenant setup for a new customer |
+### 2.1 Four modes for every setting
 
-The mode is chosen per object or setting. A child can combine them: inherit its
-password policy, reference a shared theme, stay linked to a role template, and
-own its SSO connection.
+Every setting at every level is in exactly one mode, shown next to it in the
+console and returned by the API:
+
+| Mode | Value used | Receives changes from above? | Example |
+|------|-----------|------------------------------|---------|
+| **Default** | The product's built-in default, from the defaults version the tenant uses (§2.5) | Only when the tenant adopts a new defaults version | Globex EU wants plain product branding although Globex customized its own |
+| **Parent** | The parent's effective value, live. For objects, a shared reference to an ancestor's flow, theme, SSO connection or connector | **Immediately**, whenever the parent changes | Acme changes the session timeout; every organization in Parent mode gets it at once |
+| **Template** | The value from the linked template version | **When the parent pushes** a new template version (§4) | Acme's "Standard customer organization" template v4 adds an Auditor role |
+| **Own** | A value set and saved at this level | **Never.** Later parent changes do not overwrite it, except a forced security push (§4.1) | Globex uses its own logo and its own SSO connection |
+
+Override policies (§3.1) and merge rules (§3.2) apply in every mode. For
+example, a security setting in Own or Default mode can never end up weaker than
+an ancestor's minimum.
+
+Creating a node as a **copy** of another node or template (for example a
+partner cloning a reference tenant setup) puts every copied setting in Own
+mode. A copy is never updated from its source, but it can show an "update
+available" notice.
+
+### 2.2 Before any change: the starting state
+
+- **A new tenant starts with every setting in Default mode.** It behaves with
+  the product defaults until someone changes something.
+- **A new organization or sub-organization starts with each setting in the mode
+  its parent chose for new children**, per setting:
+  - **Parent** (out of the box), so a tenant's customizations reach its customer
+    organizations automatically. If the parent never changed that setting, its
+    value is still the product default.
+  - **Default**, to start from product defaults and ignore the parent's
+    customization.
+  - **Template**, to start from a linked template.
+- **If nobody at any level has changed anything, every level shows exactly the
+  product defaults.**
+- Untouched settings are marked as untouched. A **"Show only changed settings"**
+  filter lists everything a level has made its own.
+
+### 2.3 Switching modes at any time
+
+A level can switch any setting between Default, Parent, Template and Own at any
+time, in either direction, as often as needed:
+
+| Switch | What happens |
+|--------|--------------|
+| Default, Parent or Template → Own | The current effective value is copied in as the starting point; the admin edits and saves it |
+| Own → Parent | The own value is set aside (kept in history); the setting follows the parent from now on |
+| Own → Default | The own value is set aside; the product default applies |
+| Own → Template | The setting is re-linked to the template and takes the current template version's value |
+| Between Default, Parent and Template | The new source's value applies immediately |
+
+- **Every switch is a normal change:** draft, validate, preview the effective
+  result and the descendants affected, simulate, publish. It is audited and can
+  be undone from history.
+- **The parent's override policy decides which modes are offered** (§3.1). A
+  mode that is not offered says why, for example "Locked by Acme" or "Product
+  default is weaker than Acme's minimum".
+- **Switches flow down to descendants that follow this level.** If Globex
+  switches a setting to Parent, Globex EU, which follows Globex, now follows
+  Acme through Globex.
+
+### 2.4 Resetting one setting, several, or everything
+
+A reset returns settings to **Default** or to **Parent**, or re-syncs them with
+their **Template**. The admin chooses the target.
+
+| Scope | Example |
+|-------|---------|
+| One setting | Reset "session idle timeout" to Default |
+| Selected settings | Reset five chosen MFA settings to Parent |
+| A section | Reset all branding settings to Default |
+| One object | Reset the "Billing app" settings to Parent |
+| Everything at this level (complete reset) | Reset all of Globex EU's settings to Parent |
+| Including descendants (optional) | Reset the MFA settings of Globex and all its sub-organizations to Parent |
+
+Every reset follows the same steps:
+
+1. **Preview:** every setting that will change, before → after, at this level
+   and at each affected descendant.
+2. **Simulate:** the impact on users and access (for example "312 users will no
+   longer be asked for MFA"). A reset that would break a parent's policy is
+   blocked.
+3. **Confirm:** a reason is required for section, complete and descendant
+   resets. A complete reset in production needs a second approver
+   (configurable).
+4. **Publish:** applied atomically, like any configuration change, and audited
+   with every previous value ([13](13-audit-and-change-tracking.md)).
+5. **Undo:** the previous values stay in history. "Undo reset" restores exactly
+   what was there, as a new audited change.
+
+A reset changes **settings only**. Users, credentials, role assignments, audit
+records and other data are never touched. Custom objects created at this level
+(roles, flows, connections) are kept unless the admin also selects "remove
+custom objects". That option checks where each object is used and needs a
+second approver.
+
+### 2.5 Versioned product defaults
+
+Product defaults are versioned (for example "Defaults 2027.1"), in line with
+pinned versions everywhere ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)):
+
+- **Each tenant environment uses one defaults version,** so settings in Default
+  mode never change silently when we release new product versions.
+- **New defaults versions are adopted deliberately.** When we publish one,
+  tenant admins see a diff of what would change for every setting in Default
+  mode, then preview, simulate and publish it like any other change.
+- **Security minimums are the exception.** A stronger platform baseline (for
+  example a new minimum password rule) is pushed with notice as a platform
+  baseline (§4.4) and applies whatever the mode, through the platform's
+  `bounded` and `locked` policies.
+
+### 2.6 In the API
+
+```http
+PATCH /v1/environments/env_01HZ9R/organizations/org_globex_eu/settings
+Content-Type: application/merge-patch+json
+
+{
+  "branding.theme":               { "mode": "default" },
+  "session.idle_timeout_seconds": { "mode": "parent" },
+  "mfa.required_factors":         { "mode": "own", "value": ["phishing_resistant"] }
+}
+```
+
+```http
+POST /v1/environments/env_01HZ9R/organizations/org_globex/settings/reset
+Change-Reason: Return Globex to Acme's standard MFA settings
+
+{ "scope": ["mfa.*"], "target": "parent", "include_descendants": true, "dry_run": true }
+```
+
+With `"dry_run": true` the reset returns the preview and simulation; the same
+request with `"dry_run": false` applies it. Each setting in an effective-settings
+response carries its `mode`, own value, effective value and source.
 
 ## 3. Override policies and merge rules
 
 ### 3.1 Override policy (set by the parent, per setting)
 
-| Policy | Child may… |
-|--------|------------|
-| `inherit` | Not set a value; always uses the parent's |
-| `overridable` | Replace the value freely |
-| `bounded` | Change the value only within limits the parent sets (minimum, maximum, allowed subset) |
-| `additive` | Add items (roles, allowed origins, custom fields) but not remove or change the parent's items |
-| `locked` | Nothing; the parent's value always applies, and the console shows who locked it |
+| Policy | Modes a child may choose | Notes |
+|--------|-------------------------|-------|
+| `overridable` | Default, Parent, Template, Own | Free choice |
+| `bounded` | Default, Parent, Template, Own, but Own and Default values must stay within the parent's limits (minimum, maximum, allowed subset) | A mode whose value would break the limits is not offered |
+| `additive` | Parent, plus Own additions | The child adds items (roles, allowed origins, custom fields); the parent's items always remain |
+| `locked` | Parent only | The console shows who locked the setting and why |
 
 Policies chain: if the platform locks a setting for every tenant, no tenant can
 unlock it for its organizations. A parent can only loosen what it was itself
@@ -77,9 +200,9 @@ schema declares how values from different levels combine:
 | **Union** | Everything any level adds | Custom roles, additional allowed origins, extra claims |
 | **Ceiling** | The child's value can never exceed the parent's | Entitlements, quotas, permission catalog, rate limits |
 
-### 3.3 Defaults per setting category
+### 3.3 Out-of-the-box rules per setting category
 
-| Setting | Default merge rule | Default override policy |
+| Setting | Merge rule | Override policy |
 |---------|--------------------|-------------------------|
 | Branding, themes, text, email and SMS templates | Most specific | Overridable |
 | Login methods available | Intersection | Bounded (subset of parent) |
@@ -140,15 +263,18 @@ flowchart LR
 
 ### 4.2 Conflicts with local changes
 
-Each push compares three versions per setting: the old template, the new
-template, and the child's current value.
+What a push does depends on the child's mode for each setting (§2.1):
 
-| Situation | Result |
-|-----------|--------|
-| Child never changed the setting | New template value applied |
-| Child changed it; template did not change it | Child's value kept |
-| Both changed it | **Conflict**, resolved by the template's rule: keep the child's value (default), take the template's, or hold for review |
-| Setting is locked | Template value always applied |
+| Child's mode for the setting | Result of a template push |
+|------------------------------|---------------------------|
+| Template | New template value applied |
+| Own, and the template did not change that setting | Child's value kept |
+| Own, and the template changed it too | **Conflict**, resolved by the template's rule: keep the child's value (default), take the template's (the setting switches to Template mode), or hold for review |
+| Parent or Default | Not affected; the setting does not follow the template |
+| Locked by the parent | Template value always applied |
+
+Children can switch any templated setting to Own, Parent or Default at any time
+(§2.3), unless the template locks it.
 
 ### 4.3 What the parent sees and controls
 
@@ -190,10 +316,15 @@ security fixes.
 
 ## 6. Seeing where a value comes from
 
-- **Effective-configuration view** for any level: every setting shows its value
-  and its **source**: *inherited from Acme*, *overridden here*, *locked by
-  platform*, *from template v4*, or *shared reference*. One click reverts an
-  override to the inherited value.
+- **Effective-configuration view** for any level: every setting shows its
+  mode (Default, Parent, Template, Own), its value and its **source**, for
+  example *inherited from Acme*, *locked by platform*, *from template v4* or
+  *shared reference*. A mode selector and a **Reset** menu (this setting,
+  selected, section, everything, with or without descendants) sit next to it.
+- **Filters and counts:** "show only changed settings", and a summary such as
+  "37 own, 12 parent, 4 template, 210 default".
+- **Compare** any level with the product defaults, with its parent, or with its
+  template.
 - **Diff** between a child and its parent, or between a child and its template.
 - **Where-used** for every shared object, with impact analysis before a change
   or deletion. Objects in use cannot be deleted.
@@ -242,6 +373,12 @@ security fixes.
   - an intersection never allows something an ancestor forbids;
   - a child never exceeds a ceiling;
   - removing an override always restores the inherited value.
+- **Mode and reset tests:**
+  - if nothing was changed anywhere, every level's effective settings equal the
+    product defaults;
+  - switching modes never produces a value outside the parent's limits;
+  - a reset followed by undo restores the exact previous settings;
+  - a reset never changes users, credentials, role assignments or audit records.
 - **Push tests:** interrupted pushes resume without duplicates; rollback
   restores every child exactly; conflicts follow the template's rule.
 - **Scale tests:** 50,000 organizations, nested 10 levels, with pushes under load.
@@ -254,7 +391,10 @@ security fixes.
 |----|-----------|
 | TEN-01 | Hierarchy in the data model: platform, tenant, environment, organization, sub-organization |
 | TEN-06 | Configuration inheritance along the hierarchy |
-| TEN-11 | Override policies (`inherit`, `overridable`, `bounded`, `additive`, `locked`) set per setting by parent admins, and merge rules (most specific, strictest, intersection, union, ceiling) |
+| TEN-11 | Override policies (`overridable`, `bounded`, `additive`, `locked`) set per setting by parent admins, and merge rules (most specific, strictest, intersection, union, ceiling) |
+| TEN-17 | Setting modes (Default, Parent, Template, Own) for every setting, switchable at any time; starting mode for new children chosen by the parent |
+| TEN-18 | Reset to Default, Parent or Template for one setting, selected settings, a section, an object, a whole level, optionally with descendants; preview, simulation, approval and undo |
+| TEN-19 | Versioned product defaults adopted deliberately per tenant environment, with a diff of affected settings |
 | TEN-12 | Effective-configuration view with sources, revert to inherited, diff against parent |
 | TEN-13 | Shared library objects referenced by descendants, with where-used, impact analysis and delete protection |
 | TEN-14 | Linked templates with versioned push (automatic, staged, opt-in, manual, forced), conflict handling and drift reports, for organizations, partner → tenant templates and platform baselines |

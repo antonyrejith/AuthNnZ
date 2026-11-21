@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 237 features are part of the first release** (decision D-23). None is
+**All 240 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -49,12 +49,15 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | TEN-08 | Entitlements & quotas | Plan-based feature gating, quotas and rate limits per tenant, all configurable |
 | TEN-09 | Tenant lifecycle | Provisioning API, suspend, export, delete with crypto-shredding |
 | TEN-10 | Self-service sign-up | Create tenant, choose region and plan, upgrade in-app |
-| TEN-11 | Override policies and merge rules | Per setting, set by parent admins for their descendants: `inherit`, `overridable`, `bounded`, `additive`, `locked`; merge rules most specific, strictest, intersection, union and ceiling |
+| TEN-11 | Override policies and merge rules | Per setting, set by parent admins for their descendants: `overridable`, `bounded`, `additive`, `locked`; merge rules most specific, strictest, intersection, union and ceiling. See [15](15-hierarchy-and-shared-settings.md) |
 | TEN-12 | Effective-configuration view | Every setting's value and source (inherited, overridden, locked, template, shared); revert to inherited; diff against parent; API with `include=sources` |
 | TEN-13 | Shared library objects | Flows, themes, roles, SSO connections, connectors and policies owned by an ancestor and referenced by descendants; where-used, impact analysis, delete protection; secrets usable but never readable by children |
 | TEN-14 | Linked templates and push | Versioned templates for organizations, partner → tenant templates and platform baselines; push modes automatic, staged (waves with health checks), opt-in with deadline, manual, forced (four-eyes); three-way conflict handling; drift reports |
 | TEN-15 | Copy mode | Create a child as an independent copy of a template or another node, with "update available" notices |
 | TEN-16 | Allocation down the hierarchy | Parents allocate quotas and entitlements (users, AI usage, connections, features) to children within their own limits; usage roll-up |
+| TEN-17 | Setting modes | Every setting is in Default, Parent, Template or Own mode, switchable at any time in either direction; new tenants start in Default, new children in the mode the parent chooses (Parent out of the box) |
+| TEN-18 | Reset | Reset to Default, Parent or Template for one setting, selected settings, a section, an object or a whole level (complete reset), optionally including descendants; preview, simulation, reason, approval and one-click undo; data is never touched |
+| TEN-19 | Versioned product defaults | Each tenant environment uses a pinned defaults version; new versions are reviewed as a diff and adopted deliberately; security minimums arrive as platform baselines |
 
 ## B. Identity & directory (`IDM`)
 
