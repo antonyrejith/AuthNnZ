@@ -136,7 +136,7 @@ the foundations stage (task PM-02 in the delivery plan). Vendors change offering
 | **Business** | B2B SaaS | Organizations, enterprise SSO and SCIM connections, admin portal, fine-grained authorization, log streaming |
 | **Enterprise** | Large companies | Advanced security (risk, adaptive MFA), governance, 99.99% SLA, data residency, dedicated cell option, premium support |
 | **Regulated** | Banks, health, government | Enterprise + industry packs, HSM keys, FAPI/CIBA, compliance reporting, certified configurations |
-| **Self-hosted** | Air-gapped, sovereign | Annual license by identities and cluster, with support and updates |
+| **Self-hosted** | Air-gapped, sovereign | Enterprise or Regulated feature set; annual subscription by identities under management, with support and updates |
 
 ### Metering dimensions
 
@@ -152,6 +152,9 @@ the foundations stage (task PM-02 in the delivery plan). Vendors change offering
 Set price points after market research during the foundations stage. Usage
 metering is built in from the start, so any pricing model can be applied; this is a dynamic,
 configurable rate plan in itself.
+
+The detailed edition-by-feature table, pricing principles, routes to market and
+commercial readiness are in [22 — Commercialization](22-commercialization.md).
 
 ## 8. Go-to-market notes
 

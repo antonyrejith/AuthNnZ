@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 281 features are part of the first release** (decision D-23). None is
+**All 285 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -361,12 +361,12 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details |
 |----|-----------|---------|
-| OPS-01 | Metering and billing | Usage metering, billing integration and invoices; multiple currencies, local taxes (VAT, GST, sales tax) and local payment methods |
+| OPS-01 | Metering and billing | Usage metering, billing integration and invoices; multiple currencies, local taxes (VAT, GST, sales tax) and local payment methods; customer usage dashboard with forecasts and budget alerts |
 | OPS-02 | Status and SLA | Public status page; per-tenant SLA reporting |
 | OPS-03 | Backup and restore | Per-tenant restore, point-in-time recovery |
 | OPS-04 | Multi-region | Active-active for global tenants; regional failover |
 | OPS-05 | Self-hosted edition | Helm chart, Kubernetes operator, air-gapped bundles, license enforcement |
-| OPS-06 | Marketplaces | AWS, Azure, GCP listings and private offers |
+| OPS-06 | Marketplaces | AWS, Azure and Google Cloud listings, private offers and marketplace metering, so purchases count toward customers' cloud commitments |
 | OPS-07 | Private connectivity | AWS PrivateLink, Azure Private Link and Google Private Service Connect endpoints; static egress IPs per region for allowlisting |
 | OPS-08 | Integration health center | Alerts and fixes for expiring IdP certificates and secrets, sync and webhook failures, connector errors and unused integrations |
 | OPS-09 | Trust center | Public security, compliance and privacy information: reports under NDA, sub-processors with change notices, residency, uptime, DPA, questionnaires |
@@ -374,6 +374,10 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | OPS-11 | Cost management | Cost attribution per tenant and cell, unit economics, budgets and anomaly alerts |
 | OPS-12 | Self-hosted release channels and LTS | Monthly releases, yearly long-term-support releases with 24 months of security fixes, supported upgrade paths, end-of-life notices |
 | OPS-13 | Incident and breach notifications | Targeted per-tenant incident notices, regulatory breach timelines, post-incident summaries, automatic SLA credits |
+| OPS-14 | Commercial catalog | Plans, add-ons, trials, promotions and custom contract entitlements configured without code; upgrade and downgrade with proration; in-product upgrade prompts at limits. See [22](22-commercialization.md) |
+| OPS-15 | Self-hosted licensing | Signed license files, offline activation for air-gapped sites, usage reporting (manual upload where offline), grace periods and warnings; a license problem never blocks end users from signing in |
+| OPS-16 | Partner program platform | Partner portal (deal registration, certifications, resources), wholesale billing to partners, partners price and invoice their own customers, usage roll-up |
+| OPS-17 | Quote-to-provisioning | Signed orders in the CRM (for example Salesforce or HubSpot) provision tenants, editions, add-ons and committed volumes automatically; contract changes update entitlements |
 
 ## P. Migration (`MIG`)
 
@@ -411,7 +415,7 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 So that nothing is assumed silently, these items are listed explicitly and need
 a decision (D-24 in [06](06-decisions.md)).
 
-**Optional additions (not in the 281 features yet):**
+**Optional additions (not in the 285 features yet):**
 
 | Item | What it is | Recommendation |
 |------|-----------|----------------|

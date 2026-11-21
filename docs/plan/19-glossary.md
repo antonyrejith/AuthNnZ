@@ -88,6 +88,19 @@ Terms used across the plan, in alphabetical order within each group.
 | **Outbox** | A table written in the same transaction as a change, so its event or audit record can never be lost |
 | **WORM storage** | Write-once storage that cannot be altered or deleted before its retention ends |
 
+## Commercial
+
+| Term | Meaning |
+|------|---------|
+| **Add-on** | A separately priced capability on top of an edition, such as an industry pack |
+| **Edition** | A package of entitlements sold at one price level: Developer, Pro, Business, Enterprise, Regulated |
+| **Entitlement** | A configured right to use a feature or volume; editions, add-ons and contracts are sets of entitlements |
+| **Net revenue retention (NRR)** | Revenue this year from last year's customers, divided by last year's revenue from them |
+| **OEM** | A software vendor that embeds and resells the platform inside its own product |
+| **POC** | Proof of concept: a structured trial during an enterprise sale |
+| **Private offer** | A custom price agreed through a cloud marketplace |
+| **Product-led growth** | Customers discover, try and buy through the product itself, without talking to sales |
+
 ## Engineering and operations
 
 | Term | Meaning |
