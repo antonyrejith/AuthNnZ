@@ -205,6 +205,7 @@ schema declares how values from different levels combine:
 | Setting | Merge rule | Override policy |
 |---------|--------------------|-------------------------|
 | Branding, themes, text, email and SMS templates | Most specific | Overridable |
+| Screen layouts and blocks | Most specific; required blocks always kept | Overridable, with guardrails ([16](16-look-and-feel.md)) |
 | Login methods available | Intersection | Bounded (subset of parent) |
 | MFA, password and lockout policies | Strictest | Bounded (can only strengthen) |
 | Session and token lifetimes | Strictest | Bounded |

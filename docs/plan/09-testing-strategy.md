@@ -270,7 +270,13 @@ it('offers only the roles the current admin may assign', async () => {
 ```
 
 - **Storybook** stories double as interaction tests and visual-regression
-  baselines (Playwright screenshots).
+  baselines (Playwright screenshots), for every component, default theme and
+  template in light, dark and high-contrast, on desktop and mobile, left-to-right
+  and right-to-left.
+- **Customization testing:** randomly generated themes and screen layouts are
+  checked for contrast, overflow, broken layouts and missing required elements;
+  the same screen descriptor is rendered on web, iOS and Android and compared
+  ([16 §9](16-look-and-feel.md#9-how-it-is-tested)).
 - **Accessibility:** axe runs in component and E2E tests; any WCAG 2.2 AA
   violation fails the build. A pseudo-locale run catches hard-coded strings and
   layouts that break with longer text or right-to-left scripts.

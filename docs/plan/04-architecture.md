@@ -93,7 +93,9 @@ the control plane **compiles** a tenant environment into an immutable
 - flows compiled into state machines,
 - CEL expressions parsed, type-checked and compiled into programs,
 - authorization model and Cedar policies compiled and indexed,
-- templates pre-parsed, inheritance pre-merged, connector configurations resolved.
+- templates pre-parsed, inheritance pre-merged, connector configurations resolved,
+- themes compiled into design tokens and content-hashed CSS on the CDN, and
+  screen layouts into server-driven UI descriptors ([16](16-look-and-feel.md#6-same-look-everywhere)).
 
 ```mermaid
 sequenceDiagram

@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (240), with an ID and its owning workstream; all ship in the first release |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (252), with an ID and its owning workstream; all ship in the first release |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -36,6 +36,7 @@ engineering plan. Code follows once the decisions in
 | 13 | [Audit & change tracking](docs/plan/13-audit-and-change-tracking.md) | 100% audit: what is recorded, completeness guarantees, record format, tamper evidence, history and as-of views, retention |
 | 14 | [Integration & enforcement](docs/plan/14-integration-and-enforcement.md) | How a B2B customer uses it: where authentication happens, where UI, API, AI and MCP permissions are enforced, permission catalog, agents |
 | 15 | [Multi-level tenancy & shared settings](docs/plan/15-hierarchy-and-shared-settings.md) | Partners, tenants, organizations and sub-organizations; setting modes (Default, Parent, Template, Own) switchable any time; reset one, some or all settings; override policies, merge rules, pushing changes down |
+| 16 | [Look & feel](docs/plan/16-look-and-feel.md) | No-code theme studio, screen builder, templates, translations, white-labeling, guardrails; design quality bar for our own product |
 
 **Delivery**
 
@@ -68,6 +69,7 @@ on either side.
 6. Native support for AI agents: an MCP-ready authorization server, delegated agent identities and human-in-the-loop approvals.
 7. Provable 100% audit: every change, login, decision and staff action recorded, tamper-evident and verifiable.
 8. Built for multi-level B2B: partners, tenants and nested organizations that share, inherit, lock or receive pushed settings, with every value's source visible.
+9. Beautiful and brandable without code: a theme studio, drag-and-drop screen builder and templates for every screen, email and portal, with a polished, fast console.
 
 **How it is built:**
 - Go (1.27.4) for every backend service; React and TypeScript for the UIs.
@@ -85,8 +87,8 @@ on either side.
 
 **Delivery: one release, everything included** (indicative; weeks from kickoff):
 
-All 240 features ship together at GA; nothing is split into phases. Thirteen
-workstreams (about 64 engineers, about 89 people in total) build in parallel,
+All 252 features ship together at GA; nothing is split into phases. Thirteen
+workstreams (about 66 engineers, about 94 people in total) build in parallel,
 with an integration checkpoint every six weeks and design partners testing
 pre-release builds.
 
@@ -96,7 +98,7 @@ pre-release builds.
 | Parallel build | 8–64 | All workstreams build their catalog sections; checkpoint every 6 weeks |
 | Hardening and certification | 64–80 | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
 | Release candidate | 80–90 | Design partners run the release candidate; fixes only |
-| **GA** | **90 (about 21 months)** | **All 240 features, every deployment model, every industry pack** |
+| **GA** | **90 (about 21 months)** | **All 252 features, every deployment model, every industry pack** |
 
 **Next step:** confirm the open decisions in
 [`06-decisions.md`](docs/plan/06-decisions.md), including team and budget

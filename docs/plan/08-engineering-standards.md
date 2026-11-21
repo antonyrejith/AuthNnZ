@@ -447,8 +447,12 @@ func (s *Service) UpdateMFAPolicy(ctx context.Context, cmd UpdateMFAPolicy) (MFA
 - **Security:** no `dangerouslySetInnerHTML` (lint error) outside one audited
   sanitizer; works under a strict CSP (no inline scripts); tokens never stored
   in `localStorage` — the console uses a backend-for-frontend with `HttpOnly` cookies.
-- **Performance budgets:** hosted login ≤ 50 KB of JavaScript (gzip); console
-  routes code-split; Core Web Vitals: LCP < 2.5 s, INP < 200 ms, CLS < 0.1.
+- **Performance budgets:** hosted login ≤ 50 KB of JavaScript (gzip) and
+  LCP < 1.5 s on a typical 4G phone, with any customer theme; console routes
+  code-split, route changes < 200 ms; Core Web Vitals for every UI: LCP < 2.5 s,
+  INP < 200 ms, CLS < 0.1.
+- **Design quality:** design QA sign-off is part of the definition of done for
+  every UI change ([16 §8](16-look-and-feel.md#8-design-quality-of-our-own-product)).
 
 ## 5. Git workflow, reviews and releases
 

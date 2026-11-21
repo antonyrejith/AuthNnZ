@@ -1,6 +1,8 @@
 # 11 — User Interfaces & Configuration Screens
 
-Everything in the platform is configured through screens. Every screen is
+Everything in the platform is configured through screens. How customers brand
+the screens their users see, without code, and the design-quality bar for our
+own screens are in [16 — Look & feel](16-look-and-feel.md). Every screen is
 built on the public Management API ([10](10-api-standards.md)), so anything
 done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
@@ -153,13 +155,19 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
 ### 3.9 Branding and experience
 
+All of these work without code; see [16 — Look & feel](16-look-and-feel.md).
+
 | Screen | What it configures |
 |--------|--------------------|
-| Themes | Logo, colors, fonts, layout, dark mode, custom CSS; live preview on desktop and mobile |
-| Custom domains | Add a domain, DNS instructions, automatic certificate status |
-| Email and SMS templates | Per message type and language, with variables, preview and test send |
-| Text and languages | Every hosted-page string per language; enabled languages; per-organization overrides |
-| Hosted page preview | Walk through every login screen with the current theme and flow |
+| **Theme studio** | Brand kit, layouts, backgrounds, light/dark/high-contrast variants, with live preview of every screen on every device and language, and live contrast checks |
+| **Template gallery** | Ready-made themes and layouts, including industry-pack themes |
+| **Screen builder** | Drag-and-drop blocks for every hosted screen, conditional visibility, reusable header and footer |
+| **Content and translations** | Click-to-edit text, languages, translation import and export, missing-translation report |
+| **Message designer** | Emails, SMS and push messages, with previews and test sends |
+| **Asset library** | Logos, images, icons and fonts, with where-used |
+| **Custom domains** | Add a domain, DNS instructions, automatic certificate status |
+| **White-label** | Product name, logo, colors, domain and support links for console, portals and emails |
+| **Design publishing** | Preview links, approvals, visual diff, schedules, A/B experiments |
 
 ### 3.10 Governance and privacy
 

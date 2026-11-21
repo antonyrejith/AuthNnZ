@@ -118,7 +118,11 @@ the foundations stage (task PM-02 in the delivery plan). Vendors change offering
    recorded with who, what, when, where, how and why, and customers can verify
    cryptographically that nothing is missing or altered
    (see [13](13-audit-and-change-tracking.md)).
-9. **Migration without pain.** Lazy migration plus importers for the major
+9. **Beautiful and brandable without code.** Every screen, email and portal
+   can be made to match the customer's brand with point-and-click tools, live
+   previews and templates; web and native apps update without a release
+   (see [16](16-look-and-feel.md)).
+10. **Migration without pain.** Lazy migration plus importers for the major
    vendors, with password-hash compatibility, so users never reset passwords.
 
 ## 7. Packaging and pricing (draft)

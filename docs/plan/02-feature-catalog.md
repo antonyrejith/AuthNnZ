@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 240 features are part of the first release** (decision D-23). None is
+**All 252 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -302,7 +302,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details |
 |----|-----------|---------|
-| UX-01 | Hosted login | Themes, custom CSS, custom domain, localization, WCAG 2.2 AA accessibility |
+| UX-01 | Hosted login | Fully brandable without code (theme studio, screen builder, templates), custom domain, 40+ languages, WCAG 2.2 AA accessibility. See [16](16-look-and-feel.md) |
 | UX-02 | Embeddable components | Web components plus React, Vue and Angular wrappers |
 | UX-03 | Headless APIs | Build a fully custom UI on the authentication API |
 | UX-04 | Native mobile UI | iOS, Android, Flutter and React Native rendering of server-driven screens |
@@ -310,6 +310,18 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | UX-06 | Admin console | Tenants, users, apps, connections, flows, policies, branding, logs, analytics |
 | UX-07 | Organization admin portal | For our customers' customers |
 | UX-08 | Support console | Scoped, audited support tooling |
+| UX-09 | Theme studio | No-code brand kit (logos, colors, fonts, radius, density, buttons, inputs), layouts, backgrounds, light/dark/high-contrast; live preview on every screen, device and language; live contrast and quality checks with one-click fixes |
+| UX-10 | Brand import and design assistant | Generate an accessible theme from a website address or logo; optional assistant suggests themes and wording, always previewed and approved before use |
+| UX-11 | Template gallery | Professionally designed, fully editable themes and layouts, including industry-pack themes; stay linked to receive improvements or make them your own |
+| UX-12 | No-code screen builder | Drag-and-drop blocks on every hosted screen, conditional visibility rule builder, reusable header and footer, guardrails for required elements; one layout for web, components and native apps |
+| UX-13 | Content and translations | Click-to-edit text in the preview, variables and plurals from menus, 40+ languages, XLIFF/JSON import and export, machine-translation suggestions with review |
+| UX-14 | Message designer | Drag-and-drop responsive email designer inheriting the theme; SMS and push editors; client previews and test sends |
+| UX-15 | Asset library | Logos, images, illustrations, icons and fonts; self-hosted fonts; automatic image optimization; where-used; shared down the hierarchy |
+| UX-16 | White-labeling | Product name, logo, colors, domain, email sender, help and support links across console, portals and emails for partners and tenants |
+| UX-17 | Design publishing | Draft, shareable preview links, approvals, visual diff, scheduled publish with automatic revert, rollback, A/B design experiments with conversion metrics |
+| UX-18 | Pro mode (optional) | Sanitized custom CSS and HTML templates under a strict Content Security Policy; never required |
+| UX-19 | Runtime design tokens | Tokens and screen descriptors delivered at runtime so hosted pages, web components and native SDKs match without rebuilds or app releases |
+| UX-20 | Rich console interactions | Command palette, shortcuts, side panels, inline editing, undo everywhere, saved views, bulk actions, presence and conflict warnings, guided setup, personalization |
 
 ## N. Developer experience (`DX`)
 
