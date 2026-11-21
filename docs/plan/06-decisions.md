@@ -33,7 +33,7 @@ release with every feature).
 | D-20 | Container base image | Distroless static · Chainguard/Wolfi · `scratch` | **Distroless static (Debian 13, nonroot)** | No shell or package manager, includes CA certificates and time zones, free and widely scanned |
 | D-21 | Audit strictness | Best effort · 100% with fail-closed capture | **✅ Accepted: 100% audit**; changes are rejected if they cannot be audited; decision and login events use durable spools with strict mode ([13](13-audit-and-change-tracking.md)) | Customers and auditors need provable completeness |
 | D-22 | Database change capture | Own reader on PostgreSQL logical replication · Debezium · triggers | **Own Go reader on logical replication**, running in the `worker` | No extra infrastructure (no Kafka Connect); works the same in SaaS and self-hosted |
-| D-23 | Release strategy | Phased releases · one release with every feature | **✅ Accepted: one release; all 253 features at GA**, built in parallel by 13 workstreams with integration checkpoints every 6 weeks ([05](05-roadmap-and-delivery.md)) | Customers get the complete platform at launch; nothing is deferred |
+| D-23 | Release strategy | Phased releases · one release with every feature | **✅ Accepted: one release; all 258 features at GA**, built in parallel by 13 workstreams with integration checkpoints every 6 weeks ([05](05-roadmap-and-delivery.md)) | Customers get the complete platform at launch; nothing is deferred |
 
 ## 2. ADR backlog
 

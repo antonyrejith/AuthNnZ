@@ -2,7 +2,7 @@
 
 ## 1. Principle
 
-**Everything ships in the first release.** All 253 features in the
+**Everything ships in the first release.** All 258 features in the
 [feature catalog](02-feature-catalog.md) are part of general availability (GA).
 Nothing is split into later phases or deferred (decision D-23).
 
@@ -64,7 +64,7 @@ gantt
     section Milestones
     Feature complete (week 64)           :milestone, 2028-03-27, 0d
     Release candidate (week 80)          :milestone, 2028-07-17, 0d
-    GA, all 253 features (week 90)       :milestone, 2028-09-25, 0d
+    GA, all 258 features (week 90)       :milestone, 2028-09-25, 0d
 ```
 
 | Stage | Weeks | What happens |
@@ -74,7 +74,7 @@ gantt
 | **Feature complete** | 64 | Every catalog feature meets the definition of done |
 | **Hardening and certification** | 64–80 | Full-scale load, chaos and disaster-recovery drills; external penetration tests; conformance certifications; accessibility audit; SOC 2 Type II observation window |
 | **Release candidate** | 80–90 | Design partners run the release candidate; fixes only; certification reports issued; GA readiness review |
-| **GA** | 90 (about 21 months) | All 253 features, all deployment models, all industry packs |
+| **GA** | 90 (about 21 months) | All 258 features, all deployment models, all industry packs |
 
 ### Foundations (weeks 0–8)
 
@@ -156,7 +156,7 @@ the whole platform is deployed to staging and verified:
 - all quality gates in [09](09-testing-strategy.md) pass (isolation, audit
   coverage, conformance suites run so far, benchmarks);
 - design partners receive the build and report back;
-- progress is reported as features done out of 253, per workstream, with
+- progress is reported as features done out of 258, per workstream, with
   risks and re-planning where a workstream is behind.
 
 A checkpoint never removes scope. If a workstream falls behind, the response
@@ -166,7 +166,7 @@ adjust the GA date openly.
 ## 6. GA exit criteria
 
 **Scope**
-- All 253 catalog features meet the definition of done: API, console, Terraform
+- All 258 catalog features meet the definition of done: API, console, Terraform
   and SDK support where relevant, documentation, audit events and tests.
 - All deployment models are installed and running at a design partner or as an
   internal reference installation: multi-region SaaS, dedicated cell, customer
@@ -250,4 +250,4 @@ and the readiness assessment is done by GA.
 4. Write ADR-0001 (modular monolith) and ADR-0002 (tenancy and isolation).
 5. Start the foundation spikes listed in §2.
 6. Create the repository skeleton, CI pipeline and development environment.
-7. Load the 253 catalog features into the issue tracker as epics, one board per workstream.
+7. Load the 258 catalog features into the issue tracker as epics, one board per workstream.

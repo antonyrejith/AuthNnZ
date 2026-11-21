@@ -165,7 +165,7 @@ All of these work without code; see [16 — Look & feel](16-look-and-feel.md).
 | **Content and translations** | Click-to-edit text, languages, translation import and export, missing-translation report |
 | **Message designer** | Emails, SMS and push messages, with previews and test sends |
 | **Asset library** | Logos, images, icons and fonts, with where-used |
-| **Custom domains** | Add a domain, DNS instructions, automatic certificate status |
+| **Custom domains** | Guided wizard: choose what the domain serves, copy DNS records, live verification, automatic or uploaded certificate, primary and aliases; email sender and SMS sender setup; app association files; health dashboard ([17](17-white-label-domains.md)) |
 | **White-label** | Product name, logo, colors, domain and support links for console, portals and emails |
 | **Design publishing** | Preview links, approvals, visual diff, schedules, A/B experiments |
 

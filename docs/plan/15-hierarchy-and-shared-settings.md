@@ -205,6 +205,7 @@ schema declares how values from different levels combine:
 | Setting | Merge rule | Override policy |
 |---------|--------------------|-------------------------|
 | Branding, themes, text, email and SMS templates | Most specific | Overridable |
+| Domains | Most specific: organizations use the tenant's domain unless they get an automatic subdomain or add their own | Overridable ([17](17-white-label-domains.md)) |
 | Screen layouts and blocks | Most specific; required blocks always kept | Overridable, with guardrails ([16](16-look-and-feel.md)) |
 | Login methods available | Intersection | Bounded (subset of parent) |
 | MFA, password and lockout policies | Strictest | Bounded (can only strengthen) |

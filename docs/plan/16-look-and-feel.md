@@ -236,7 +236,8 @@ Partners and tenants can present the platform as their own product: product
 name, logo, colors, custom domain, email sender, help and support links,
 across the console, organization admin portal, account portal and emails.
 Nothing in a white-labeled experience mentions AuthNnZ unless the customer
-chooses to.
+chooses to. Domains, URLs, certificates, email senders and passkeys on the
+customer's domain are covered in [17 — White-label domains](17-white-label-domains.md).
 
 ## 3. Guardrails: beautiful, accessible and safe by default
 

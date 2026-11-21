@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 253 features are part of the first release** (decision D-23). None is
+**All 258 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -42,7 +42,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | TEN-01 | Tenant hierarchy | Platform → Partner → Tenant → Environment (dev/stage/prod) → Organization → Sub-organizations, in the data model. See [15](15-hierarchy-and-shared-settings.md) |
 | TEN-02 | Multi-level tenancy | Tenants create and manage child tenants; white-label; usage roll-up for resellers and ISVs |
 | TEN-03 | Isolation tiers | Pooled (row-level security), database-per-tenant, dedicated cell, customer VPC |
-| TEN-04 | Custom domains | `login.customer.com` with automatic TLS (ACME), per tenant, environment or organization |
+| TEN-04 | Custom domains | Customer domains for every surface (login, portals, console, protocol endpoints, APIs, docs and status pages), per partner, tenant, environment, organization and application, with primary and aliases. See [17](17-white-label-domains.md) |
 | TEN-05 | Data residency | Tenant pinned to a region (US, EU, UK, IN, AU, …); PII never leaves its region |
 | TEN-06 | Configuration inheritance | Settings inherit down the hierarchy (platform → tenant → environment → organization → sub-organization → application) |
 | TEN-07 | Environment promotion | Diff, promote dev → stage → prod, roll back |
@@ -58,6 +58,9 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | TEN-17 | Setting modes | Every setting is in Default, Parent, Template or Own mode, switchable at any time in either direction; new tenants start in Default, new children in the mode the parent chooses (Parent out of the box) |
 | TEN-18 | Reset | Reset to Default, Parent or Template for one setting, selected settings, a section, an object or a whole level (complete reset), optionally including descendants; preview, simulation, reason, approval and one-click undo; data is never touched |
 | TEN-19 | Versioned product defaults | Each tenant environment uses a pinned defaults version; new versions are reviewed as a diff and adopted deliberately; security minimums arrive as platform baselines |
+| TEN-20 | Partner base domains | White-label default URLs for every tenant of a partner (`{tenant}.login.partner.com`), and automatic organization subdomains from a tenant base domain |
+| TEN-21 | Domain lifecycle and safety | Guided DNS setup and live verification; automatic certificates from multiple CAs or bring-your-own; health dashboard; daily re-verification and takeover protection; safe primary-domain changes with dual issuers |
+| TEN-22 | Reverse-proxy mode | Serve login through the customer's own CDN or reverse proxy, including path-based hosting such as `acme.com/auth` |
 
 ## B. Identity & directory (`IDM`)
 
@@ -114,6 +117,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTH-27 | Hardware OATH tokens | Hardware TOTP/HOTP tokens with seed import (PSKC, RFC 6030) |
 | AUTH-28 | Legacy compatibility | Security questions (migration only), resource-owner password grant, implicit grant. Off by default, never a sole factor, flagged in the console |
 | AUTH-29 | Regional social providers | WeChat, LINE, Kakao, Naver, VK, Yahoo! JAPAN |
+| AUTH-30 | Passkeys on white-label domains | Relying-party ID chosen per tenant, WebAuthn related origins across brands and countries, native-app association files, guided re-enrollment if the domain changes |
 
 ## D. Federation & SSO (`FED`)
 
@@ -254,6 +258,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DYN-11 | Configuration as code | YAML export/import and GitOps sync; Terraform provider; Pulumi; Kubernetes operator |
 | DYN-12 | Gradual rollout | Release a configuration version to a percentage of traffic, with automatic rollback on error spikes |
 | DYN-13 | Forms builder | Registration and profile forms generated from the user schema |
+| DYN-14 | Branded message senders | Verified email sender domains (SPF, DKIM, DMARC, optional BIMI) and SMS sender IDs, short codes and long codes per country |
 
 ## K. Security & threat protection (`SEC`)
 
@@ -317,7 +322,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | UX-13 | Content and translations | Click-to-edit text in the preview, variables and plurals from menus, 40+ languages, XLIFF/JSON import and export, machine-translation suggestions with review |
 | UX-14 | Message designer | Drag-and-drop responsive email designer inheriting the theme; SMS and push editors; client previews and test sends |
 | UX-15 | Asset library | Logos, images, illustrations, icons and fonts; self-hosted fonts; automatic image optimization; where-used; shared down the hierarchy |
-| UX-16 | White-labeling | Product name, logo, colors, domain, email sender, help and support links across console, portals and emails for partners and tenants |
+| UX-16 | White-labeling | Product name, logo, colors, domains, email sender, help and support links across console, portals and emails; neutral cookie names, headers and error pages, so no platform name is visible. See [17](17-white-label-domains.md) |
 | UX-17 | Design publishing | Draft, shareable preview links, approvals, visual diff, scheduled publish with automatic revert, rollback, A/B design experiments with conversion metrics |
 | UX-18 | Pro mode (optional) | Sanitized custom CSS and HTML templates under a strict Content Security Policy; never required |
 | UX-19 | Runtime design tokens | Color, type, spacing, shape and effect tokens plus screen descriptors delivered at runtime, so hosted pages, web components and native SDKs match without rebuilds or app releases |

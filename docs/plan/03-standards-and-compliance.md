@@ -87,6 +87,8 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices).
 |----------|-----|
 | OpenAPI 3.2, JSON Schema 2020-12 | Contracts for every public API and configuration object ([10](10-api-standards.md)) |
 | AsyncAPI 3.1.0, Arazzo 1 | Event and webhook contracts; multi-step API workflows |
+| ACME (RFC 8555) | Automatic certificates for customer domains ([17](17-white-label-domains.md)) |
+| SPF (RFC 7208), DKIM (RFC 6376), DMARC (RFC 7489), BIMI | Authenticated, branded email from customer sender domains |
 | RFC 7396, RFC 9745, RFC 8594 | JSON Merge Patch; `Deprecation` and `Sunset` headers |
 | RFC 9457 (Problem Details) | API error format |
 | CloudEvents 1.0 | Event and webhook envelope |
