@@ -68,16 +68,20 @@ ConfigObject {
 
 ### 2.2 Inheritance and overrides
 
-Effective configuration is resolved by merging layers, most specific first:
+Effective configuration is resolved along the hierarchy:
 
 ```
-Application override → Organization override → Environment → Tenant → Platform default
+Platform → Partner → Tenant → Environment → Organization → Sub-organizations → Application
 ```
 
-Each field's schema declares whether lower layers may override it, which lets
-the platform enforce floors (for example "a regulated tenant cannot disable
-PKCE") and lets tenants enforce floors on their organizations ("org admins
-cannot disable MFA").
+Each setting's schema declares a **merge rule** (most specific wins, strictest
+wins, intersection, union, ceiling) and an **override policy** set by the parent
+(`inherit`, `overridable`, `bounded`, `additive`, `locked`). This lets the
+platform enforce floors (for example "a regulated tenant cannot disable PKCE")
+and lets tenants enforce floors on their organizations ("org admins can only
+strengthen MFA"). Children get settings by live inheritance, shared references,
+linked templates with controlled push, or copies. Full design:
+[15 — Multi-level tenancy & shared settings](15-hierarchy-and-shared-settings.md).
 
 ### 2.3 Runtime bundles: dynamic without being slow
 

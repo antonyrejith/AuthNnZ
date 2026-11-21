@@ -28,16 +28,22 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details | Phase |
 |----|-----------|---------|-------|
-| TEN-01 | Tenant hierarchy | Platform → Tenant → Environment (dev/stage/prod) → Organization → Sub-organization | 1 |
+| TEN-01 | Tenant hierarchy | Platform → Partner → Tenant → Environment (dev/stage/prod) → Organization → Sub-organizations, in the data model. See [15](15-hierarchy-and-shared-settings.md) | 1 |
 | TEN-02 | Multi-level tenancy | Tenants create and manage child tenants; white-label; usage roll-up for resellers and ISVs | 4 |
 | TEN-03 | Isolation tiers | Pooled (row-level security), database-per-tenant, dedicated cell, customer VPC | 1→5 |
 | TEN-04 | Custom domains | `login.customer.com` with automatic TLS (ACME), per tenant, environment or organization | 2 |
 | TEN-05 | Data residency | Tenant pinned to a region (US, EU, UK, IN, AU, …); PII never leaves its region | 5 |
-| TEN-06 | Configuration inheritance | Platform defaults → tenant → environment → organization → application overrides | 1 |
+| TEN-06 | Configuration inheritance | Settings inherit down the hierarchy (platform → tenant → environment → organization → sub-organization → application) | 1 |
 | TEN-07 | Environment promotion | Diff, promote dev → stage → prod, roll back | 2 |
 | TEN-08 | Entitlements & quotas | Plan-based feature gating, quotas and rate limits per tenant, all configurable | 1 |
 | TEN-09 | Tenant lifecycle | Provisioning API, suspend, export, delete with crypto-shredding | 1→4 |
 | TEN-10 | Self-service sign-up | Create tenant, choose region and plan, upgrade in-app | 2 |
+| TEN-11 | Override policies and merge rules | Per setting: `inherit`, `overridable`, `locked`; merge by most specific, strictest or intersection (1); `bounded` and `additive` policies, ceilings and union, set by parent admins for their descendants (2) | 1→2 |
+| TEN-12 | Effective-configuration view | Every setting's value and source (inherited, overridden, locked, template, shared); revert to inherited; diff against parent; API with `include=sources` | 1 |
+| TEN-13 | Shared library objects | Flows, themes, roles, SSO connections, connectors and policies owned by an ancestor and referenced by descendants; where-used, impact analysis, delete protection; secrets usable but never readable by children | 2 |
+| TEN-14 | Linked templates and push | Versioned templates; push modes automatic, staged (waves with health checks), opt-in with deadline, manual, forced (four-eyes); three-way conflict handling; drift reports; for organizations (2); partner → tenant templates and platform baselines (4) | 2→4 |
+| TEN-15 | Copy mode | Create a child as an independent copy of a template or another node, with "update available" notices | 2 |
+| TEN-16 | Allocation down the hierarchy | Parents allocate quotas and entitlements (users, AI usage, connections, features) to children within their own limits; usage roll-up | 4 |
 
 ## B. Identity & directory (`IDM`)
 
@@ -198,7 +204,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | ORG-03 | Per-org connections | Each organization brings its own SSO and SCIM | 2 |
 | ORG-04 | Self-service admin portal | A link the customer's IT admin opens to set up SSO and SCIM through guided wizards | 2 |
 | ORG-05 | Org policies | MFA, sessions, allowed login methods, IP allowlists per organization | 2 |
-| ORG-06 | Org hierarchy | Parent/child organizations, MSP and partner access | 4 |
+| ORG-06 | Org hierarchy | Nested organizations up to 10 levels with inherited settings and per-organization membership inheritance (2); MSP and partner access across organizations (4) | 2→4 |
 | ORG-07 | Multi-org membership | Organization switcher; tokens scoped to the active organization | 2 |
 | ORG-08 | Per-org data residency | Organization data pinned to a region | 5 |
 

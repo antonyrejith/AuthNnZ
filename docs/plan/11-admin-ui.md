@@ -29,18 +29,22 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 5. **History on every object.** Who changed what, when, from which channel
    and why, with a diff, one-click restore and an "as of" date picker to see
    the object at any past moment.
-6. **Reason prompts.** Sensitive actions (delete, impersonate, weaken a policy,
+6. **Inheritance badges.** Every setting shows where its value comes from
+   (*inherited from Acme*, *overridden here*, *locked by platform*, *from
+   template v4*, *shared*), with "revert to inherited" and a diff against the
+   parent ([15](15-hierarchy-and-shared-settings.md)).
+7. **Reason prompts.** Sensitive actions (delete, impersonate, weaken a policy,
    break-glass) ask for a reason and optional ticket reference, recorded in the
    audit log.
-7. **Environment switcher** (dev / stage / prod) always visible; production is
+8. **Environment switcher** (dev / stage / prod) always visible; production is
    color-coded and sensitive changes can require a second approver.
-8. **Permission-aware.** Admins only see and can only change what their admin
+9. **Permission-aware.** Admins only see and can only change what their admin
    role allows; read-only views show why something is locked (for example
    "enforced by platform policy").
-9. **Search and command palette** (`Ctrl/⌘ K`) across users, apps, settings and docs.
-10. **Accessible and international:** WCAG 2.2 AA, keyboard navigation, screen
+10. **Search and command palette** (`Ctrl/⌘ K`) across users, apps, settings and docs.
+11. **Accessible and international:** WCAG 2.2 AA, keyboard navigation, screen
    reader labels, 40+ languages, right-to-left layouts, light and dark themes.
-11. **Help in context:** each screen links to docs, quick-starts and example
+12. **Help in context:** each screen links to docs, quick-starts and example
     configurations.
 
 ## 3. Admin console: screen inventory
@@ -174,6 +178,11 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
 | Screen | What it shows or configures |
 |--------|-----------------------------|
+| **Hierarchy explorer** | Tree of partners, tenants, environments, organizations and sub-organizations; search; drift and override markers |
+| **Effective settings** | Any node's resolved settings with sources; diff against parent or template; revert overrides |
+| **Override policies** | Per setting, what descendants may do: inherit, override, bounded (limits), additive, locked |
+| **Shared library** | Objects shared with descendants; where-used; impact analysis before changes |
+| **Templates and push** | Template versions, linked children, push wizard (mode, waves, conflict rule, preview and simulation), live push status, rollback, drift report |
 | **Releases** | All drafts and published versions across the environment; diff; promote dev → stage → prod; approval queue; rollback; gradual rollout status; GitOps sync status |
 | Environments | Create and manage environments; data residency (read-only after creation) |
 | Admin team | Admins, admin roles (built-in and custom), scope per environment or organization, admin MFA requirements |
@@ -276,8 +285,8 @@ Versions are pinned exactly, per [08 §1](08-engineering-standards.md#1-version-
 
 | Phase | UI scope |
 |-------|----------|
-| 1 | Console shell and design system; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Permission catalog; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
-| 2 | Organizations; Organization admin portal; Account portal; Audit alerts; Access transparency; As-of views (configuration and identity); Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
+| 1 | Console shell and design system; inheritance badges; Effective settings; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Permission catalog; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
+| 2 | Organizations (nested); Hierarchy explorer; Override policies; Shared library; Templates and push; Organization admin portal; Account portal; Audit alerts; Access transparency; As-of views (configuration and identity); Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
 | 3 | Model editor; Relationships explorer; Policies; Playground; Decision logs; Access as-of |
 | 4 | Risk rules; Access reviews; Access requests and JIT; Consent and privacy; Reports; Retention and legal hold; Event streams; Support console; Platform console for resellers |
 | 5 | Industry-pack setup wizards; data residency and dedicated-cell views; self-hosted administration screens |

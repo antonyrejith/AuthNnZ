@@ -61,6 +61,7 @@ during Phase 0, in this order:
 | 0019 | Front-end architecture and design system | D-18 |
 | 0020 | Container images, Helm chart and release pipeline | D-20 |
 | 0021 | Database change capture and audit reconciliation | D-22, 0008 |
+| 0022 | Hierarchical configuration: override policies, merge rules, shared references, templates and push | 0003 |
 
 ## 3. ADR template
 
