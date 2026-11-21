@@ -159,8 +159,8 @@ All of these work without code; see [16 — Look & feel](16-look-and-feel.md).
 
 | Screen | What it configures |
 |--------|--------------------|
-| **Theme studio** | Brand kit, layouts, backgrounds, light/dark/high-contrast variants, with live preview of every screen on every device and language, and live contrast checks |
-| **Template gallery** | Ready-made themes and layouts, including industry-pack themes |
+| **Theme studio** | Brand kit, layouts, backgrounds, visual effects including glass (blur, transparency, tint, highlights), light/dark/high-contrast variants, with live preview of every screen on every device and language, and live contrast checks |
+| **Template gallery** | Built-in themes and effect presets (including glass) that combine freely; override any value; save and share your own templates |
 | **Screen builder** | Drag-and-drop blocks for every hosted screen, conditional visibility, reusable header and footer |
 | **Content and translations** | Click-to-edit text, languages, translation import and export, missing-translation report |
 | **Message designer** | Emails, SMS and push messages, with previews and test sends |

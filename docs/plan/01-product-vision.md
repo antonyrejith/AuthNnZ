@@ -120,7 +120,7 @@ the foundations stage (task PM-02 in the delivery plan). Vendors change offering
    (see [13](13-audit-and-change-tracking.md)).
 9. **Beautiful and brandable without code.** Every screen, email and portal
    can be made to match the customer's brand with point-and-click tools, live
-   previews and templates; web and native apps update without a release
+   previews, themes and effects such as glass; web and native apps update without a release
    (see [16](16-look-and-feel.md)).
 10. **Migration without pain.** Lazy migration plus importers for the major
    vendors, with password-hash compatibility, so users never reset passwords.
