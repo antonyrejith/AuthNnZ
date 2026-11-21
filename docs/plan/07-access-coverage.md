@@ -65,6 +65,12 @@ console flags any tenant that relies on them.
 
 ## 2. Authorization coverage
 
+Customers organize permissions in a **catalog of modules → components →
+actions** (for example UI, API, AI and MCP modules; see
+[14 §2.1](14-integration-and-enforcement.md#21-permission-catalog-module--component--action)).
+Where each level is enforced at runtime is described in
+[14 — Integration & enforcement](14-integration-and-enforcement.md).
+
 All levels below are expressed in **one model** and evaluated by **one engine**
 (see [04 §5](04-architecture.md#5-authorization-engine-design)), so they combine
 freely. For example: "Editors of a project may approve invoices up to their
@@ -95,7 +101,9 @@ never their own invoices."
 | 20 | **Time-bound / just-in-time** | Temporary access with approval and automatic expiry; break-glass | Production DB access for 2 hours after manager approval | Conditional tuples with expiry; access-request workflow | AUTHZ-15, GOV-05 |
 | 21 | **Entitlement / plan** | Features unlocked by the end customer's subscription | Only the "Pro" plan can export to PDF | Entitlement relations on the organization | AUTHZ-24 |
 | 22 | **Machine and agent** | Permissions of service accounts, API keys and AI agents | The billing worker may only write `invoice:*` | Same model, principal type `service` or `agent` | M2M-01, M2M-02, M2M-07 |
-| 23 | **Administrative** | Who can configure the platform itself, and where | Support staff can view users but not change policies | Built-in and custom admin roles, scoped to environment or organization | AUTHZ-27, IDM-13 |
+| 23 | **AI feature and tool** | Which AI features and model tiers a user may use; which tools the model may call for them; which documents retrieval may use | Assistant available to agents but refund tool only to finance managers; RAG never returns documents the user cannot open | Catalog permissions under the `ai` module; per-tool checks on behalf of the user; permission-filtered retrieval | AUTHZ-31 |
+| 24 | **MCP tool** | Which MCP tools a user and client may see and invoke, with argument conditions and approvals | `issue_refund` only up to 500, and only after the user approves on their phone | Catalog permissions under the `mcp` module; MCP guard; agent intersection rule | M2M-10, M2M-07 |
+| 25 | **Administrative** | Who can configure the platform itself, and where | Support staff can view users but not change policies | Built-in and custom admin roles, scoped to environment or organization | AUTHZ-27, IDM-13 |
 
 ### 2.1 How the levels combine in one decision
 

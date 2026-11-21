@@ -63,7 +63,8 @@ modern methods; basic RBAC works.
 **Scope:** TEN-01, 03 (pooled), 06, 08, 09 (basic) · IDM-01, 02, 03 (static),
 05, 07 (basic), 12 · AUTH-01, 03, 05, 06, 08, 09 (top 4 + generic) · FED-01 ·
 OAUTH-01 to 07 · SESS-01 to 04 · AUTHZ-01 (basic), 02, 06 (single), 17, 21 (direct
-grants), 14 (all decisions logged), 22, 25, 26 (basic), 27 (built-in roles) ·
+grants), 14 (all decisions logged), 22, 25, 26 (basic), 27 (built-in roles),
+29 (catalog), 32 ·
 ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
 10 · SEC-01, 02, 08 (basic), 09 · GOV-01, 10, 11, 12, 16, 18 (signed checkpoints),
 19 · UX-01, 03, 06 · DX-01,
@@ -82,8 +83,9 @@ ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
 
 **Scope:** TEN-04, 07, 10 · IDM-03 (dynamic), 04, 06, 07 (full), 08, 09, 11,
 13, 14 · AUTH-02, 04, 09 (full), 12, 17, 19, 20, 26 · FED-02 to 04, 06 to 10 ·
-OAUTH-08 to 11, 15, 18 · SESS-03 (Actions), 10 · AUTHZ-23, 27 (custom roles) ·
-ORG-02 to 05, 07 · M2M-02, 06 ·
+OAUTH-08 to 11, 15, 18 · SESS-03 (Actions), 10 · AUTHZ-23, 27 (custom roles),
+29 (full), 30, 31 (gating and tool calls), 33 (push invalidation) ·
+ORG-02 to 05, 07 · M2M-02, 06, 10 (MCP guard) ·
 DYN-02 (A/B), 03, 04, 06, 11 (YAML, Terraform), 12, 13 · SEC-03, 05, 06, 10,
 13 · GOV-02, 03, 07 (basic), 13 (configuration and identity), 14, 15, 17, 20 ·
 UX-02, 04, 05, 07 · DX-02 (second wave), 03, 04,
@@ -103,7 +105,8 @@ IND-01, 02
 authorization vendors.
 
 **Scope:** AUTHZ-01 (full DSL + visual editor), 03 to 10, 12 (sidecar), 14, 18,
-21 (explicit deny), 26 (full, with explain) · GOV-13 (relationships, access-as-of)
+21 (explicit deny), 26 (full, with explain), 31 (RAG filtering), 33 (measured
+per tenant) · GOV-13 (relationships, access-as-of)
 
 **Exit criteria:**
 - AuthZEN interoperability tests passing
@@ -117,7 +120,7 @@ authorization vendors.
 
 **Scope:** TEN-02, 09 (crypto-shredding) · IDM-10, 16 · AUTH-07, 13, 18, 22,
 23, 25, 29 · FED-13 · OAUTH-13, 16 · SESS-05 to 07 · AUTHZ-11, 12 (WASM,
-library), 13, 15, 16, 19, 24, 28 · ORG-06 · M2M-03, 07 · DYN-08, 11 (Pulumi, operator) · SEC-04, 07,
+library), 13, 15, 16, 19, 24, 28 · ORG-06 · M2M-03, 07, 10 (MCP gateway) · DYN-08, 11 (Pulumi, operator) · SEC-04, 07,
 08 (per-tenant keys), 11 · GOV-04 to 09, 18 (RFC 3161 anchoring) · UX-08 · OPS-02,
 03 · MIG-01 (all importers), 03 · IND-09, 11
 

@@ -183,6 +183,11 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTHZ-26 | Effective permissions | Per user or resource: every permission and its source (direct, role, group, org, relationship, delegation); basic (1), with explain and relationships (3) | 1→3 |
 | AUTHZ-27 | Admin roles | Built-in roles for console and Management API: Owner, Admin, Developer, Security admin, Support, Auditor, Billing (1); custom admin roles scoped to environment or organization (2) | 1→2 |
 | AUTHZ-28 | User-to-user delegation | Assistant, proxy and power-of-attorney access; time-bound and revocable | 4 |
+| AUTHZ-29 | Permission catalog | Modules (UI, API, AI, MCP, data, custom) → components → actions; `module:component:action` keys, wildcards, conditions; roles pick permissions by module (1); nested components and wildcard impact view (2). See [14](14-integration-and-enforcement.md) | 1→2 |
+| AUTHZ-30 | Component import and drift detection | Import components from OpenAPI documents, MCP tool lists and UI manifests; SDKs report permission keys used in code but missing from the catalog | 2 |
+| AUTHZ-31 | AI authorization | Feature and model-tier gating, per-tool checks for model tool calls on behalf of the user, usage quotas per role and organization (2); permission-filtered RAG retrieval for vector and search stores (3) | 2→3 |
+| AUTHZ-32 | Decision reporting from enforcement points | SDK middleware, guards and sidecars report every decision (including checks answered from token claims) to the audit trail | 1 |
+| AUTHZ-33 | Change propagation | Push invalidation of SDK caches and UI permission snapshots, sidecar sync; targets: PDP immediate, sidecars 5 s, SDK caches 30 s (2); measured and alerted per tenant (3) | 2→3 |
 
 ## H. B2B organizations (`ORG`)
 
@@ -210,6 +215,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | M2M-07 | Agent identities | First-class agent principals; on-behalf-of delegation (`act` claim); scoped, time-boxed, revocable | 4 |
 | M2M-08 | Human-in-the-loop approvals | CIBA or push approval before an agent performs a sensitive action | 5 |
 | M2M-09 | Agent oversight | Agent activity audit, anomaly detection, kill switch | 5 |
+| M2M-10 | MCP guard | For customers' MCP servers: token verification, `tools/list` filtered to permitted tools, per-tool and argument-level checks, human approval and step-up for sensitive tools, agent intersection rule (2); MCP gateway in front of many servers (4) | 2→4 |
 
 ## J. Dynamic engines & extensibility (`DYN`)
 

@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (225), with an ID and a delivery phase |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (231), with an ID and a delivery phase |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -34,6 +34,7 @@ engineering plan. Code follows once the decisions in
 | 11 | [User interfaces & configuration screens](docs/plan/11-admin-ui.md) | Every screen in the admin console, organization portal, account portal and hosted login |
 | 12 | [Containers & deployment](docs/plan/12-containers-and-deployment.md) | Images, local development, Kubernetes, release pipeline, environments, self-hosted packaging |
 | 13 | [Audit & change tracking](docs/plan/13-audit-and-change-tracking.md) | 100% audit: what is recorded, completeness guarantees, record format, tamper evidence, history and as-of views, retention |
+| 14 | [Integration & enforcement](docs/plan/14-integration-and-enforcement.md) | How a B2B customer uses it: where authentication happens, where UI, API, AI and MCP permissions are enforced, permission catalog, agents |
 
 **Delivery**
 

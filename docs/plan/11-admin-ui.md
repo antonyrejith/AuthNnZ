@@ -114,6 +114,7 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
 | Screen | What it configures |
 |--------|--------------------|
+| **Permission catalog** | Modules (UI, API, AI, MCP, data, custom) as a tree of components and actions; import from OpenAPI, MCP tool lists and UI manifests; diff on re-import; "used in code but not in catalog" report; wildcard impact |
 | **Roles and permissions** | Simple RBAC: permissions per API, roles as checklists of permissions, role inheritance, default roles; a role × permission matrix view |
 | Role assignments | Assign roles to users, groups and organization members, with optional expiry |
 | **Model editor** | Resource types, relations and permissions in the DSL with a live graph view; templates (SaaS RBAC, document sharing, org/team/repo, healthcare, banking) |
@@ -275,7 +276,7 @@ Versions are pinned exactly, per [08 §1](08-engineering-standards.md#1-version-
 
 | Phase | UI scope |
 |-------|----------|
-| 1 | Console shell and design system; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
+| 1 | Console shell and design system; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Permission catalog; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
 | 2 | Organizations; Organization admin portal; Account portal; Audit alerts; Access transparency; As-of views (configuration and identity); Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
 | 3 | Model editor; Relationships explorer; Policies; Playground; Decision logs; Access as-of |
 | 4 | Risk rules; Access reviews; Access requests and JIT; Consent and privacy; Reports; Retention and legal hold; Event streams; Support console; Platform console for resellers |
