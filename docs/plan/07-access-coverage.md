@@ -2,8 +2,8 @@
 
 This document answers two questions: **is every type of authentication
 planned?** and **is every level of authorization planned?** Each row points to
-the feature IDs in the [feature catalog](02-feature-catalog.md), where the
-delivery phase is recorded.
+the feature IDs in the [feature catalog](02-feature-catalog.md). Every item is
+part of the first release.
 
 ## 1. Authentication coverage
 
@@ -145,19 +145,19 @@ This review found authentication and authorization types that were implied but
 not listed as features. They are now in the [feature catalog](02-feature-catalog.md)
 and the [roadmap](05-roadmap-and-delivery.md):
 
-| ID | Added capability | Phase |
-|----|------------------|-------|
-| AUTH-25 | Mobile device binding with app PIN or biometric unlock | 4 |
-| AUTH-26 | Google One Tap, FedCM, native social token exchange | 2 |
-| AUTH-27 | Hardware OATH tokens with PSKC seed import | 5 |
-| AUTH-28 | Legacy compatibility (security questions for migration, ROPC, implicit), off by default | 5 |
-| AUTH-29 | Regional social providers | 4 |
-| SESS-10 | BFF token handler for SPAs; server-side sessions for web apps | 2 |
-| AUTHZ-21 | Direct user permissions and explicit deny | 1→3 |
-| AUTHZ-22 | Roles assigned to groups (nested groups) | 1 |
-| AUTHZ-23 | UI / feature-level authorization helpers | 2 |
-| AUTHZ-24 | Product entitlements (plan-based features) for customers' apps | 4 |
-| AUTHZ-25 | API endpoint authorization middleware in SDKs | 1 |
-| AUTHZ-26 | Effective-permissions viewer with sources | 1→3 |
-| AUTHZ-27 | Admin roles for console and Management API (built-in, then custom) | 1→2 |
-| AUTHZ-28 | User-to-user delegation (assistant, proxy, power of attorney) | 4 |
+| ID | Added capability |
+|----|------------------|
+| AUTH-25 | Mobile device binding with app PIN or biometric unlock |
+| AUTH-26 | Google One Tap, FedCM, native social token exchange |
+| AUTH-27 | Hardware OATH tokens with PSKC seed import |
+| AUTH-28 | Legacy compatibility (security questions for migration, ROPC, implicit), off by default |
+| AUTH-29 | Regional social providers |
+| SESS-10 | BFF token handler for SPAs; server-side sessions for web apps |
+| AUTHZ-21 | Direct user permissions and explicit deny |
+| AUTHZ-22 | Roles assigned to groups (nested groups) |
+| AUTHZ-23 | UI / feature-level authorization helpers |
+| AUTHZ-24 | Product entitlements (plan-based features) for customers' apps |
+| AUTHZ-25 | API endpoint authorization middleware in SDKs |
+| AUTHZ-26 | Effective-permissions viewer with sources |
+| AUTHZ-27 | Admin roles for console and Management API (built-in, then custom) |
+| AUTHZ-28 | User-to-user delegation (assistant, proxy, power of attorney) |

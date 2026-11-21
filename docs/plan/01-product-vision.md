@@ -90,7 +90,7 @@ same engines.
 | Authorization only | AuthZed (SpiceDB), Okta FGA / OpenFGA, Permit.io, Cerbos, Oso, Aserto/Topaz | Need a separate identity provider; two audit trails and two SDKs |
 
 Validate this table with a detailed competitor feature and pricing teardown in
-Phase 0 (task PM-02 in the roadmap). Vendors change offerings quickly.
+the foundations stage (task PM-02 in the delivery plan). Vendors change offerings quickly.
 
 ## 6. Differentiators
 
@@ -145,8 +145,8 @@ Phase 0 (task PM-02 in the roadmap). Vendors change offerings quickly.
 - Add-ons: advanced security, governance, industry packs, data residency
   regions, dedicated cell, HSM, premium SLA and support
 
-Set price points after market research in Phase 0. Usage metering is built from
-Phase 1 so any pricing model can be applied later; this is a dynamic,
+Set price points after market research during the foundations stage. Usage
+metering is built in from the start, so any pricing model can be applied; this is a dynamic,
 configurable rate plan in itself.
 
 ## 8. Go-to-market notes
@@ -169,6 +169,6 @@ configurable rate plan in itself.
 | Data plane availability | ≥ 99.99% monthly |
 | Login p99 latency (in-region, excluding external IdPs) | < 300 ms end-to-end server time |
 | Authorization check p99 (central / edge) | < 10 ms / < 1 ms |
-| Free → paid conversion | Set after beta baseline |
+| Free → paid conversion | Set from the design-partner baseline |
 | Net revenue retention | ≥ 120% (expansion through MAU, orgs, add-ons) |
 | Security | Zero critical vulnerabilities open longer than 7 days |

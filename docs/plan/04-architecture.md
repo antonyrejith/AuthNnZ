@@ -405,11 +405,10 @@ when { context.risk.score >= 80 };
 
 - **Relationship engine:** build on an embeddable, Apache-2.0 Zanzibar
   implementation (OpenFGA or SpiceDB) behind our own interface, or write our
-  own. A Phase 0 spike decides (decision D-05). Our DSL stays ours either way,
+  own. A spike in the foundations stage decides (decision D-05). Our DSL stays ours either way,
   so the engine can be swapped later.
 - **Policy engine:** Cedar (`cedar-go`) for guardrails. It is analyzable
-  (we can prove "this change only narrows access"), fast and sandboxed. OPA/Rego
-  import is a later option for customers who already use it.
+  (we can prove "this change only narrows access"), fast and sandboxed. Customers who already use OPA can import their Rego policies (AUTHZ-20).
 - **Expressions:** CEL (`cel-go`), shared with the flow engine.
 
 ### 5.4 Performance and consistency
@@ -421,7 +420,7 @@ when { context.risk.score >= 80 };
 - Edge PDP subscribes to model, policy and tuple changes (a tenant-filtered
   watch stream) and answers locally. On a miss it falls back to the central PDP.
 - Batch evaluation and search use the same engine; very large "list objects"
-  queries move to precomputed materialized permission indexes (Phase 4).
+  queries use precomputed materialized permission indexes.
 
 ## 6. Multi-tenancy and isolation
 
@@ -446,7 +445,7 @@ when { context.risk.score >= 80 };
 
 | Store | Use | Notes |
 |-------|-----|-------|
-| PostgreSQL | System of record: identities, credentials, organizations, applications, relationships, sessions (durable), configuration | Per cell; synchronous replica in-region; tenant-scoped RLS; distributed SQL (CockroachDB or YugabyteDB) evaluated in Phase 5 for global active-active |
+| PostgreSQL | System of record: identities, credentials, organizations, applications, relationships, sessions (durable), configuration | Per cell; synchronous replica in-region; tenant-scoped RLS; distributed SQL (CockroachDB or YugabyteDB) for tenants that need global active-active (D-11) |
 | Valkey / Redis | Hot sessions, OTPs, rate-limit counters, flow transactions, caches | Ephemeral data only; loss tolerable |
 | Event bus | Outbox events, cache invalidation, bundle notifications, webhooks, audit pipeline | NATS JetStream (light, runs on-prem and at the edge); Kafka sinks for customer streaming |
 | Object storage | Bundles, imports/exports, branding assets, audit archives | S3-compatible |
@@ -492,7 +491,7 @@ All IDs are prefixed, sortable identifiers (for example `usr_01JD…`,
   database transaction; a relay publishes to the bus. Delivery is at least once,
   and consumers deduplicate.
 - **Event schema:** CloudEvents envelope; audit payloads mapped to OCSF.
-- **100% audit (Phase 1):** every change is audited in the same transaction
+- **100% audit (built in from the foundations):** every change is audited in the same transaction
   (fail closed); a write-ahead-log reconciler proves no change escaped; a
   per-tenant gapless sequence, hash chain and KMS-signed checkpoints make loss or
   tampering detectable. Full design: [13 — Audit & change tracking](13-audit-and-change-tracking.md).
@@ -539,8 +538,8 @@ Cloud KMS / HSM root key (never leaves the KMS)
 Threat model per epic; security champion in every team; SAST, DAST, SCA and
 secret scanning in CI; fuzzing of every parser (JWT, SAML/XML, SCIM filters,
 CEL inputs, DSL); OpenID, FIDO and SAML conformance suites in CI; external
-penetration test before beta, before GA and then twice a year; public bug
-bounty from GA. Coding rules are in [08 §3.8](08-engineering-standards.md#38-security-rules)
+penetration tests in two rounds during hardening, before GA, and then twice a
+year; a private bug bounty before GA and a public one from GA. Coding rules are in [08 §3.8](08-engineering-standards.md#38-security-rules)
 and the test approach in [09](09-testing-strategy.md).
 
 ## 9. API design

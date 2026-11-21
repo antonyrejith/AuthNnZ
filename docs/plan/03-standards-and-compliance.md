@@ -2,82 +2,84 @@
 
 Standards conformance is a product feature: it lets customers integrate
 anything and leave whenever they want, and it is what regulated buyers check
-first. Each standard has a target phase (see [roadmap](05-roadmap-and-delivery.md))
-and, where one exists, a certification we will pursue.
+first. Every standard listed here is implemented in the first release (see the
+[delivery plan](05-roadmap-and-delivery.md)), together with the certification
+we will pursue where one exists. Standards still in draft are implemented at
+their current draft and updated when they become final.
 
 ## 1. Identity protocol standards
 
 ### 1.1 OAuth 2.x (IETF)
 
-| Standard | Purpose | Phase |
-|----------|---------|-------|
-| RFC 6749 / 6750 | OAuth 2.0 framework and bearer tokens | 1 |
-| OAuth 2.1 (draft) | Consolidated baseline: PKCE everywhere, no implicit or password grant | 1 |
-| RFC 7636 | PKCE | 1 |
-| RFC 8414 | Authorization server metadata | 1 |
-| RFC 7662 / 7009 | Token introspection / revocation | 1 |
-| RFC 9068 | JWT profile for access tokens | 1 |
-| RFC 8707 | Resource indicators | 1 |
-| RFC 9207 | Authorization server issuer identification (mix-up defense) | 1 |
-| RFC 9700 | OAuth 2.0 Security Best Current Practice | 1 (design baseline) |
-| RFC 8252 | OAuth for native apps | 2 |
-| RFC 7591 / 7592 | Dynamic client registration and management | 2 |
-| RFC 8628 | Device authorization grant | 2 |
-| RFC 8693 | Token exchange | 2 |
-| RFC 7521 / 7522 / 7523 | Assertion framework; SAML and JWT bearer grants | 2 |
-| RFC 9126 | Pushed authorization requests (PAR) | 2 |
-| RFC 9470 | Step-up authentication challenge | 2 |
-| RFC 9728 | Protected resource metadata (used by MCP) | 2 |
-| OAuth client ID metadata document (draft) | URL-based client IDs (used by MCP) | 2 |
-| RFC 9449 | DPoP | 4 |
-| RFC 8705 | Mutual-TLS client authentication and certificate-bound tokens | 4 |
-| RFC 9101 | JWT-secured authorization request (JAR) | 5 |
-| RFC 9396 | Rich authorization requests (RAR) | 5 |
-| Transaction tokens (draft) | Call-chain tokens inside microservice meshes | 6 |
-| Token status list (draft) | Revocation status for JWT/SD-JWT tokens and credentials | 6 |
+| Standard | Purpose |
+|----------|---------|
+| RFC 6749 / 6750 | OAuth 2.0 framework and bearer tokens |
+| OAuth 2.1 (draft) | Consolidated baseline: PKCE everywhere, no implicit or password grant |
+| RFC 7636 | PKCE |
+| RFC 8414 | Authorization server metadata |
+| RFC 7662 / 7009 | Token introspection / revocation |
+| RFC 9068 | JWT profile for access tokens |
+| RFC 8707 | Resource indicators |
+| RFC 9207 | Authorization server issuer identification (mix-up defense) |
+| RFC 9700 | OAuth 2.0 Security Best Current Practice |
+| RFC 8252 | OAuth for native apps |
+| RFC 7591 / 7592 | Dynamic client registration and management |
+| RFC 8628 | Device authorization grant |
+| RFC 8693 | Token exchange |
+| RFC 7521 / 7522 / 7523 | Assertion framework; SAML and JWT bearer grants |
+| RFC 9126 | Pushed authorization requests (PAR) |
+| RFC 9470 | Step-up authentication challenge |
+| RFC 9728 | Protected resource metadata (used by MCP) |
+| OAuth client ID metadata document (draft) | URL-based client IDs (used by MCP) |
+| RFC 9449 | DPoP |
+| RFC 8705 | Mutual-TLS client authentication and certificate-bound tokens |
+| RFC 9101 | JWT-secured authorization request (JAR) |
+| RFC 9396 | Rich authorization requests (RAR) |
+| Transaction tokens (draft) | Call-chain tokens inside microservice meshes |
+| Token status list (draft) | Revocation status for JWT/SD-JWT tokens and credentials |
 
 ### 1.2 JOSE / JWT (IETF)
 
 RFC 7515 (JWS), 7516 (JWE), 7517 (JWK), 7518 (JWA), 7519 (JWT), 7638 (JWK
-thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5).
+thumbprint), 8037 (EdDSA), 8725 (JWT best current practices).
 
 ### 1.3 OpenID Foundation
 
-| Specification | Purpose | Phase | Certification |
-|---------------|---------|-------|---------------|
-| OpenID Connect Core 1.0, Discovery, Dynamic Registration | Identity layer | 1→2 | OpenID Certified (Basic, Config, Dynamic and Form Post OP profiles) |
-| RP-Initiated, Front-Channel, Back-Channel Logout; Session Management | Logout and session | 2 | OpenID Certified logout profiles |
-| JARM | Signed authorization responses | 5 | — |
-| CIBA Core | Decoupled authentication | 5 | OpenID Certified FAPI-CIBA |
-| FAPI 1.0 Advanced, FAPI 2.0 Security Profile, FAPI 2.0 Message Signing | Financial-grade APIs | 5 | OpenID Certified FAPI |
-| Grant Management for OAuth 2.0 | Consent lifecycle (open banking) | 5 | — |
-| Shared Signals Framework, CAEP, RISC | Continuous access evaluation and account-security signals | 4 | SSF interop events |
-| AuthZEN Authorization API 1.0 | Standard PEP ↔ PDP interface | 3 | AuthZEN interop |
-| OpenID Connect for Identity Assurance | Verified claims (KYC) | 5 | — |
-| OpenID4VCI / OpenID4VP | Issue and verify verifiable credentials | 6 | — |
-| OpenID Federation 1.0 | Multilateral trust | 6 | — |
-| IPSIE (in progress) | Interoperability profile for enterprise identity (SSO, lifecycle, sessions, signals) | Track; adopt as published | — |
+| Specification | Purpose | Certification |
+|---------------|---------|---------------|
+| OpenID Connect Core 1.0, Discovery, Dynamic Registration | Identity layer | OpenID Certified (Basic, Config, Dynamic and Form Post OP profiles) |
+| RP-Initiated, Front-Channel, Back-Channel Logout; Session Management | Logout and session | OpenID Certified logout profiles |
+| JARM | Signed authorization responses | — |
+| CIBA Core | Decoupled authentication | OpenID Certified FAPI-CIBA |
+| FAPI 1.0 Advanced, FAPI 2.0 Security Profile, FAPI 2.0 Message Signing | Financial-grade APIs | OpenID Certified FAPI |
+| Grant Management for OAuth 2.0 | Consent lifecycle (open banking) | — |
+| Shared Signals Framework, CAEP, RISC | Continuous access evaluation and account-security signals | SSF interop events |
+| AuthZEN Authorization API 1.0 | Standard PEP ↔ PDP interface | AuthZEN interop |
+| OpenID Connect for Identity Assurance | Verified claims (KYC) | — |
+| OpenID4VCI / OpenID4VP | Issue and verify verifiable credentials | — |
+| OpenID Federation 1.0 | Multilateral trust | — |
+| IPSIE (in progress) | Interoperability profile for enterprise identity (SSO, lifecycle, sessions, signals) | — |
 
 ### 1.4 Other identity standards
 
-| Standard | Body | Phase |
-|----------|------|-------|
-| SAML 2.0 (Web SSO, SLO, metadata, HTTP-Redirect/POST/Artifact bindings) | OASIS | 2 |
-| SCIM 2.0 (RFC 7642 / 7643 / 7644) + Enterprise User extension | IETF | 2 |
-| LDAP v3 (RFC 4511) | IETF | 2 |
-| WebAuthn Level 3; CTAP 2.x; FIDO Metadata Service (MDS3) | W3C / FIDO Alliance | 1 |
-| TOTP (RFC 6238), HOTP (RFC 4226) | IETF | 1 |
-| WS-Federation 1.2 | OASIS | 5 |
-| Kerberos (RFC 4120), SPNEGO (RFC 4559) | IETF | 5 |
-| RADIUS (RFC 2865) | IETF | 5 |
-| X.509 / PKIX (RFC 5280), OCSP (RFC 6960) | IETF | 5 |
-| SPIFFE / SVID | CNCF | 5 |
-| UMA 2.0 | Kantara | 5 (healthcare pack) |
-| SMART App Launch v2 (on FHIR) | HL7 | 5 |
-| LTI 1.3 | 1EdTech | 5 |
-| SD-JWT and SD-JWT VC; ISO/IEC 18013-5 / 18013-7 (mDL) | IETF / ISO | 6 |
-| XACML 3.0 (import and compatibility only) | OASIS | 6 |
-| Model Context Protocol authorization | MCP specification | 2 |
+| Standard | Body |
+|----------|------|
+| SAML 2.0 (Web SSO, SLO, metadata, HTTP-Redirect/POST/Artifact bindings) | OASIS |
+| SCIM 2.0 (RFC 7642 / 7643 / 7644) + Enterprise User extension | IETF |
+| LDAP v3 (RFC 4511) | IETF |
+| WebAuthn Level 3; CTAP 2.x; FIDO Metadata Service (MDS3) | W3C / FIDO Alliance |
+| TOTP (RFC 6238), HOTP (RFC 4226) | IETF |
+| WS-Federation 1.2 | OASIS |
+| Kerberos (RFC 4120), SPNEGO (RFC 4559) | IETF |
+| RADIUS (RFC 2865) | IETF |
+| X.509 / PKIX (RFC 5280), OCSP (RFC 6960) | IETF |
+| SPIFFE / SVID | CNCF |
+| UMA 2.0 | Kantara |
+| SMART App Launch v2 (on FHIR) | HL7 |
+| LTI 1.3 | 1EdTech |
+| SD-JWT and SD-JWT VC; ISO/IEC 18013-5 / 18013-7 (mDL) | IETF / ISO |
+| XACML 3.0 (import and compatibility only) | OASIS |
+| Model Context Protocol authorization | MCP specification |
 
 ### 1.5 Integration and operations standards
 
@@ -107,13 +109,13 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 
 ## 2. Assurance frameworks
 
-| Framework | What we implement | Phase |
-|-----------|-------------------|-------|
-| NIST SP 800-63-4 | IAL1–2 (with proofing providers), AAL1–3, FAL1–3; assurance levels exposed in `acr` and policy context | 2→5 |
-| eIDAS 2.0 / EU Digital Identity Wallet | Low, substantial and high levels of assurance; wallet presentation | 6 |
-| ISO/IEC 29115 | Entity authentication assurance mapping | 5 |
-| PSD2 RTS on SCA | Two independent factors, dynamic linking, exemptions engine | 5 |
-| Zero Trust (NIST SP 800-207) | Continuous evaluation, device and risk signals, least privilege | 4 |
+| Framework | What we implement |
+|-----------|-------------------|
+| NIST SP 800-63-4 | IAL1–2 (with proofing providers), AAL1–3, FAL1–3; assurance levels exposed in `acr` and policy context |
+| eIDAS 2.0 / EU Digital Identity Wallet | Low, substantial and high levels of assurance; wallet presentation |
+| ISO/IEC 29115 | Entity authentication assurance mapping |
+| PSD2 RTS on SCA | Two independent factors, dynamic linking, exemptions engine |
+| Zero Trust (NIST SP 800-207) | Continuous evaluation, device and risk signals, least privilege |
 
 ## 3. Regulations: requirement → platform capability
 
@@ -134,19 +136,18 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 
 ## 4. Company certifications and attestations
 
-| Certification | Target | Notes |
-|---------------|--------|-------|
-| SOC 2 Type I | At public GA (about week 36) | Controls designed from Phase 0 |
-| SOC 2 Type II | End of Phase 4 (about week 56) | First observation window of 3 months starts at GA; then annual 12-month windows; continuous evidence through a compliance-automation tool |
-| ISO/IEC 27001:2022 | Phase 4 | Add 27017 (cloud), 27018 (PII in cloud), 27701 (privacy) |
-| HIPAA attestation + BAA | Phase 4 | Required for the healthcare pack |
-| PCI DSS service provider | Phase 5 | If tenants place us in cardholder-data scope |
-| CSA STAR Level 2 | Phase 5 | Cloud trust signal |
-| OpenID Certified | Phases 1–5, per profile | Run the OpenID conformance suite in CI from Phase 1 |
-| FIDO Certified (server) | Phase 2 | Passkey credibility |
-| FIPS 140-3 validated crypto | Phase 5 | Use a validated module |
-| FedRAMP Moderate | Phase 6+ | Long lead time; needs a dedicated government environment |
-| Regional schemes (C5, ENS, IRAP, MeitY empanelment) | On demand | Driven by sales pipeline |
+| Certification | Target (weeks from kickoff) | Notes |
+|---------------|-----------------------------|-------|
+| SOC 2 Type I | Week 64 (start of hardening) | Controls designed and operating from the foundations stage |
+| SOC 2 Type II | At GA (week 90) | 3-month observation window during hardening; then annual 12-month windows; continuous evidence through a compliance-automation tool |
+| ISO/IEC 27001:2022 | At GA | Add 27017 (cloud), 27018 (PII in cloud), 27701 (privacy) |
+| HIPAA attestation + BAA | At GA | Required for the healthcare pack |
+| PCI DSS service provider | At GA | If tenants place us in cardholder-data scope |
+| CSA STAR Level 2 | At GA | Cloud trust signal; builds on SOC 2 and ISO 27001 |
+| OpenID Certified | Before GA, every profile | The OpenID conformance suite runs in CI from the first weeks |
+| FIDO Certified (server) | Before GA | Passkey credibility |
+| FIPS 140-3 validated crypto | At GA | FIPS mode uses a validated cryptographic module |
+| FedRAMP Moderate | Readiness at GA; authorization after GA | Authorization is an external government process that typically takes a year or more; it needs a dedicated government environment |
 
 ## 5. Industry packs
 

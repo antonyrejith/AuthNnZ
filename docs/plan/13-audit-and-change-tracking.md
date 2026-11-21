@@ -6,8 +6,8 @@ every action by our own staff and systems is recorded. It answers who, what,
 when, where, how and why. It cannot be altered without detection, and it can be
 proven complete.
 
-This is a Phase 1 capability, not a later add-on: completeness and tamper
-evidence are very hard to retrofit.
+Audit is built into the foundations, before any feature: completeness and
+tamper evidence are very hard to retrofit.
 
 ## 1. What "100% audit" covers
 
@@ -179,8 +179,8 @@ flowchart LR
   `hash = SHA-256(prev_hash ‖ JCS(event))`, using the JSON Canonicalization
   Scheme (RFC 8785) so the hash does not depend on field order.
 - **Checkpoints:** every minute, a Merkle root over the new events is signed
-  with a KMS key (a "signed tree head", as in Certificate Transparency). From
-  Phase 4, checkpoints are also timestamped by an external RFC 3161 timestamp
+  with a KMS key (a "signed tree head", as in Certificate Transparency). Checkpoints
+  are also timestamped by an external RFC 3161 timestamp
   authority, so even we cannot rewrite history without detection.
 - **Storage is append-only:** ClickHouse tables have no update or delete
   grants for any application role; the archive uses object storage in
@@ -227,7 +227,7 @@ when each fact became valid and when it stopped being valid.
 - **Volume:** full authorization-decision logging is the largest cost. At the
   target of 200,000 checks per second, a busy cell produces about 17 billion
   decision events a day; with columnar compression that is roughly 0.5–1 TB a
-  day (to be measured in Phase 3 load tests). Mitigations: short hot retention
+  day (to be measured in load tests). Mitigations: short hot retention
   for allow-decisions with archive to compressed Parquet, and pricing of long
   hot retention as an add-on. Changes and authentication events are a small
   fraction of that volume.
@@ -276,22 +276,22 @@ access without an approved request").
 | SOX | Change control and access reviews over financial systems | §5, GOV-04 |
 | DORA, NIS2 | ICT logging, incident evidence | §4, §7 |
 
-## 10. Feature IDs and phases
+## 10. Feature IDs
 
-| ID | Capability | Phase |
-|----|-----------|-------|
-| GOV-01 | Audit log with OCSF mapping, per-tenant hash chain, append-only storage, retention | 1 |
-| GOV-10 | History tab with diff and restore on every object | 1 |
-| GOV-11 | Complete change capture across all channels with field-level diffs | 1 |
-| GOV-12 | Database change capture and reconciliation; unaudited-change alerts | 1 |
-| GOV-16 | Auditing of audit-log access | 1 |
-| GOV-18 | Integrity verification API and CLI, signed checkpoints (1); external RFC 3161 anchoring (4) | 1→4 |
-| GOV-19 | Platform and infrastructure audit trail | 1 |
-| AUTHZ-14 | Every authorization decision logged by default, with durable spool and strict mode | 1→3 |
-| GOV-13 | Point-in-time views: configuration and identity data (2); relationships and full access-as-of (3) | 2→3 |
-| GOV-14 | Audit alert rules | 2 |
-| GOV-15 | Access transparency for our staff's access | 2 |
-| GOV-17 | Customer-owned write-once audit copy | 2 |
-| GOV-20 | Reasons, ticket references and approval records on changes | 2 |
-| GOV-02 | Streaming to SIEMs | 2 |
-| GOV-09 | Legal hold and retention policies per data class | 4 |
+| ID | Capability |
+|----|-----------|
+| GOV-01 | Audit log with OCSF mapping, per-tenant hash chain, append-only storage, retention |
+| GOV-10 | History tab with diff and restore on every object |
+| GOV-11 | Complete change capture across all channels with field-level diffs |
+| GOV-12 | Database change capture and reconciliation; unaudited-change alerts |
+| GOV-16 | Auditing of audit-log access |
+| GOV-18 | Integrity verification API and CLI, signed checkpoints, external RFC 3161 anchoring |
+| GOV-19 | Platform and infrastructure audit trail |
+| AUTHZ-14 | Every authorization decision logged by default, with durable spool and strict mode |
+| GOV-13 | Point-in-time views of configuration, identity data, relationships and full access-as-of |
+| GOV-14 | Audit alert rules |
+| GOV-15 | Access transparency for our staff's access |
+| GOV-17 | Customer-owned write-once audit copy |
+| GOV-20 | Reasons, ticket references and approval records on changes |
+| GOV-02 | Streaming to SIEMs |
+| GOV-09 | Legal hold and retention policies per data class |

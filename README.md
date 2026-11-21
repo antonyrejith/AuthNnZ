@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (237), with an ID and a delivery phase |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (237), with an ID and its owning workstream; all ship in the first release |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -41,7 +41,7 @@ engineering plan. Code follows once the decisions in
 
 | # | Document | Answers |
 |---|----------|---------|
-| 5 | [Roadmap & delivery](docs/plan/05-roadmap-and-delivery.md) | Phases, milestones, exit criteria, team, risks |
+| 5 | [Delivery plan: one release](docs/plan/05-roadmap-and-delivery.md) | Timeline, workstreams and team, build order, integration checkpoints, GA criteria, risks |
 | 6 | [Decisions & ADR backlog](docs/plan/06-decisions.md) | What must be decided now, with a recommendation for each |
 
 ---
@@ -83,17 +83,21 @@ on either side.
 - Signed, minimal container images; Helm on Kubernetes with GitOps and canary
   releases; the same images for SaaS, customer cloud and air-gapped installs.
 
-**Delivery (indicative; team of about 14 growing to about 36; weeks from kickoff):**
+**Delivery: one release, everything included** (indicative; weeks from kickoff):
 
-| Phase | Weeks | Outcome |
+All 237 features ship together at GA; nothing is split into phases. Thirteen
+workstreams (about 64 engineers, about 89 people in total) build in parallel,
+with an integration checkpoint every six weeks and design partners testing
+pre-release builds.
+
+| Stage | Weeks | Outcome |
 |-------|-------|---------|
-| 0. Foundations | 0–6 | Decisions, skeleton, CI/CD, threat model, core libraries |
-| 1. Core AuthN MVP | 6–22 | OIDC/OAuth 2.1 provider, passwords, passkeys, MFA, social login, RBAC, console, hosted login. **Private beta** |
-| 2. Enterprise & B2B | 20–36 | Organizations, SAML, SCIM, LDAP/AD, flow designer, Actions, MCP auth. **Public GA** |
-| 3. Fine-grained AuthZ | 24–40 | ReBAC + ABAC + Cedar policies, AuthZEN API, simulation, edge PDP |
-| 4. Security & governance | 36–56 | Risk engine, adaptive MFA, Shared Signals, access reviews, SOC 2 Type II, ISO 27001 |
-| 5. Regulated & global | 52–78 | FAPI 2.0, CIBA, open banking, healthcare, government packs, multi-region, self-hosted edition |
-| 6. Expansion | 78+ | Verifiable credentials and wallets, OpenID Federation, post-quantum readiness, advanced IGA |
+| Foundations | 0–8 | Decisions, repository, CI/CD, core libraries (tenancy, configuration, audit, crypto), spikes, hiring ramp |
+| Parallel build | 8–64 | All workstreams build their catalog sections; checkpoint every 6 weeks |
+| Hardening and certification | 64–80 | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
+| Release candidate | 80–90 | Design partners run the release candidate; fixes only |
+| **GA** | **90 (about 21 months)** | **All 237 features, every deployment model, every industry pack** |
 
-**Next step:** confirm decisions D-01 to D-08 in
-[`06-decisions.md`](docs/plan/06-decisions.md), then start Phase 0.
+**Next step:** confirm the open decisions in
+[`06-decisions.md`](docs/plan/06-decisions.md), including team and budget
+(D-14), then start the foundations stage.

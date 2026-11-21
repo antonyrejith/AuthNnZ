@@ -248,17 +248,17 @@ security fixes.
 - **Isolation tests:** no level can read a sibling's or an ancestor's
   configuration or secrets through any API.
 
-## 9. Feature IDs and phases
+## 9. Feature IDs
 
-| ID | Capability | Phase |
-|----|-----------|-------|
-| TEN-01 | Hierarchy in the data model: platform, tenant, environment, organization, sub-organization | 1 |
-| TEN-06 | Configuration inheritance along the hierarchy | 1 |
-| TEN-11 | Override policies (`inherit`, `overridable`, `locked`) and merge rules (most specific, strictest, intersection) (1); `bounded` and `additive` policies, ceilings and union, set per setting by parent admins (2) | 1→2 |
-| TEN-12 | Effective-configuration view with sources, revert to inherited, diff against parent | 1 |
-| TEN-13 | Shared library objects referenced by descendants, with where-used, impact analysis and delete protection | 2 |
-| TEN-14 | Linked templates with versioned push (automatic, staged, opt-in, manual, forced), conflict handling, drift reports: for organizations (2); for partner → tenant templates and platform baselines (4) | 2→4 |
-| TEN-15 | Copy (clone) mode with "update available" notices | 2 |
-| ORG-06 | Nested organizations to 10 levels with inherited settings and membership options (2); MSP and partner access across organizations (4) | 2→4 |
-| TEN-02 | Partners and resellers with child tenants, white-labeling, usage roll-up | 4 |
-| TEN-16 | Quota and entitlement allocation down the hierarchy, with usage roll-up | 4 |
+| ID | Capability |
+|----|-----------|
+| TEN-01 | Hierarchy in the data model: platform, tenant, environment, organization, sub-organization |
+| TEN-06 | Configuration inheritance along the hierarchy |
+| TEN-11 | Override policies (`inherit`, `overridable`, `bounded`, `additive`, `locked`) set per setting by parent admins, and merge rules (most specific, strictest, intersection, union, ceiling) |
+| TEN-12 | Effective-configuration view with sources, revert to inherited, diff against parent |
+| TEN-13 | Shared library objects referenced by descendants, with where-used, impact analysis and delete protection |
+| TEN-14 | Linked templates with versioned push (automatic, staged, opt-in, manual, forced), conflict handling and drift reports, for organizations, partner → tenant templates and platform baselines |
+| TEN-15 | Copy (clone) mode with "update available" notices |
+| ORG-06 | Nested organizations to 10 levels with inherited settings and membership options; MSP and partner access across organizations |
+| TEN-02 | Partners and resellers with child tenants, white-labeling, usage roll-up |
+| TEN-16 | Quota and entitlement allocation down the hierarchy, with usage roll-up |

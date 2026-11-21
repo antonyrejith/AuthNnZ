@@ -26,14 +26,14 @@ a developer can automate.
 | **OpenAPI** | 3.2.0 | Management API, Authentication (headless) API, Authorization API, Account API |
 | **JSON Schema** | 2020-12 | Every payload and configuration object (embedded in OpenAPI) |
 | **AsyncAPI** | 3.1.0 | Webhooks and event streams |
-| **Arazzo** | 1 (exact version confirmed in Phase 0) | Multi-step workflows (for example "create an app, add a connection, test a login") |
+| **Arazzo** | 1 (exact version confirmed during foundations) | Multi-step workflows (for example "create an app, add a connection, test a login") |
 | **Protocol Buffers** | proto3 via buf | gRPC for the PDP and SDKs that need high throughput |
 | OIDC Discovery, OAuth AS metadata, SAML metadata, SCIM `/ServiceProviderConfig` | Per standard | Protocol endpoints |
 
 Each contract file declares its exact specification version, and the tools
 that read them are pinned like every other dependency.
 
-**OpenAPI 3.2 and tooling:** we write the spec in OpenAPI 3.2. Phase 0 checks
+**OpenAPI 3.2 and tooling:** we write the spec in OpenAPI 3.2. The foundations stage checks
 every tool in the chain (code generators, linters, docs). If a tool does not
 support 3.2 yet, the parts it consumes avoid 3.2-only features, so the build can
 emit a 3.1 copy for that tool. The published spec stays 3.2.
@@ -181,7 +181,7 @@ flowchart LR
   details on every error response, `x-required-permission` and `x-audit-event`
   on every Management API operation, examples on every schema.
 - **Go server code** generated as strict, typed interfaces (generator chosen in
-  Phase 0, D-16). Handlers only map between API types and use cases.
+  the foundations stage, D-16). Handlers only map between API types and use cases.
 - **SDKs:** a generated core per language with a hand-written, idiomatic layer
   on top (token caching, retries, pagination helpers, framework middleware).
 - The generated spec, clients and server code are checked in and verified by CI.

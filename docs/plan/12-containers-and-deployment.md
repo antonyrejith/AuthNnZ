@@ -178,7 +178,7 @@ spec:
 | Admission | Pod Security Standards `restricted`; Kyverno policies allow only signed images from our registry and require limits, probes and labels |
 | Network | Default-deny NetworkPolicies; explicit allow rules per service; egress from `ext-runtime` and `worker` only through the egress proxy |
 | Ingress | Gateway API (`HTTPRoute`, `GRPCRoute`) with Envoy Gateway or the cloud's implementation; TLS through cert-manager, including on-demand certificates for customer custom domains |
-| Service-to-service | mTLS (service mesh or SPIFFE-based; decided in Phase 2) |
+| Service-to-service | mTLS (service mesh or SPIFFE-based; decided during foundations, D-19) |
 | Availability | ≥ 3 replicas across zones, PodDisruptionBudgets, graceful shutdown, readiness gates |
 | Scaling | HPA on CPU and request rate for `idp-runtime`, `pdp` and `directory-api`; KEDA on queue depth for `worker`; node autoscaling (Karpenter or the cloud equivalent) |
 | Secrets | External Secrets Operator syncing from the cloud secret manager or Vault; no secrets in Git or Helm values |
@@ -247,7 +247,7 @@ and policy scanning as application code.
 | **All-in-one image** + Compose bundle | Evaluation, development and small installations |
 | **Helm chart** (OCI) | Each chart version pins exact image digests, so a customer's upgrade is always an explicit choice of chart version. Production on any conformant Kubernetes: the last two upstream minor versions, EKS, AKS, GKE and OpenShift (restricted SCC, arbitrary UIDs) |
 | **Air-gapped bundle** | Images, chart, SBOMs and signatures as OCI artifacts that can be mirrored into an offline registry; offline license; FIDO metadata and breached-password data bundled; no outbound calls required |
-| **Kubernetes operator** (Phase 4–5) | Day-2 operations: upgrades, backups, key rotation, scaling |
+| **Kubernetes operator** | Day-2 operations: upgrades, backups, key rotation, scaling |
 
 Self-hosted customers bring PostgreSQL (managed or an operator such as
 CloudNativePG), Valkey, object storage and a KMS or HSM (Vault, PKCS#11 or a

@@ -99,7 +99,7 @@ These are targets for planned work. Every upgrade still goes through §1.4.
 
 ### 1.6 Version baseline (verified 21 November 2026)
 
-The starting versions for Phase 0, all current stable releases on that date.
+The starting versions for the foundations stage, all current stable releases on that date.
 Once the repository exists, the lock files and manifests are the source of truth.
 
 | Area | Component | Version |
@@ -107,7 +107,7 @@ Once the repository exists, the lock files and manifests are the source of truth
 | **Language** | Go | 1.27.4 |
 | **Go quality** | golangci-lint · gofumpt · govulncheck | v2.15.0 · v0.12.0 · v1.10.0 |
 | **Data access** | pgx · sqlc · goose (migrations) | v5.13.0 · v1.31.1 · v3.30.1 |
-| **API** | ogen or oapi-codegen (decided in Phase 0) · kin-openapi (validation) | v1.25.0 or v2.8.2 · v0.153.0 |
+| **API** | ogen or oapi-codegen (decided during foundations) · kin-openapi (validation) | v1.25.0 or v2.8.2 · v0.153.0 |
 | **RPC** | grpc-go · buf · ConnectRPC | v1.85.0 · v1.75.0 · v1.21.1 |
 | **Identity primitives** | go-jose · go-webauthn · crewjam/saml (subject to hardening review) | v4.1.9 · v0.18.2 · v0.6.3 |
 | **Engines** | cel-go · cedar-go · wazero | v0.30.0 · v1.9.3 · v1.12.0 |
@@ -120,10 +120,10 @@ Once the repository exists, the lock files and manifests are the source of truth
 | **Front-end libraries** | React · TanStack Router · TanStack Query · Tailwind CSS · Radix UI · React Hook Form · Zod · XYFlow · Monaco Editor · Lit · i18next · ECharts | 19.3.1 · 1.170.46 · 5.108.2 · 4.3.5 · 1.8.1 · 7.92.0 · 4.6.7 · 13.0.2 · 0.57.0 · 3.3.3 · 27.2.3 · 6.1.0 |
 | **Front-end quality and tests** | ESLint · typescript-eslint · Prettier · Vitest · Testing Library · Playwright · Storybook · MSW · axe-core | 10.15.0 · 8.73.0 · 3.10.1 · 5.1.1 · 16.3.3 · 1.65.1 · 10.6.8 · 3.0.7 · 4.14.1 |
 | **API tooling** | Redocly CLI · Spectral · oasdiff · Scalar · openapi-typescript · openapi-fetch · AsyncAPI CLI | 2.82.0 · 6.17.1 · v1.39.0 · 1.82.1 · 7.13.0 · 0.17.0 · 6.3.1 |
-| **Containers and supply chain** | Dockerfile frontend · Go build image · Distroless static (Debian 13, nonroot) · Docker Buildx · Syft · Trivy · Cosign | 1.29.0 · 1.27.4-trixie · digest recorded in Phase 0 · v0.39.1 · v1.57.2 · v0.76.2 · v3.1.4 |
+| **Containers and supply chain** | Dockerfile frontend · Go build image · Distroless static (Debian 13, nonroot) · Docker Buildx · Syft · Trivy · Cosign | 1.29.0 · 1.27.4-trixie · digest recorded during foundations · v0.39.1 · v1.57.2 · v0.76.2 · v3.1.4 |
 | **Kubernetes** | Kubernetes · Helm · Gateway API · Envoy Gateway · cert-manager · External Secrets · KEDA · Kyverno · Argo CD · Argo Rollouts · kind | 1.37.2 · 4.3.2 · v1.7.0 · v1.10.0 · v1.21.3 · v1.3.2 · v2.21.1 · v1.20.0 · v3.6.2 · v1.10.2 · v0.33.0 |
 | **Infrastructure as code** | OpenTofu | v1.13.9 |
-| **Upgrade detection** | Renovate (propose-only) · OSV-Scanner | 44.257.9 · pinned in Phase 0 |
+| **Upgrade detection** | Renovate (propose-only) · OSV-Scanner | 44.257.9 · pinned during foundations |
 | **Local development** | Mailpit · Grafana OTel LGTM | v1.34.0 · 0.41.1 |
 
 ## 2. Repository and code structure

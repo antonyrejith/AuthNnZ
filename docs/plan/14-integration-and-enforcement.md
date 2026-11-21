@@ -222,7 +222,7 @@ An **MCP gateway** mode puts one guard in front of many MCP servers, for
 customers who cannot change each server.
 
 The SDK calls in §4.1–4.4 are illustrative: they show the intended developer
-experience, and the exact API is designed in Phase 1 and 2.
+experience, and the exact API is designed during the build.
 
 ## 5. Agents: the intersection rule
 
@@ -297,11 +297,11 @@ Finance manager role):
 
 ## 9. What this review added to the plan
 
-| ID | Capability | Phase |
-|----|-----------|-------|
-| AUTHZ-29 | Permission catalog: modules (UI, API, AI, MCP, data, custom) → components → actions; naming convention, wildcards, conditions; roles pick permissions by module (1); nested components and wildcard impact view (2) | 1→2 |
-| AUTHZ-30 | Component import and drift detection: from OpenAPI, MCP tool lists and UI manifests; SDKs report permission keys used in code that are not in the catalog | 2 |
-| AUTHZ-31 | AI authorization: feature and model-tier gating, per-tool checks for model tool calls, usage quotas per role and organization (2); permission-filtered RAG retrieval for vector and search stores (3) | 2→3 |
-| AUTHZ-32 | Decision reporting from SDKs and sidecars, so SDK-enforced checks reach the audit trail | 1 |
-| AUTHZ-33 | Change propagation: push invalidation of SDK caches and UI snapshots, sidecar sync, with the targets in §6 (2); measured and alerted per tenant (3) | 2→3 |
-| M2M-10 | MCP guard for MCP servers: token verification, filtered `tools/list`, per-tool and argument checks, human approval and step-up for sensitive tools, intersection rule (2); MCP gateway mode (4) | 2→4 |
+| ID | Capability |
+|----|-----------|
+| AUTHZ-29 | Permission catalog: modules (UI, API, AI, MCP, data, custom) → nested components → actions; naming convention, wildcards with impact view, conditions; roles pick permissions by module |
+| AUTHZ-30 | Component import and drift detection: from OpenAPI, MCP tool lists and UI manifests; SDKs report permission keys used in code that are not in the catalog |
+| AUTHZ-31 | AI authorization: feature and model-tier gating, per-tool checks for model tool calls, usage quotas per role and organization, permission-filtered RAG retrieval |
+| AUTHZ-32 | Decision reporting from SDKs and sidecars, so SDK-enforced checks reach the audit trail |
+| AUTHZ-33 | Change propagation: push invalidation of SDK caches and UI snapshots, sidecar sync, with the targets in §6, measured and alerted per tenant |
+| M2M-10 | MCP guard for MCP servers: token verification, filtered `tools/list`, per-tool and argument checks, human approval and step-up for sensitive tools, intersection rule; MCP gateway mode |

@@ -281,12 +281,9 @@ error · logout and logged-out.
 
 Versions are pinned exactly, per [08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose).
 
-## 9. Delivery by phase
+## 9. Delivery
 
-| Phase | UI scope |
-|-------|----------|
-| 1 | Console shell and design system; inheritance badges; Effective settings; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Permission catalog; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
-| 2 | Organizations (nested); Hierarchy explorer; Override policies; Shared library; Templates and push; Organization admin portal; Account portal; Audit alerts; Access transparency; As-of views (configuration and identity); Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
-| 3 | Model editor; Relationships explorer; Policies; Playground; Decision logs; Access as-of |
-| 4 | Risk rules; Access reviews; Access requests and JIT; Consent and privacy; Reports; Retention and legal hold; Event streams; Support console; Platform console for resellers |
-| 5 | Industry-pack setup wizards; data residency and dedicated-cell views; self-hosted administration screens |
+Every screen in this document is part of the first release. The Experience
+workstream (WS-10) builds the console shell, design system, portals and hosted
+login; each feature workstream builds its screens with them, because a feature
+is not done until its screens exist ([05](05-roadmap-and-delivery.md)).
