@@ -239,7 +239,7 @@ platform trail kept in a dedicated, write-once security account:
 
 | Source | What is captured |
 |--------|------------------|
-| Git | Signed commits, protected branches, PR reviews and approvals |
+| Git | Signed commits, protected branches, PR reviews and approvals, including every dependency upgrade with its reason and approvers |
 | CI/CD | Build logs, SBOMs, provenance, image signatures, who approved each release |
 | Argo CD / Argo Rollouts | Every sync, rollout, promotion and rollback per cell |
 | OpenTofu | Every plan and apply, with the approving review |

@@ -35,6 +35,8 @@ flowchart TB
 
 ### 2.1 Conventions
 
+- Test tools (Playwright and its browsers, k6, testcontainers images, conformance
+  suites) are pinned to exact versions and digests like everything else.
 - Test files sit next to the code (`issuer_test.go`). Default to black-box
   tests (`package token_test`) that use only the public API; white-box tests
   (`package token`) only for tricky internals.
@@ -337,6 +339,7 @@ drill runs every quarter.
 | Test strength | Nightly mutation testing on security-critical modules; surviving mutants are reviewed weekly |
 | Security scans | govulncheck, gosec, Trivy (images), secret scanning on every PR; DAST (ZAP baseline) nightly on staging |
 | Flaky tests | Treated as bugs and fixed within 5 working days; no automatic retries at unit, integration or API level |
+| Pinning | Any version range, floating tag, image without a digest, unpinned CI action or `@latest` fails the build; lock files must be unchanged (`--frozen-lockfile`, `-mod=readonly`, `-lockfile=readonly`) |
 | Audit | Zero unaudited changes (reconciliation); every mutating operation emits its declared event; no sequence gaps after chaos tests |
 | Bugs | Every production bug gets a regression test at the lowest level that reproduces it |
 

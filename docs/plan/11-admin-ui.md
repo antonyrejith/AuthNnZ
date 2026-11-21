@@ -269,7 +269,7 @@ error · logout and logged-out.
 | API access | Client generated from OpenAPI; console sessions through a backend-for-frontend with `HttpOnly` cookies |
 | Internationalization | i18next with ICU messages; translation files per locale |
 
-Versions follow the policy in [08 §1](08-engineering-standards.md#1-version-policy-latest-stable-everywhere).
+Versions are pinned exactly, per [08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose).
 
 ## 9. Delivery by phase
 

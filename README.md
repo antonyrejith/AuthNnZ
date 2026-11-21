@@ -67,8 +67,10 @@ on either side.
 7. Provable 100% audit: every change, login, decision and staff action recorded, tamper-evident and verifiable.
 
 **How it is built:**
-- Go (latest stable, 1.27 today) for every backend service; React and TypeScript for the UIs. Every
-  dependency is on its latest stable version, pinned and kept current automatically.
+- Go (1.27.4) for every backend service; React and TypeScript for the UIs.
+  Every version is pinned exactly, everywhere, starting from the latest stable
+  release; nothing upgrades by itself, and every upgrade is a deliberate,
+  reviewed change.
 - A modular monolith with compiler-enforced module boundaries and clean
   architecture inside each module; strict lint and review rules.
 - Tests at every level, from table-driven unit tests to conformance suites,

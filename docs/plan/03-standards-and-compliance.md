@@ -84,7 +84,7 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 | Standard | Use |
 |----------|-----|
 | OpenAPI 3.2, JSON Schema 2020-12 | Contracts for every public API and configuration object ([10](10-api-standards.md)) |
-| AsyncAPI 3.x, Arazzo 1.x | Event and webhook contracts; multi-step API workflows |
+| AsyncAPI 3.1.0, Arazzo 1 | Event and webhook contracts; multi-step API workflows |
 | RFC 7396, RFC 9745, RFC 8594 | JSON Merge Patch; `Deprecation` and `Sunset` headers |
 | RFC 9457 (Problem Details) | API error format |
 | CloudEvents 1.0 | Event and webhook envelope |

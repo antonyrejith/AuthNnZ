@@ -44,7 +44,7 @@ The chart uses a kickoff date of 4 January 2027 only so it can be drawn; the pla
 | Product | Confirm decisions (06); ICP and pricing research; competitor teardown (PM-02); design partners recruited (3–5 companies) |
 | Architecture | ADRs 0001–0020 ([06](06-decisions.md)); threat model v1; data model v1 |
 | Spikes | Relationship engine (OpenFGA vs SpiceDB vs own) with benchmarks; WASM extension runtime; runtime-bundle compilation and hot swap; SAML library hardening review |
-| Engineering standards | Standards in [08](08-engineering-standards.md) adopted: golangci-lint and ESLint configs, Renovate, dev container, Makefile, CODEOWNERS, PR template; version baseline verified for compatibility |
+| Engineering standards | Standards in [08](08-engineering-standards.md) adopted: golangci-lint and ESLint configs, pin checks, Renovate in propose-only mode, dev container, Makefile, CODEOWNERS, PR template; version baseline verified for compatibility |
 | Platform | Monorepo and module skeleton ([08 §2](08-engineering-standards.md#2-repository-and-code-structure)); CI pipeline ([09 §10](09-testing-strategy.md#10-when-each-suite-runs)); container build with SBOM, signing and scanning; Docker Compose dev environment; Helm chart skeleton on kind; observability baseline ([12](12-containers-and-deployment.md)) |
 | Test foundations | `testkit` (PostgreSQL template databases, embedded NATS, tenant fixtures), contract-suite pattern, fuzz and benchmark harnesses, OpenAPI validation in API tests ([09](09-testing-strategy.md)) |
 | API and UI foundations | OpenAPI 3.2 pipeline: lint rules, bundling, breaking-change gate, Go and TypeScript generation (choose generator, D-16) ([10](10-api-standards.md)); design system and console shell ([11](11-admin-ui.md)) |
@@ -216,6 +216,7 @@ regression limit on hot paths.
 | R12 | Extension code abused or unstable | Medium | Medium | WASM sandbox, quotas, timeouts with fail-open/fail-closed policy per hook |
 | R13 | Audit gaps or audit pipeline outage | Low | Critical | Same-transaction capture (fail closed), durable spools, reconciliation, gapless sequences, hourly verification ([13](13-audit-and-change-tracking.md)) |
 | R14 | Audit storage cost (full decision logging) | High | Medium | Columnar compression, short hot retention for allow-decisions, Parquet archive, long hot retention priced as an add-on |
+| R15 | Pinned versions fall behind on security fixes | Medium | High | Daily vulnerability scans of every pinned version, 48-hour target for critical fixes, monthly upgrade review ([08 §1.5](08-engineering-standards.md#15-upgrade-schedule)) |
 
 ## 7. Immediate next steps (first two weeks)
 

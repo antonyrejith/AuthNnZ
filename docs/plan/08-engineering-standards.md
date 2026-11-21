@@ -3,53 +3,104 @@
 These standards apply to every line of code in the platform. CI enforces them
 wherever a tool can; code review enforces the rest.
 
-## 1. Version policy: latest stable everywhere
+## 1. Version policy: pinned everywhere, upgrades on purpose
 
-### 1.1 Rules
+### 1.1 Principles
 
-1. **Latest stable release of everything**: language, libraries, frameworks,
-   tools, base images, databases and platform components. "Stable" means a GA
-   release; betas and release candidates never reach production.
-2. **Pinned, then updated by automation.** Exact versions are pinned (`go.mod`
-   and `go.sum`, `pnpm-lock.yaml`, image digests, Helm chart versions, OpenTofu
-   lock file) so builds are reproducible. Staying on the latest version is
-   automated by **Renovate**, never by floating tags such as `:latest`.
-3. **Upgrade deadlines:**
-
-   | Change | Deadline |
-   |--------|----------|
-   | Security fix | 48 hours |
-   | Patch release | 7 days (auto-merged when CI is green) |
-   | Minor release | Weekly batch |
-   | Major release | 30 days, tracked as an upgrade issue |
-   | New Go release (every February and August) | 30 days |
-
-4. **Go:** the `go` directive in `go.mod` is the latest Go release; the
-   `toolchain` directive pins the exact patch version. Development tools are
-   pinned with `tool` directives in `go.mod` and run with `go tool <name>`.
-5. **Node.js** is used only to build front ends (the shipped artifacts are
-   static files). We use the newest **LTS** line, which is the newest line
-   Node.js marks production-ready.
-6. **Managed services:** use the newest version the target managed service
-   offers. When a cloud provider lags behind a new major version (common for
-   PostgreSQL and Kubernetes), local, CI and self-hosted environments use the
-   newest version, and production upgrades as soon as the provider supports it.
-   CI tests both.
-7. **Compatibility check:** Phase 0 verifies that every tool in the table
-   below works with the others. Where one lags (for example a linter that does
-   not yet support a new TypeScript compiler), we use the newest compatible
-   version and record the exception in an ADR with a review date.
-8. **Self-hosted support window:** customers can run the last two Kubernetes
-   minor versions and the last two PostgreSQL major versions.
-9. **New dependencies** need a reason in the PR, a license on the allowlist
+1. **Every version is pinned exactly, everywhere.** No version ranges (`^`,
+   `~`, `>=`, `~>`), no floating tags (`latest`, `1`, `lts`, `stable`), no
+   `@latest` installs. Container images are pinned by tag **and** digest.
+2. **Nothing changes by itself.** No automatic upgrades, no auto-merge, no
+   automatic minor-version upgrades in managed cloud services. A version changes
+   only when a person decides to change it, in a reviewed pull request.
+3. **Start on the latest stable release.** When we adopt a dependency, or
+   deliberately upgrade one, we choose the newest stable (GA) release at that
+   moment. Betas and release candidates are never used.
+4. **Pinned must not mean forgotten.** Scanners check the pinned versions for
+   vulnerabilities every day, and owners review available upgrades on a fixed
+   schedule (§1.5), so staying current is planned work, not an accident.
+5. **New dependencies** need a reason in the PR, a license on the allowlist
    (MIT, BSD, Apache-2.0, ISC, MPL-2.0), a healthy OpenSSF Scorecard, and a
    security review for anything that parses input or does cryptography. Prefer
    the Go standard library.
 
-### 1.2 Baseline (verified 21 November 2026)
+### 1.2 How each kind of version is pinned
 
-This table is the starting point; the lock files are the source of truth after
-Phase 0.
+| What | How it is pinned | Enforced by |
+|------|------------------|-------------|
+| Go toolchain | `toolchain go1.27.4` in `go.mod`; the same version in the dev container, CI and the build image; `GOTOOLCHAIN=local` so Go never switches toolchains silently | CI pin check |
+| Go modules | Exact versions in `go.mod` with hashes in `go.sum`; `-mod=readonly` in CI; `go mod tidy -diff` must report nothing | CI |
+| Go tools (sqlc, golangci-lint, buf, …) | `tool` directives in `go.mod`, run with `go tool <name>` | CI |
+| Node.js and pnpm | Exact Node.js version in `.node-version` and the dev container; exact pnpm version in `packageManager` | CI pin check |
+| npm packages | Exact versions in every `package.json` (`save-exact=true`, no `^` or `~`); `pnpm-lock.yaml` committed; `pnpm install --frozen-lockfile` in CI | CI |
+| Container images | `name:tag@sha256:<digest>` in every Dockerfile, Compose file, Helm value and manifest, including the Dockerfile `# syntax=` frontend and build images | CI pin check; Kyverno rejects images without a digest at admission |
+| Helm charts | Exact chart versions; `Chart.lock` committed; Argo CD `targetRevision` set to an exact chart version or commit SHA | CI |
+| CI actions | Third-party CI actions pinned to a full commit SHA, with the version in a comment | CI (OpenSSF Scorecard "Pinned-Dependencies") |
+| OpenTofu | Exact `required_version`; providers pinned with exact `=` versions; `.terraform.lock.hcl` committed with hashes; `tofu init -lockfile=readonly` | CI |
+| Managed cloud services | Exact engine and platform versions (PostgreSQL, Valkey, Kubernetes, node images); automatic minor upgrades and auto-upgrading release channels turned off | Policy scan of OpenTofu plans |
+| Downloaded binaries | Exact version plus a SHA-256 checksum verified before use | CI pin check |
+| Published releases | Each release's SBOM lists every exact version and digest it contains | Release pipeline |
+
+A `tools/pincheck` linter fails the build on any range, floating tag, missing
+digest, unpinned action or `@latest` anywhere in the repository.
+
+### 1.3 Listed exceptions
+
+Exceptions are few, documented here and reviewed in an ADR; adding one needs
+security-team approval.
+
+| Exception | Why | How it is controlled |
+|-----------|-----|----------------------|
+| Dependency declarations inside the **SDK packages we publish** (for example Python and npm libraries) | Exact pins inside a library break our customers' dependency resolution | The SDKs' own builds, lock files and tools are pinned; each declared range is reviewed, and CI tests the lowest and highest version in it |
+| **Third-party scripts** a vendor does not allow to pin (for example a CAPTCHA widget) | The vendor serves only its current version | Loaded only on challenge screens, restricted by Content Security Policy; strict tenants can use our self-hosted proof-of-work challenge instead |
+| **Fast-changing security data** (IP reputation, breached-password updates, FIDO metadata) | Must stay fresh to protect users | A scheduled pipeline produces versioned, signature-verified snapshots; services reference an explicit snapshot; every switch is recorded in the audit trail and can be reverted |
+| **Cloud end of support** | Providers force upgrades when a version leaves support | We track those dates and upgrade before them, so an upgrade is never forced on us |
+
+### 1.4 How an upgrade happens
+
+1. **Detected, never applied.** Vulnerability scanners (govulncheck, Trivy,
+   OSV-Scanner) check every pinned version daily. Renovate runs in
+   **propose-only** mode: it lists available upgrades on a dependency dashboard,
+   opens a pull request only when an owner asks for one, and never merges
+   (`dependencyDashboardApproval: true`, `automerge: false`).
+2. **One intentional pull request per upgrade** (or per group that must move
+   together, such as all OpenTelemetry modules). It states **why** (security fix
+   with CVE ID, needed feature, end of support, scheduled refresh), links the
+   release notes that were read, and notes the risk. Major versions need an
+   upgrade plan or ADR.
+3. **Reviewed by the owner** through CODEOWNERS on `go.mod`, `package.json`,
+   Dockerfiles, charts and OpenTofu files. Security-critical dependencies
+   (cryptography, JOSE, SAML, WebAuthn, database driver) need two approvals.
+4. **Fully verified:** every CI gate, including conformance suites, benchmarks
+   and audit checks.
+5. **Released like any change:** dev → staging → canary cell → waves.
+   Rolling back means reverting the pull request, which restores the exact
+   previous versions.
+6. **Recorded:** the pull request, its approvals and the deployed digests are
+   part of the platform audit trail ([13 §7](13-audit-and-change-tracking.md#7-platform-and-infrastructure-audit-our-side)).
+
+**Waiting period:** a non-security release is adopted only after it has been
+public for at least 14 days (Renovate `minimumReleaseAge`), which protects
+against broken or malicious releases. Security fixes skip the wait.
+
+### 1.5 Upgrade schedule
+
+These are targets for planned work. Every upgrade still goes through §1.4.
+
+| Trigger | Target |
+|---------|--------|
+| Critical or high vulnerability that affects us | Upgrade released within 48 hours |
+| Any other vulnerability | Within 14 days |
+| Monthly upgrade review | Owners review the dashboard and choose the month's upgrades |
+| New Go release (every February and August) | Planned upgrade within 30 days after the waiting period |
+| New major version of a framework or platform | Upgrade plan within 90 days; finished before the old version's end of support |
+| Managed services (PostgreSQL, Valkey, Kubernetes) | Planned upgrade within 6 months of availability, always before end of standard support |
+| Self-hosted support window | Customers can run the last two Kubernetes minor versions and the last two PostgreSQL major versions; each of our releases states the exact versions it was tested with |
+
+### 1.6 Version baseline (verified 21 November 2026)
+
+The starting versions for Phase 0, all current stable releases on that date.
+Once the repository exists, the lock files and manifests are the source of truth.
 
 | Area | Component | Version |
 |------|-----------|---------|
@@ -64,15 +115,15 @@ Phase 0.
 | **Messaging and cache clients** | nats.go · valkey-go · clickhouse-go | v1.56.0 · v1.0.80 · v2.51.0 |
 | **Telemetry** | OpenTelemetry Go | v1.47.0 |
 | **Go testing** | testcontainers-go · go-cmp · rapid · go.uber.org/mock · k6 | v0.45.0 · v0.7.0 · v1.3.0 · v0.6.0 · v1.8.3 |
-| **Data stores** | PostgreSQL · Valkey · NATS Server · ClickHouse | 19.0 · 9.2.0 · 2.15.3 · 26.10 |
-| **Front-end toolchain** | Node.js (LTS) · pnpm · TypeScript · Vite | 26 LTS · 12.21.0 · 7.0.2 · 8.3.8 |
+| **Data stores** | PostgreSQL · Valkey · NATS Server · ClickHouse | 19.0 · 9.2.0 · 2.15.3 · 26.10.9.12 |
+| **Front-end toolchain** | Node.js (LTS line) · pnpm · TypeScript · Vite | 26.13.1 · 12.21.0 · 7.0.2 · 8.3.8 |
 | **Front-end libraries** | React · TanStack Router · TanStack Query · Tailwind CSS · Radix UI · React Hook Form · Zod · XYFlow · Monaco Editor · Lit · i18next · ECharts | 19.3.1 · 1.170.46 · 5.108.2 · 4.3.5 · 1.8.1 · 7.92.0 · 4.6.7 · 13.0.2 · 0.57.0 · 3.3.3 · 27.2.3 · 6.1.0 |
 | **Front-end quality and tests** | ESLint · typescript-eslint · Prettier · Vitest · Testing Library · Playwright · Storybook · MSW · axe-core | 10.15.0 · 8.73.0 · 3.10.1 · 5.1.1 · 16.3.3 · 1.65.1 · 10.6.8 · 3.0.7 · 4.14.1 |
 | **API tooling** | Redocly CLI · Spectral · oasdiff · Scalar · openapi-typescript · openapi-fetch · AsyncAPI CLI | 2.82.0 · 6.17.1 · v1.39.0 · 1.82.1 · 7.13.0 · 0.17.0 · 6.3.1 |
-| **Containers and supply chain** | Distroless static (Debian 13, nonroot) · Docker Buildx · Syft · Trivy · Cosign | latest digest · v0.39.1 · v1.57.2 · v0.76.2 · v3.1.4 |
-| **Kubernetes** | Kubernetes · Helm · Gateway API · Envoy Gateway · cert-manager · External Secrets · KEDA · Kyverno · Argo CD · Argo Rollouts · kind | 1.37 · 4.3.2 · v1.7.0 · v1.10.0 · v1.21.3 · v1.3.2 · v2.21.1 · v1.20.0 · v3.6.2 · v1.10.2 · v0.33.0 |
+| **Containers and supply chain** | Dockerfile frontend · Go build image · Distroless static (Debian 13, nonroot) · Docker Buildx · Syft · Trivy · Cosign | 1.29.0 · 1.27.4-trixie · digest recorded in Phase 0 · v0.39.1 · v1.57.2 · v0.76.2 · v3.1.4 |
+| **Kubernetes** | Kubernetes · Helm · Gateway API · Envoy Gateway · cert-manager · External Secrets · KEDA · Kyverno · Argo CD · Argo Rollouts · kind | 1.37.2 · 4.3.2 · v1.7.0 · v1.10.0 · v1.21.3 · v1.3.2 · v2.21.1 · v1.20.0 · v3.6.2 · v1.10.2 · v0.33.0 |
 | **Infrastructure as code** | OpenTofu | v1.13.9 |
-| **Automation** | Renovate | 44.x |
+| **Upgrade detection** | Renovate (propose-only) · OSV-Scanner | 44.257.9 · pinned in Phase 0 |
 | **Local development** | Mailpit · Grafana OTel LGTM | v1.34.0 · 0.41.1 |
 
 ## 2. Repository and code structure
@@ -108,7 +159,7 @@ authnnz/
 ├── docs/                       # plan/, adr/, runbooks/, module docs
 ├── .github/                    # Workflows, CODEOWNERS, PR and issue templates
 ├── .devcontainer/              # Reproducible development environment
-├── go.mod go.sum Makefile .golangci.yml renovate.json .editorconfig
+├── go.mod go.sum Makefile .golangci.yml renovate.json .node-version .editorconfig
 ```
 
 ### 2.2 Inside a module (hexagonal / clean architecture)

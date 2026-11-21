@@ -562,7 +562,7 @@ available through gRPC for SDKs and internal callers.
 
 | Layer | Choice | Why | Alternatives |
 |-------|--------|-----|--------------|
-| Backend language | **Go, latest stable release** (D-03, accepted) | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, easy hiring | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
+| Backend language | **Go, pinned to an exact release (1.27.4 at start)** (D-03, accepted) | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, easy hiring | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
 | Protocol layer | Our own, on vetted primitives (JOSE, WebAuthn, SAML/XML-DSig libraries) | The authorization server is core IP and must be fully dynamic | Adopt a framework (fosite, zitadel/oidc) — see D-04 |
 | Expressions | CEL (`cel-go`) | Safe, fast, typed; also used by Kubernetes and Zanzibar implementations | Expr, JSONLogic |
 | Policies | Cedar (`cedar-go`) | Analyzable, fast, Apache 2.0 | OPA/Rego |
@@ -577,8 +577,8 @@ available through gRPC for SDKs and internal callers.
 | Containers and infrastructure | Distroless images, Kubernetes, Helm, Gateway API, Argo CD and Argo Rollouts, cert-manager, External Secrets, KEDA, Kyverno, OpenTofu ([12](12-containers-and-deployment.md)) | Portable across AWS, Azure, GCP, on-prem and air-gapped | Nomad |
 | Observability | OpenTelemetry, Prometheus, Grafana, Tempo, Loki | Open standards | Datadog |
 
-Exact versions and the "latest stable everywhere" upgrade policy are in
-[08 §1](08-engineering-standards.md#1-version-policy-latest-stable-everywhere).
+Exact pinned versions and the explicit upgrade process are in
+[08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose).
 Every third-party library goes through a license review (permissive licenses
 only in shipped code) and a security review.
 

@@ -23,12 +23,15 @@ a developer can automate.
 
 | Specification | Version | Describes |
 |---------------|---------|-----------|
-| **OpenAPI** | 3.2 (latest) | Management API, Authentication (headless) API, Authorization API, Account API |
+| **OpenAPI** | 3.2.0 | Management API, Authentication (headless) API, Authorization API, Account API |
 | **JSON Schema** | 2020-12 | Every payload and configuration object (embedded in OpenAPI) |
-| **AsyncAPI** | 3.x | Webhooks and event streams |
-| **Arazzo** | 1.x | Multi-step workflows (for example "create an app, add a connection, test a login") |
+| **AsyncAPI** | 3.1.0 | Webhooks and event streams |
+| **Arazzo** | 1 (exact version confirmed in Phase 0) | Multi-step workflows (for example "create an app, add a connection, test a login") |
 | **Protocol Buffers** | proto3 via buf | gRPC for the PDP and SDKs that need high throughput |
 | OIDC Discovery, OAuth AS metadata, SAML metadata, SCIM `/ServiceProviderConfig` | Per standard | Protocol endpoints |
+
+Each contract file declares its exact specification version, and the tools
+that read them are pinned like every other dependency.
 
 **OpenAPI 3.2 and tooling:** we write the spec in OpenAPI 3.2. Phase 0 checks
 every tool in the chain (code generators, linters, docs). If a tool does not

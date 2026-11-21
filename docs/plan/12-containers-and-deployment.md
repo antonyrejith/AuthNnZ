@@ -16,7 +16,7 @@ and air-gapped data centers.
 | Multi-architecture | `linux/amd64` and `linux/arm64` from one build (Buildx) |
 | Non-root and read-only | UID 65532, read-only root filesystem, all capabilities dropped |
 | FIPS variant | `-fips` images built with the Go FIPS 140-3 module enabled (`GOFIPS140`) |
-| Reproducible and pinned | Base images and build images pinned by digest; Renovate updates them |
+| Pinned | Every image reference, including base images, build images and the Dockerfile frontend, uses an exact tag **and** digest; changed only by a reviewed upgrade pull request ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)) |
 | Supply chain | SBOM (SPDX) and SLSA provenance attached; signed with Cosign (keyless); scanned with Trivy; critical or high vulnerabilities with a fix available block the release |
 | Tags | Semantic version and git SHA; deployments always reference the **digest** |
 
@@ -25,10 +25,9 @@ and air-gapped data centers.
 One Dockerfile builds every Go deployable; `SERVICE` selects which.
 
 ```dockerfile
-# syntax=docker/dockerfile:1
-ARG GO_VERSION=1.27.4
+# syntax=docker/dockerfile:1.29.0@sha256:<digest>
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-trixie AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie@sha256:<digest> AS build
 WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=bind,source=go.mod,target=go.mod \
@@ -41,7 +40,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/app ./cmd/${SERVICE}
 
-FROM gcr.io/distroless/static-debian13:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:<digest>
 COPY --from=build /out/app /app
 USER nonroot:nonroot
 ENTRYPOINT ["/app"]
@@ -73,22 +72,22 @@ Helm chart in a local kind cluster for chart and operator work.
 name: authnnz
 services:
   postgres:
-    image: postgres:19.0
+    image: postgres:19.0@sha256:<digest>
     environment:
       POSTGRES_PASSWORD: dev-only-password
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 2s
   valkey:
-    image: valkey/valkey:9.2.0
+    image: valkey/valkey:9.2.0@sha256:<digest>
   nats:
-    image: nats:2.15.3
+    image: nats:2.15.3@sha256:<digest>
     command: ["--jetstream"]
   mailpit:                          # captures every email; UI on :8025
-    image: axllent/mailpit:v1.34.0
+    image: axllent/mailpit:v1.34.0@sha256:<digest>
     ports: ["8025:8025"]
   otel:                             # Grafana, Tempo, Loki, Prometheus in one container; UI on :3000
-    image: grafana/otel-lgtm:0.41.1
+    image: grafana/otel-lgtm:0.41.1@sha256:<digest>
     ports: ["3000:3000"]
   authnnz:                          # all-in-one binary
     build:
@@ -105,11 +104,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4317
     ports: ["8080:8080"]
   clickhouse:
-    image: clickhouse/clickhouse-server:26.10
+    image: clickhouse/clickhouse-server:26.10.9.12@sha256:<digest>
     profiles: ["full"]              # analytics and audit search
 ```
 
-Images in the real file are pinned by digest. Profiles: the default profile
+`<digest>` stands for each image's exact SHA-256 digest, recorded when the
+file is created; the pin check rejects any image without one. Profiles: the default profile
 runs the core stack; `full` adds ClickHouse, S3-compatible storage and
 containerized test identity providers (SAML and OIDC) for federation work.
 
@@ -185,6 +185,7 @@ spec:
 | Migrations | A Job runs migrations before rollout. Migrations are backward-compatible, so old and new pods run side by side |
 | Isolation | `ext-runtime` runs on a dedicated, tainted node pool; dedicated cells get their own cluster |
 | Observability | OpenTelemetry Collector; Prometheus, Loki and Tempo (or the customer's stack); dashboards and alerts stored as code |
+| Versions | Exact chart versions with `Chart.lock`; Argo CD `targetRevision` pinned to an exact version or commit SHA; images by digest only (Kyverno rejects others); cluster add-ons upgraded only through reviewed pull requests |
 | Audit | Kubernetes API audit policy enabled; pgAudit for human database sessions; audit archive in write-once object storage; platform audit trail shipped to a separate security account ([13 §7](13-audit-and-change-tracking.md#7-platform-and-infrastructure-audit-our-side)) |
 
 ## 4. Build and release pipeline
@@ -232,7 +233,10 @@ flowchart LR
 
 OpenTofu modules create each region and cell: network, Kubernetes cluster
 (EKS first, per D-07), managed PostgreSQL (multi-AZ), managed Valkey, KMS keys,
-object storage, CDN and WAF, and DNS. A new cell is one module instance plus a
+object storage, CDN and WAF, and DNS. OpenTofu, its providers, and every
+engine, cluster and node-image version are pinned exactly; automatic minor
+upgrades and auto-upgrading release channels are turned off, and a policy check
+on every plan rejects anything unpinned. A new cell is one module instance plus a
 GitOps entry. Infrastructure changes go through the same PR review, plan output
 and policy scanning as application code.
 
@@ -241,7 +245,7 @@ and policy scanning as application code.
 | Package | For |
 |---------|-----|
 | **All-in-one image** + Compose bundle | Evaluation, development and small installations |
-| **Helm chart** (OCI) | Production on any conformant Kubernetes: the last two upstream minor versions, EKS, AKS, GKE and OpenShift (restricted SCC, arbitrary UIDs) |
+| **Helm chart** (OCI) | Each chart version pins exact image digests, so a customer's upgrade is always an explicit choice of chart version. Production on any conformant Kubernetes: the last two upstream minor versions, EKS, AKS, GKE and OpenShift (restricted SCC, arbitrary UIDs) |
 | **Air-gapped bundle** | Images, chart, SBOMs and signatures as OCI artifacts that can be mirrored into an offline registry; offline license; FIDO metadata and breached-password data bundled; no outbound calls required |
 | **Kubernetes operator** (Phase 4–5) | Day-2 operations: upgrades, backups, key rotation, scaling |
 

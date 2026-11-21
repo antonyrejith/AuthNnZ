@@ -5,14 +5,14 @@
 Each decision has a recommendation. Decisions D-01 to D-08 block kickoff;
 the rest can be made during Phase 0 (D-19 in Phase 2).
 
-**Accepted so far:** D-03 (Go, latest stable release), D-15 (latest stable
-version of everything) and D-21 (100% audit).
+**Accepted so far:** D-03 (Go, pinned exact release), D-15 (exact pinned
+versions everywhere, explicit upgrades only) and D-21 (100% audit).
 
 | ID | Decision | Options | Recommendation | Why |
 |----|----------|---------|----------------|-----|
 | D-01 | Product name and brand | Keep "AuthNnZ" or rename | Pick a market name in Phase 0 (trademark and domain check); keep AuthNnZ as the code name | The name appears in domains, SDK package names and token issuers, so change it before SDKs ship |
 | D-02 | First target segment (first 12 months) | B2B SaaS · B2C CIAM · regulated fintech · enterprise workforce | **B2B SaaS + developer-led CIAM first**; regulated verticals from Phase 5 | Largest market, shortest sales cycle, and its needs (orgs, SSO, SCIM, RBAC) are the foundation everything else builds on |
-| D-03 | Backend language | Go · Java/Kotlin · Rust | **✅ Accepted: Go, latest stable release** | Static binaries for edge and on-prem, strong identity ecosystem, native FIPS 140-3 crypto module, hiring pool |
+| D-03 | Backend language | Go · Java/Kotlin · Rust | **✅ Accepted: Go, pinned to an exact release (1.27.4 at start)** | Static binaries for edge and on-prem, strong identity ecosystem, native FIPS 140-3 crypto module, hiring pool |
 | D-04 | Protocol layer: build or adopt | Own implementation on vetted primitives · fosite · zitadel/oidc · Spring Authorization Server · fork Keycloak | **Own implementation on vetted primitives**, using existing frameworks as references | The authorization server is the core product: it must be fully dynamic, multi-tenant and FAPI-ready. Forking a large server brings its architecture and limits with it |
 | D-05 | Authorization engine | Embed OpenFGA · embed SpiceDB · own Zanzibar; Cedar · OPA | **Decide by Phase 0 spike.** Start from an embeddable Apache-2.0 Zanzibar engine behind our own DSL and interface, plus `cedar-go` for guardrails | Proven semantics now, freedom to replace later |
 | D-06 | Deployment order | SaaS first · self-hosted first · both | **SaaS first**; dedicated cells from Phase 4; self-hosted and air-gapped GA in Phase 5 (all-in-one binary exists from Phase 1 for development) | Faster feedback and revenue; one codebase keeps self-hosted cheap to add later |
@@ -24,7 +24,7 @@ version of everything) and D-21 (100% audit).
 | D-12 | Event bus | NATS JetStream · Kafka | **NATS JetStream internally**, Kafka and cloud streams as customer sinks | Light enough for edge and on-prem |
 | D-13 | Compliance automation | Vanta · Drata · Secureframe · others | Choose in Phase 0 by price and auditor network | Cuts SOC 2 and ISO effort substantially |
 | D-14 | Budget, team and timeline | — | Confirm the team plan in [05 §3](05-roadmap-and-delivery.md#3-team-plan) | Everything else depends on capacity |
-| D-15 | Version policy | Latest stable · conservative (N-1) | **✅ Accepted: latest stable everywhere**, pinned and kept current by Renovate ([08 §1](08-engineering-standards.md#1-version-policy-latest-stable-everywhere)) | Security fixes and new platform features arrive sooner; automation keeps upgrades small |
+| D-15 | Version policy | Floating or automatically updated versions · exact pins with explicit upgrades | **✅ Accepted: exact pinned versions everywhere**, starting from the latest stable release; nothing upgrades automatically; every upgrade is an intentional, reviewed pull request ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)) | Builds and deployments are reproducible, and every change of version is deliberate, reviewed and audited |
 | D-16 | OpenAPI → Go server generator | ogen · oapi-codegen · hand-written | **Decide by Phase 0 spike**: strict typed interfaces, request validation, OpenAPI 3.1/3.2 support | Generated interfaces keep code and spec identical |
 | D-17 | SDK generation | OpenAPI Generator · commercial generators · hand-written | **Generated core + hand-written idiomatic layer**; evaluate generators in Phase 1 on output quality per language | SDK quality decides developer adoption |
 | D-18 | Front-end stack | React · Vue · Svelte; component library | **React + TypeScript + TanStack + Radix UI + Tailwind CSS; Lit for the hosted login** ([11 §8](11-admin-ui.md#8-front-end-technology)) | Largest ecosystem and hiring pool; Lit keeps the login page small and embeddable anywhere |
