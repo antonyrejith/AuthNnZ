@@ -42,9 +42,12 @@ The chart uses a kickoff date of 4 January 2027 only so it can be drawn; the pla
 | Workstream | Deliverables |
 |-----------|--------------|
 | Product | Confirm decisions (06); ICP and pricing research; competitor teardown (PM-02); design partners recruited (3–5 companies) |
-| Architecture | ADRs 0001–0010 (06); threat model v1; API style guide; data model v1 |
+| Architecture | ADRs 0001–0020 ([06](06-decisions.md)); threat model v1; data model v1 |
 | Spikes | Relationship engine (OpenFGA vs SpiceDB vs own) with benchmarks; WASM extension runtime; runtime-bundle compilation and hot swap; SAML library hardening review |
-| Platform | Monorepo, Go module layout, CI/CD (build, test, lint, SAST, SCA, SBOM, signed images); dev environment (docker-compose); Kubernetes dev cluster; observability baseline |
+| Engineering standards | Standards in [08](08-engineering-standards.md) adopted: golangci-lint and ESLint configs, Renovate, dev container, Makefile, CODEOWNERS, PR template; version baseline verified for compatibility |
+| Platform | Monorepo and module skeleton ([08 §2](08-engineering-standards.md#2-repository-and-code-structure)); CI pipeline ([09 §10](09-testing-strategy.md#10-when-each-suite-runs)); container build with SBOM, signing and scanning; Docker Compose dev environment; Helm chart skeleton on kind; observability baseline ([12](12-containers-and-deployment.md)) |
+| Test foundations | `testkit` (PostgreSQL template databases, embedded NATS, tenant fixtures), contract-suite pattern, fuzz and benchmark harnesses, OpenAPI validation in API tests ([09](09-testing-strategy.md)) |
+| API and UI foundations | OpenAPI 3.2 pipeline: lint rules, bundling, breaking-change gate, Go and TypeScript generation (choose generator, D-16) ([10](10-api-standards.md)); design system and console shell ([11](11-admin-ui.md)) |
 | Core libraries | Tenant context and RLS enforcement; config versioning skeleton; crypto and KMS abstraction; transactional outbox and event bus; audit event model; error and ID conventions |
 | Compliance | Security policies drafted; compliance-automation tool chosen; SOC 2 control mapping started |
 
@@ -59,7 +62,8 @@ modern methods; basic RBAC works.
 
 **Scope:** TEN-01, 03 (pooled), 06, 08, 09 (basic) · IDM-01, 02, 03 (static),
 05, 07 (basic), 12 · AUTH-01, 03, 05, 06, 08, 09 (top 4 + generic) · FED-01 ·
-OAUTH-01 to 07 · SESS-01 to 04 · AUTHZ-01 (basic), 02, 06 (single), 17 ·
+OAUTH-01 to 07 · SESS-01 to 04 · AUTHZ-01 (basic), 02, 06 (single), 17, 21 (direct
+grants), 22, 25, 26 (basic), 27 (built-in roles) ·
 ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
 10 · SEC-01, 02, 08 (basic), 09 · GOV-01 (basic), 10 · UX-01, 03, 06 · DX-01,
 02 (first wave), 05 · OPS-01 (metering) · MIG-04
@@ -75,8 +79,9 @@ ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
 **Goal:** a B2B SaaS company can sell to enterprises using our platform.
 
 **Scope:** TEN-04, 07, 10 · IDM-03 (dynamic), 04, 06, 07 (full), 08, 09, 11,
-13, 14 · AUTH-02, 04, 09 (full), 12, 17, 19, 20 · FED-02 to 04, 06 to 10 ·
-OAUTH-08 to 11, 15, 18 · SESS-03 (Actions) · ORG-02 to 05, 07 · M2M-02, 06 ·
+13, 14 · AUTH-02, 04, 09 (full), 12, 17, 19, 20, 26 · FED-02 to 04, 06 to 10 ·
+OAUTH-08 to 11, 15, 18 · SESS-03 (Actions), 10 · AUTHZ-23, 27 (custom roles) ·
+ORG-02 to 05, 07 · M2M-02, 06 ·
 DYN-02 (A/B), 03, 04, 06, 11 (YAML, Terraform), 12, 13 · SEC-03, 05, 06, 10,
 13 · GOV-02, 03, 07 (basic) · UX-02, 04, 05, 07 · DX-02 (second wave), 03, 04,
 06, 07 · OPS-01 (billing), 05 (internal Helm) · MIG-01 (first importers), 02 ·
@@ -94,7 +99,8 @@ IND-01, 02
 **Goal:** the platform's authorization engine competes with standalone
 authorization vendors.
 
-**Scope:** AUTHZ-01 (full DSL + visual editor), 03 to 10, 12 (sidecar), 14, 18
+**Scope:** AUTHZ-01 (full DSL + visual editor), 03 to 10, 12 (sidecar), 14, 18,
+21 (explicit deny), 26 (full, with explain)
 
 **Exit criteria:**
 - AuthZEN interoperability tests passing
@@ -107,8 +113,8 @@ authorization vendors.
 **Goal:** win enterprise security reviews and Enterprise-tier deals.
 
 **Scope:** TEN-02, 09 (crypto-shredding) · IDM-10, 16 · AUTH-07, 13, 18, 22,
-23 · FED-13 · OAUTH-13, 16 · SESS-05 to 07 · AUTHZ-11, 12 (WASM, library), 13,
-15, 16, 19 · ORG-06 · M2M-03, 07 · DYN-08, 11 (Pulumi, operator) · SEC-04, 07,
+23, 25, 29 · FED-13 · OAUTH-13, 16 · SESS-05 to 07 · AUTHZ-11, 12 (WASM,
+library), 13, 15, 16, 19, 24, 28 · ORG-06 · M2M-03, 07 · DYN-08, 11 (Pulumi, operator) · SEC-04, 07,
 08 (per-tenant keys), 11 · GOV-01 (tamper-evident), 04 to 09 · UX-08 · OPS-02,
 03 · MIG-01 (all importers), 03 · IND-09, 11
 
@@ -124,7 +130,7 @@ authorization vendors.
 tenants with residency guarantees; ship the self-hosted edition.
 
 **Scope:** TEN-03 (dedicated cell, customer VPC), 05 · IDM-15, 17 · AUTH-10,
-11, 14, 15, 21, 24 · FED-05, 12 · OAUTH-12, 14 · SESS-08 · ORG-08 · M2M-04, 05,
+11, 14, 15, 21, 24, 27, 28 · FED-05, 12 · OAUTH-12, 14 · SESS-08 · ORG-08 · M2M-04, 05,
 08, 09 · SEC-12 · OPS-04, 05 (self-hosted GA), 06 · IND-03 to 08, 10
 
 **Exit criteria:**
@@ -174,33 +180,20 @@ counted above.
 
 ## 4. Engineering process
 
-- **Decisions:** ADRs in `docs/adr/`, reviewed by the architecture group.
-- **Branching:** trunk-based development with short-lived branches, feature
-  flags for unfinished work, mandatory code review, CODEOWNERS on security-critical
-  modules (crypto, OAuth, SAML, authz, tenancy).
-- **CI gates:** unit and integration tests, lint, SAST, SCA, secret scanning,
-  license check, conformance suites, performance regression benchmarks,
-  tenant-isolation tests.
-- **CD:** progressive delivery (canary per cell, automated rollback on SLO burn),
-  database migrations in expand → migrate → contract steps.
-- **Definition of done:** tests, docs, audit events, metrics, threat-model
-  update, Management API + Terraform + console coverage for any new
-  configuration object.
+Coding standards, repository structure, the version policy, reviews and the
+definition of done are in [08 — Engineering standards](08-engineering-standards.md).
+API conventions are in [10](10-api-standards.md); container and release
+practices in [12](12-containers-and-deployment.md).
 
 ## 5. Quality strategy
 
-| Layer | What | Tools |
-|-------|------|-------|
-| Unit and property tests | Engines, parsers, policy evaluation (property-based: "a forbid always wins") | Go test, rapid / gopter |
-| Fuzzing | JWT/JOSE, SAML/XML, SCIM filters, CEL inputs, model DSL, WebAuthn payloads | Go native fuzzing, OSS-Fuzz style corpus |
-| Integration | Each module against real PostgreSQL, Valkey and NATS | Testcontainers |
-| Conformance | OpenID (OIDC, FAPI, CIBA, logout), FIDO, SAML interop, SCIM, AuthZEN | Official suites in CI |
-| End to end | Browser login journeys across web, iOS and Android SDKs | Playwright, XCUITest, Espresso |
-| Isolation | Cross-tenant access attempts on every endpoint | Custom suite |
-| Load and soak | Logins, token operations, checks at and above cell targets | k6 |
-| Chaos and DR | Node, zone, database and bus failures; regional failover drills | Chaos Mesh, game days |
-| Security | Internal red team, external penetration tests, bug bounty | — |
-| Accessibility | WCAG 2.2 AA on hosted UI and portals | axe, manual audits |
+The full test strategy — unit, integration, contract, API, security matrices,
+conformance, end-to-end, front-end, fuzzing, performance and resilience, with
+examples and CI gates — is in [09 — Testing strategy](09-testing-strategy.md).
+Key gates: `-race` on every test run, ≥ 90% coverage on security-critical
+modules, automatic tenant-isolation and admin-permission matrices over every
+endpoint, OpenID/FIDO/SAML conformance suites in CI, and a 10% benchmark
+regression limit on hot paths.
 
 ## 6. Risk register
 

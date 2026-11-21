@@ -14,13 +14,31 @@ engineering plan. Code follows once the decisions in
 
 ## Plan documents
 
+**Product**
+
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (about 200), with an ID and a delivery phase |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (215), with an ID and a delivery phase |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
-| 4 | [Architecture](docs/plan/04-architecture.md) | How "100% dynamic" works, system design, data model, APIs, tech stack, SLOs, security |
-| 5 | [Roadmap & delivery](docs/plan/05-roadmap-and-delivery.md) | Phases, milestones, exit criteria, team, quality strategy, risks |
+| 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
+
+**Architecture & engineering**
+
+| # | Document | Answers |
+|---|----------|---------|
+| 4 | [Architecture](docs/plan/04-architecture.md) | How "100% dynamic" works, system design, data model, tech stack, SLOs, security |
+| 8 | [Engineering standards](docs/plan/08-engineering-standards.md) | Latest-version policy, repository and module structure, Go and TypeScript coding standards, reviews |
+| 9 | [Testing strategy](docs/plan/09-testing-strategy.md) | Unit, integration, contract, API, security, conformance, E2E, fuzz, performance and chaos testing, with examples and gates |
+| 10 | [API standards](docs/plan/10-api-standards.md) | OpenAPI 3.2 contracts, conventions, errors, versioning, toolchain, developer portal |
+| 11 | [User interfaces & configuration screens](docs/plan/11-admin-ui.md) | Every screen in the admin console, organization portal, account portal and hosted login |
+| 12 | [Containers & deployment](docs/plan/12-containers-and-deployment.md) | Images, local development, Kubernetes, release pipeline, environments, self-hosted packaging |
+
+**Delivery**
+
+| # | Document | Answers |
+|---|----------|---------|
+| 5 | [Roadmap & delivery](docs/plan/05-roadmap-and-delivery.md) | Phases, milestones, exit criteria, team, risks |
 | 6 | [Decisions & ADR backlog](docs/plan/06-decisions.md) | What must be decided now, with a recommendation for each |
 
 ---
@@ -45,6 +63,18 @@ on either side.
 4. Standards-first with no lock-in (OIDC, SAML, SCIM, AuthZEN, Shared Signals) and full data export, password hashes included.
 5. Pre-built, pre-certified industry packs (FAPI 2.0 and open banking, SMART on FHIR, NIST AAL3, PIV/CAC, telecom).
 6. Native support for AI agents: an MCP-ready authorization server, delegated agent identities and human-in-the-loop approvals.
+
+**How it is built:**
+- Go (latest stable, 1.27 today) for every backend service; React and TypeScript for the UIs. Every
+  dependency is on its latest stable version, pinned and kept current automatically.
+- A modular monolith with compiler-enforced module boundaries and clean
+  architecture inside each module; strict lint and review rules.
+- Tests at every level, from table-driven unit tests to conformance suites,
+  fuzzing, load and chaos tests, with tenant-isolation checks on every endpoint.
+- OpenAPI 3.2 contracts for every API; the console, CLI, Terraform and SDKs all
+  use the same public APIs.
+- Signed, minimal container images; Helm on Kubernetes with GitOps and canary
+  releases; the same images for SaaS, customer cloud and air-gapped installs.
 
 **Delivery (indicative; team of about 14 growing to about 36; weeks from kickoff):**
 

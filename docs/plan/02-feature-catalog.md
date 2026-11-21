@@ -16,6 +16,10 @@ an epic in the issue tracker, and a **Phase** that matches the
 A phase like "1→2" means a basic version ships in the first phase and the full
 version in the second.
 
+For a single view of every authentication type and every authorization level
+(user, role, group, organization, resource, attribute, field, row, …), see
+[07 — Access coverage](07-access-coverage.md).
+
 Standards references are listed in [03](03-standards-and-compliance.md).
 
 ---
@@ -85,6 +89,11 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTH-22 | Custom authenticators | Third-party factors through the extension SDK | 4 |
 | AUTH-23 | Guest sessions | Anonymous sessions that upgrade to full accounts (carts, trials) | 4 |
 | AUTH-24 | Biometric identity verification | Liveness and face match through pluggable providers (re-verification, recovery) | 5 |
+| AUTH-25 | Mobile device binding | App PIN or biometric unlocks a key held in Secure Enclave or StrongBox; bank-app style login and transaction approval | 4 |
+| AUTH-26 | One Tap and FedCM | Google One Tap, browser FedCM, native Sign in with Apple/Google token exchange for mobile apps | 2 |
+| AUTH-27 | Hardware OATH tokens | Hardware TOTP/HOTP tokens with seed import (PSKC, RFC 6030) | 5 |
+| AUTH-28 | Legacy compatibility | Security questions (migration only), resource-owner password grant, implicit grant. Off by default, never a sole factor, flagged in the console | 5 |
+| AUTH-29 | Regional social providers | WeChat, LINE, Kakao, Naver, VK, Yahoo! JAPAN | 4 |
 
 ## D. Federation & SSO (`FED`)
 
@@ -140,6 +149,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | SESS-07 | Session binding | Device-bound session cookies, hijack anomaly detection | 4 |
 | SESS-08 | Token encryption | JWE for ID tokens and userinfo | 5 |
 | SESS-09 | Crypto agility | Algorithm policy per tenant; post-quantum readiness (ML-DSA, hybrid TLS) as the ecosystem matures | 6 |
+| SESS-10 | BFF and server-side sessions | Backend-for-frontend token handler for SPAs (tokens never reach the browser); server-side session helpers for classic web apps | 2 |
 
 ## G. Authorization (`AUTHZ`)
 
@@ -165,6 +175,14 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTHZ-18 | Model templates | Multi-tenant SaaS RBAC, document sharing, org/team/repo, healthcare consent, bank accounts and mandates | 3 |
 | AUTHZ-19 | Attribute sources (PIP) | Pull attributes from HTTP APIs and databases, with TTL caching | 4 |
 | AUTHZ-20 | XACML compatibility | Import or translate legacy XACML policies | 6 |
+| AUTHZ-21 | Direct user permissions | Grant a permission to one user without a role (1); explicit per-user deny (3) | 1→3 |
+| AUTHZ-22 | Group-based roles | Assign roles to groups, including nested groups; members inherit | 1 |
+| AUTHZ-23 | UI / feature authorization | Permissions endpoint for front ends; SDK helpers (`useCan`, `<Can>`) to show or hide menus, pages and buttons | 2 |
+| AUTHZ-24 | Product entitlements | Plan- or subscription-based features and quotas for our customers' own products, per organization | 4 |
+| AUTHZ-25 | API endpoint authorization | SDK middleware mapping routes to permissions (Go, Node.js, Java, Python, .NET) | 1 |
+| AUTHZ-26 | Effective permissions | Per user or resource: every permission and its source (direct, role, group, org, relationship, delegation); basic (1), with explain and relationships (3) | 1→3 |
+| AUTHZ-27 | Admin roles | Built-in roles for console and Management API: Owner, Admin, Developer, Security admin, Support, Auditor, Billing (1); custom admin roles scoped to environment or organization (2) | 1→2 |
+| AUTHZ-28 | User-to-user delegation | Assistant, proxy and power-of-attorney access; time-bound and revocable | 4 |
 
 ## H. B2B organizations (`ORG`)
 
@@ -261,7 +279,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details | Phase |
 |----|-----------|---------|-------|
-| DX-01 | APIs | Management API (REST, OpenAPI 3.1); gRPC for the data plane | 1 |
+| DX-01 | APIs | Public REST APIs described in OpenAPI 3.2 ([10](10-api-standards.md)); gRPC for the data plane | 1 |
 | DX-02 | SDKs | Phase 1: JS/TS, React, Next.js, Node.js, Go, Java/Spring, Python. Phase 2: iOS, Android, Flutter, React Native, .NET, PHP/Laravel, Ruby/Rails, Vue, Angular | 1→2 |
 | DX-03 | CLI | Log in, manage tenants, export/import configuration, tail logs, mint test tokens | 2 |
 | DX-04 | Local emulator | One Docker image for development and CI | 2 |

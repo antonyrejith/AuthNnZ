@@ -535,7 +535,8 @@ Threat model per epic; security champion in every team; SAST, DAST, SCA and
 secret scanning in CI; fuzzing of every parser (JWT, SAML/XML, SCIM filters,
 CEL inputs, DSL); OpenID, FIDO and SAML conformance suites in CI; external
 penetration test before beta, before GA and then twice a year; public bug
-bounty from GA.
+bounty from GA. Coding rules are in [08 §3.8](08-engineering-standards.md#38-security-rules)
+and the test approach in [09](09-testing-strategy.md).
 
 ## 9. API design
 
@@ -544,34 +545,39 @@ bounty from GA.
 | Protocol endpoints | Per standard | `/.well-known/openid-configuration`, `/oauth2/authorize`, `/oauth2/token`, `/oauth2/par`, `/oauth2/introspect`, `/oauth2/revoke`, `/oauth2/device_authorization`, `/oauth2/bc-authorize`, `/userinfo`, `/jwks`, `/logout`, `/saml2/{conn}/sso`, `/scim/v2/Users` |
 | Authentication API (headless) | REST + server-driven UI | `POST /v1/flows/{flow}/transactions`, `POST /v1/transactions/{id}/steps` |
 | Authorization API | AuthZEN + gRPC | `POST /access/v1/evaluation`, `/access/v1/evaluations`, `/access/v1/search/{subject,resource,action}`; `POST /v1/relationships:write`, `GET /v1/relationships:watch` |
-| Management API | REST, resource-oriented, OpenAPI 3.1 | `/v1/environments/{env}/users`, `/applications`, `/connections`, `/flows`, `/authz/models`, `/policies`, `/config/versions` |
+| Management API | REST, resource-oriented, OpenAPI 3.2 | `/v1/environments/{env}/users`, `/applications`, `/connections`, `/flows`, `/authz/models`, `/policies`, `/config/versions` |
 | Events | Webhooks, streams, Shared Signals | `user.created`, `session.revoked`, `config.published`, CAEP and RISC events |
 
-**Conventions:** URL versioning (`/v1`) with at least 12 months of deprecation
+Full conventions, error format, versioning and toolchain:
+[10 — API standards](10-api-standards.md).
+
+**Summary:** URL versioning (`/v1`) with at least 12 months of deprecation
 notice; cursor pagination; `Idempotency-Key` on writes; `ETag`/`If-Match`
 optimistic concurrency on configuration; RFC 9457 problem details for errors;
 standard `RateLimit` headers; field masks for partial updates; every API also
 available through gRPC for SDKs and internal callers.
 
-## 10. Technology stack (recommended)
+## 10. Technology stack
 
 | Layer | Choice | Why | Alternatives |
 |-------|--------|-----|--------------|
-| Backend language | **Go** | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, easy hiring | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
+| Backend language | **Go, latest stable release** (D-03, accepted) | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, easy hiring | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
 | Protocol layer | Our own, on vetted primitives (JOSE, WebAuthn, SAML/XML-DSig libraries) | The authorization server is core IP and must be fully dynamic | Adopt a framework (fosite, zitadel/oidc) — see D-04 |
 | Expressions | CEL (`cel-go`) | Safe, fast, typed; also used by Kubernetes and Zanzibar implementations | Expr, JSONLogic |
 | Policies | Cedar (`cedar-go`) | Analyzable, fast, Apache 2.0 | OPA/Rego |
 | Relationship engine | OpenFGA or SpiceDB embedded, or own (spike) | Zanzibar semantics, Apache 2.0 | Own implementation |
 | Extensions | WebAssembly via `wazero` | Pure Go, strong sandbox, multi-language | V8 isolates, Firecracker microVMs |
-| Database | PostgreSQL 17+ | Reliability, RLS, JSONB, wide managed support | CockroachDB / YugabyteDB for global |
+| Database | PostgreSQL, latest major version | Reliability, RLS, JSONB, wide managed support | CockroachDB / YugabyteDB for global |
 | Cache | Valkey (Redis-compatible) | Open license, fast | Redis, KeyDB |
 | Event bus | NATS JetStream | Lightweight, edge- and on-prem-friendly | Kafka / Redpanda |
 | Analytics and audit | ClickHouse | High-volume logs at low cost | OpenSearch, BigQuery |
-| Console and hosted UI | TypeScript, React, Vite; Web Components for the login renderer | Ecosystem, embeddability | Vue, Svelte |
+| Console and hosted UI | TypeScript, React, Vite, TanStack, Radix UI, Tailwind CSS; Lit web components for the login renderer ([11](11-admin-ui.md#8-front-end-technology)) | Ecosystem, embeddability | Vue, Svelte |
 | Mobile SDKs | Swift, Kotlin; Flutter and React Native wrappers | Native passkeys and server-driven UI | — |
-| Infrastructure | Kubernetes, Helm, Terraform, Argo CD, cert-manager, External Secrets | Portable across AWS, Azure, GCP and on-prem | Nomad |
+| Containers and infrastructure | Distroless images, Kubernetes, Helm, Gateway API, Argo CD and Argo Rollouts, cert-manager, External Secrets, KEDA, Kyverno, OpenTofu ([12](12-containers-and-deployment.md)) | Portable across AWS, Azure, GCP, on-prem and air-gapped | Nomad |
 | Observability | OpenTelemetry, Prometheus, Grafana, Tempo, Loki | Open standards | Datadog |
 
+Exact versions and the "latest stable everywhere" upgrade policy are in
+[08 §1](08-engineering-standards.md#1-version-policy-latest-stable-everywhere).
 Every third-party library goes through a license review (permissive licenses
 only in shipped code) and a security review.
 
@@ -614,35 +620,8 @@ flowchart LR
 | Deployments | Zero downtime; database migrations backward-compatible (expand, migrate, contract) |
 | Accessibility | WCAG 2.2 AA for hosted UI and portals |
 
-## 13. Repository layout (monorepo)
+## 13. Repository layout
 
-```
-/cmd/                      # one main package per deployable
-  router/ idp-runtime/ pdp/ directory-api/ worker/ ext-runtime/
-  mgmt-api/ edge-pdp/ connector-agent/ authnnz/ (all-in-one) cli/
-/internal/
-  platform/                # tenancy context, config, logging, telemetry, errors
-  configsvc/               # versioned config, inheritance, compiler, bundles
-  flow/                    # flow engine + node types
-  expr/                    # CEL environment and functions
-  schema/                  # dynamic attribute schemas
-  identity/                # users, identities, credentials, groups, orgs
-  authn/                   # password, otp, webauthn, totp, push, certificates
-  federation/              # oidc-rp, saml, ws-fed, ldap
-  oauth/                   # authorization server, grants, tokens, consent
-  session/                 # sso sessions, logout
-  authz/                   # model DSL, relationship store, policy, check, search
-  risk/                    # signals, rules, scoring
-  extensions/              # wasm runtime, hooks, webhooks
-  connectors/              # messaging, captcha, kyc, siem, idp templates
-  crypto/ keys/ kms/       # primitives, key management, rotation
-  audit/ events/           # outbox, bus, audit, ocsf mapping
-  storage/                 # repositories, migrations, rls enforcement
-  metering/ billing/
-/api/                      # OpenAPI specs, protobuf definitions
-/web/console/  /web/login/  /web/portal/
-/sdks/                     # thin wrappers; full SDKs in separate repositories
-/deploy/                   # helm, terraform, docker-compose, kustomize
-/test/                     # e2e, conformance (OpenID, FIDO, SAML, SCIM), load (k6), isolation, chaos
-/docs/                     # plan, ADRs, runbooks
-```
+The monorepo layout, the internal structure of each module (domain, use cases,
+adapters) and the dependency rules are defined in
+[08 §2 — Repository and code structure](08-engineering-standards.md#2-repository-and-code-structure).

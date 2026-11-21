@@ -83,13 +83,17 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 
 | Standard | Use |
 |----------|-----|
-| OpenAPI 3.1 | Management API contract |
+| OpenAPI 3.2, JSON Schema 2020-12 | Contracts for every public API and configuration object ([10](10-api-standards.md)) |
+| AsyncAPI 3.x, Arazzo 1.x | Event and webhook contracts; multi-step API workflows |
+| RFC 7396, RFC 9745, RFC 8594 | JSON Merge Patch; `Deprecation` and `Sunset` headers |
 | RFC 9457 (Problem Details) | API error format |
 | CloudEvents 1.0 | Event and webhook envelope |
 | Standard Webhooks | Webhook signing and verification |
 | OCSF | Audit and security event schema for SIEM export |
 | OpenTelemetry | Traces, metrics, logs |
 | SLSA, SBOM (SPDX / CycloneDX), Sigstore | Supply-chain security of our builds |
+| OWASP ASVS 5.0 | Secure-coding verification baseline (Level 3 for identity modules) |
+| WCAG 2.2 AA | Accessibility of every user interface |
 
 ### 1.6 Authorization models and references
 
