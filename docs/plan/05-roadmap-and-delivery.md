@@ -2,7 +2,7 @@
 
 ## 1. Principle
 
-**Everything ships in the first release.** All 291 features in the
+**Everything ships in the first release.** All 296 features in the
 [feature catalog](02-feature-catalog.md) are part of general availability (GA).
 Nothing is split into later phases or deferred (decision D-23).
 
@@ -23,7 +23,7 @@ What this means in practice:
 
 **Trade-offs of a single release:**
 - There is no customer revenue or market feedback before GA, except through design partners.
-- A larger team is needed sooner: about 75 engineers instead of growing to about 30.
+- A larger team is needed sooner: about 77 engineers instead of growing to about 30.
 - The whole scope is integrated and hardened at once.
 
 The plan manages these with the checkpoints, design partners and quality gates
@@ -64,7 +64,7 @@ gantt
     section Milestones
     Feature complete (week 64)           :milestone, 2028-03-27, 0d
     Release candidate (week 80)          :milestone, 2028-07-17, 0d
-    GA, all 291 features (week 90)       :milestone, 2028-09-25, 0d
+    GA, all 296 features (week 90)       :milestone, 2028-09-25, 0d
 ```
 
 | Stage | Weeks | What happens |
@@ -74,7 +74,7 @@ gantt
 | **Feature complete** | 64 | Every catalog feature meets the definition of done |
 | **Hardening and certification** | 64–80 | Full-scale load, chaos and disaster-recovery drills; external penetration tests; conformance certifications; accessibility audit; SOC 2 Type II observation window |
 | **Release candidate** | 80–90 | Design partners run the release candidate; fixes only; certification reports issued; GA readiness review |
-| **GA** | 90 (about 21 months) | All 291 features, all deployment models, all industry packs |
+| **GA** | 90 (about 21 months) | All 296 features, all deployment models, all industry packs |
 
 ### Foundations (weeks 0–8)
 
@@ -109,17 +109,17 @@ docs and tests.
 | WS-06 | Machine, agent and AI identity | I (M2M) | 4 |
 | WS-07 | Flows and extensibility | J (DYN) | 5 |
 | WS-08 | Security and risk | K (SEC) | 5 |
-| WS-09 | Audit and governance | L (GOV) | 4 |
+| WS-09 | Audit and governance, including the audit log service | L (GOV) | 5 |
 | WS-10 | Experience: console, portals, hosted UI, theme studio, screen builder and tours | M (UX) | 10 |
-| WS-11 | Developer experience: APIs, SDKs (25+ languages and frameworks), CLI, Terraform, docs, AI assistant and MCP server | N (DX) | 9 |
+| WS-11 | Developer experience: APIs, SDKs (25+ languages and frameworks), CLI, Terraform, docs, AI assistant and MCP server | N (DX) | 10 |
 | WS-12 | Infrastructure, SRE, self-hosted and operations features | O (OPS) | 6 |
 | WS-13 | Industry packs and compliance | Q (IND) | 3 |
-| | **Engineers** | | **75** |
+| | **Engineers** | | **77** |
 
 Shared roles: architects (3), engineering managers (5), product managers (5),
 designers (6: product, visual and brand, content, UX research), technical writers
 and developer relations (4), localization program manager (1), security and GRC
-(3), test-infrastructure engineers (2). **About 104 people build the platform.**
+(3), test-infrastructure engineers (2). **About 106 people build the platform.**
 Professional translation and in-country review are bought from a translation
 vendor ([21 §8](21-localization.md#8-translation-process)).
 
@@ -127,9 +127,9 @@ vendor ([21 §8](21-localization.md#8-translation-process)).
 rehearsed before GA): 4 additional SREs for 24/7 on-call, 6 support engineers,
 3 customer success managers, 2 security operations engineers and 1 trust and
 safety specialist ([18 §1](18-operating-the-service.md#1-operating-model-at-ga)).
-**About 120 people at GA**, plus about 20 go-to-market people joining from
+**About 122 people at GA**, plus about 20 go-to-market people joining from
 month 9 ([22 §8](22-commercialization.md#8-go-to-market-team-and-timeline)),
-for **about 140 in total**.
+for **about 142 in total**.
 
 **Ramp:** about 25 people during foundations (platform core, infrastructure,
 audit, architects, first leads), full size by month 6. Hire two or three senior
@@ -166,7 +166,7 @@ the whole platform is deployed to staging and verified:
 - all quality gates in [09](09-testing-strategy.md) pass (isolation, audit
   coverage, conformance suites run so far, benchmarks);
 - design partners receive the build and report back;
-- progress is reported as features done out of 291, per workstream, with
+- progress is reported as features done out of 296, per workstream, with
   risks and re-planning where a workstream is behind.
 
 A checkpoint never removes scope. If a workstream falls behind, the response
@@ -176,7 +176,7 @@ adjust the GA date openly.
 ## 6. GA exit criteria
 
 **Scope**
-- All 291 catalog features meet the definition of done: API, console, Terraform
+- All 296 catalog features meet the definition of done: API, console, Terraform
   and SDK support where relevant, documentation, audit events and tests.
 - All deployment models are installed and running at a design partner or as an
   internal reference installation: multi-region SaaS, dedicated cell, customer
@@ -253,7 +253,7 @@ and the readiness assessment is done by GA.
 | R6 | Certifications take longer than planned | Medium | High | Compliance program starts at foundations; compliance automation; early auditor engagement; observation window planned inside hardening |
 | R7 | Crowded market | High | Medium | Differentiators in [01](01-product-vision.md#6-differentiators), complete platform at launch, migration tooling |
 | R8 | Dependency on third-party engines (OpenFGA, SpiceDB, Cedar) | Low | Medium | Our own DSL and interfaces; Apache-2.0 licenses allow forking |
-| R9 | Hiring about 75 engineers and a 16-person operations team, including scarce identity-protocol specialists | High | High | Start hiring before kickoff; senior specialists first; consultants for SAML/FAPI; strong onboarding through standards and dev container |
+| R9 | Hiring about 77 engineers and a 16-person operations team, including scarce identity-protocol specialists | High | High | Start hiring before kickoff; senior specialists first; consultants for SAML/FAPI; strong onboarding through standards and dev container |
 | R10 | SMS cost and fraud | Medium | Medium | Pumping protection, spend caps, pass-through pricing, push and passkeys preferred |
 | R11 | Key-management failure | Low | Critical | KMS/HSM, automated rotation, key ceremonies, tested emergency runbooks |
 | R12 | Extension code abused or unstable | Medium | Medium | WASM sandbox, quotas, timeouts with fail-open/fail-closed policy per hook |
@@ -269,7 +269,7 @@ and the readiness assessment is done by GA.
 ## 9. Immediate next steps
 
 1. Confirm the open decisions in [06](06-decisions.md), including team size and
-   budget for about 120 people at GA, plus the translation vendor (D-14), and
+   budget for about 122 people at GA, plus the translation vendor (D-14), and
    the go-to-market team (D-26).
 2. Start hiring: the engineering lead, architects, and senior identity and platform
    engineers first.
@@ -277,4 +277,4 @@ and the readiness assessment is done by GA.
 4. Write ADR-0001 (modular monolith) and ADR-0002 (tenancy and isolation).
 5. Start the foundation spikes listed in §2.
 6. Create the repository skeleton, CI pipeline and development environment.
-7. Load the 291 catalog features into the issue tracker as epics, one board per workstream.
+7. Load the 296 catalog features into the issue tracker as epics, one board per workstream.

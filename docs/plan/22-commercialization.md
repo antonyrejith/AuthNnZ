@@ -52,6 +52,11 @@ extended audit retention, premium support.
 
 **Self-hosted** is licensed with the Enterprise or Regulated feature set.
 
+**Product lines:** parts of the platform are also sold on their own, for
+example authorization as a service, an enterprise-ready kit for B2B SaaS, agent
+and MCP security, or an audit log service, each with a focused console and an
+upgrade path to the full platform ([24 §4](24-product-forms.md#4-product-lines-sold-separately-new)).
+
 This table is the starting proposal; final packaging is set with pricing
 research and design partners (D-25).
 
@@ -121,6 +126,7 @@ can be applied.
 | OPS-15 | **Self-hosted licensing:** signed license files, offline activation for air-gapped sites, usage reporting (uploaded manually where offline), grace periods and warnings. A license problem never blocks end users from signing in |
 | OPS-16 | **Partner program platform:** partner portal (deal registration, certifications, resources), wholesale billing to partners, partners price and invoice their own customers, usage roll-up |
 | OPS-17 | **Quote-to-provisioning:** signed orders in the CRM (for example Salesforce or HubSpot) provision tenants, editions, add-ons and committed volumes automatically, and contract changes update entitlements |
+| OPS-18 | **Modular product lines** sold separately, with focused consoles ([24](24-product-forms.md)) |
 
 ## 7. Legal and commercial readiness
 
@@ -148,8 +154,8 @@ To prepare with legal counsel during the build:
 | Month 12 | Sales leader, 2 solutions engineers, partner manager, commercial counsel | POC kit, contracts, first partners, marketplace listings |
 | Month 15 | 5 account executives, 1 more solutions engineer, 1 more partner manager, demand generation and marketing operations (2), sales operations (1), customer education (1) | Pipeline for GA, pricing page and calculator, academy |
 
-**About 20 go-to-market people at GA**, for an organization of **about 140
-people** in total, including the 120 in engineering, design, product and
+**About 20 go-to-market people at GA**, for an organization of **about 142
+people** in total, including the 122 in engineering, design, product and
 operations ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
 
 **Before GA:**

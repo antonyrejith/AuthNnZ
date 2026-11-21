@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 291 features are part of the first release** (decision D-23). None is
+**All 296 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -122,6 +122,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTH-28 | Legacy compatibility | Security questions (migration only), resource-owner password grant, implicit grant. Off by default, never a sole factor, flagged in the console |
 | AUTH-29 | Regional social providers | WeChat, LINE, Kakao, Naver, VK, Yahoo! JAPAN |
 | AUTH-30 | Passkeys on white-label domains | Relying-party ID chosen per tenant, WebAuthn related origins across brands and countries, native-app association files, guided re-enrollment if the domain changes |
+| AUTH-31 | Verifiable credential issuance | Issue SD-JWT VC and mDoc credentials to digital wallets with OpenID4VCI, alongside verification (AUTH-16); revocation through status lists |
 
 ## D. Federation & SSO (`FED`)
 
@@ -259,7 +260,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DYN-08 | Event streaming | Kafka, Kinesis, EventBridge, Pub/Sub, Event Hubs sinks; scheduled exports to data warehouses (Snowflake, BigQuery, Databricks) |
 | DYN-09 | Connector framework | IdPs, messaging (email, SMS, WhatsApp, push), CAPTCHA, KYC, risk, CRM — declared by manifest |
 | DYN-10 | Template engine | Emails, SMS and UI text; 40+ locales including RTL; per-org overrides |
-| DYN-11 | Configuration as code | YAML export/import and GitOps sync; Terraform provider; Pulumi; Kubernetes operator |
+| DYN-11 | Configuration as code | YAML export/import and GitOps sync; Terraform provider; Pulumi; Crossplane; Kubernetes operator; GitHub Actions and GitLab CI components |
 | DYN-12 | Gradual rollout | Release a configuration version to a percentage of traffic, with automatic rollback on error spikes |
 | DYN-13 | Forms builder | Registration and profile forms generated from the user schema |
 | DYN-14 | Branded message senders | Verified email sender domains (SPF, DKIM, DMARC, optional BIMI) and SMS sender IDs, short codes and long codes per country |
@@ -292,7 +293,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | ID | Capability | Details |
 |----|-----------|---------|
 | GOV-01 | Audit log | 100% of changes, authentication events and sensitive reads; OCSF mapping; per-tenant gapless sequence and hash chain; append-only storage; retention per plan. See [13](13-audit-and-change-tracking.md) |
-| GOV-02 | Log streaming | Splunk, Datadog, Elastic, Microsoft Sentinel, Sumo Logic, S3, generic HTTPS |
+| GOV-02 | Log streaming | Splunk, Datadog, Elastic, Microsoft Sentinel, Sumo Logic, S3, generic HTTPS; ready-made dashboards and detection rules for each SIEM |
 | GOV-03 | Analytics | Sign-ups, logins, MFA adoption, failures, risk, funnel drop-off |
 | GOV-04 | Access reviews | Certification campaigns with reviewer delegation and auto-revoke |
 | GOV-05 | Access requests | Self-service requests with manager and multi-stage approvals |
@@ -312,6 +313,8 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | GOV-19 | Platform audit trail | Our own Git, CI/CD, GitOps, OpenTofu, Kubernetes, cloud, KMS, database and access-system events in a write-once security account |
 | GOV-20 | Reasons and approvals | Required reasons for sensitive actions, change-ticket references on any change, recorded four-eyes approvals |
 | GOV-21 | Identity governance automation | Birthright access rules (automatic role assignment from attributes such as department or location), mover re-certification, role-mining suggestions from actual usage, entitlement catalog across connected applications |
+| GOV-22 | Approvals in collaboration and ITSM tools | Access requests, four-eyes changes and security alerts handled in Slack, Microsoft Teams, ServiceNow and Jira |
+| GOV-23 | Audit log service | Tamper-evident audit log API for customers' own application events, with search, streaming and an embeddable audit-log viewer for their customers. See [24](24-product-forms.md) |
 
 ## M. Experience: hosted UI, console, portals (`UX`)
 
@@ -362,6 +365,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DX-12 | Edge and serverless runtimes | Token verification and authorization in Cloudflare Workers, Vercel and Netlify edge functions, AWS Lambda, Azure Functions, Cloud Run functions, Deno and Bun |
 | DX-13 | Games and devices | Unity and Unreal Engine SDKs with device-flow sign-in for consoles and TVs; C and Rust libraries for constrained IoT devices |
 | DX-14 | OEM embedding kit | The all-in-one engine packaged to run alongside a software vendor's product, with the Management SDK, white-label and licensing |
+| DX-15 | Ecosystem connectors | Automation platforms (Zapier, Make, n8n, Power Automate), website and commerce plugins (WordPress, Shopify, Webflow), business-platform apps (Salesforce, ServiceNow, Dynamics) |
 
 ## O. Operations & commercial platform (`OPS`)
 
@@ -384,6 +388,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | OPS-15 | Self-hosted licensing | Signed license files, offline activation for air-gapped sites, usage reporting (manual upload where offline), grace periods and warnings; a license problem never blocks end users from signing in |
 | OPS-16 | Partner program platform | Partner portal (deal registration, certifications, resources), wholesale billing to partners, partners price and invoice their own customers, usage roll-up |
 | OPS-17 | Quote-to-provisioning | Signed orders in the CRM (for example Salesforce or HubSpot) provision tenants, editions, add-ons and committed volumes automatically; contract changes update entitlements |
+| OPS-18 | Modular product lines | Separately sold product lines (authorization, enterprise-ready kit, agent and MCP security, identity orchestration, passkeys, audit log service, risk signals, consent, entitlements, digital credentials) with their own pricing, onboarding and a focused console; upgradable to the full platform. See [24](24-product-forms.md) |
 
 ## P. Migration (`MIG`)
 
@@ -421,7 +426,7 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 So that nothing is assumed silently, these items are listed explicitly and need
 a decision (D-24 in [06](06-decisions.md)).
 
-**Optional additions (not in the 291 features yet):**
+**Optional additions (not in the 296 features yet):**
 
 | Item | What it is | Recommendation |
 |------|-----------|----------------|

@@ -99,6 +99,7 @@ Terms used across the plan, in alphabetical order within each group.
 | **OEM** | A software vendor that embeds and resells the platform inside its own product |
 | **POC** | Proof of concept: a structured trial during an enterprise sale |
 | **Private offer** | A custom price agreed through a cloud marketplace |
+| **Product line** | Part of the platform sold on its own (for example authorization as a service), with a focused console and an upgrade path to the full platform |
 | **Product-led growth** | Customers discover, try and buy through the product itself, without talking to sales |
 
 ## Engineering and operations
