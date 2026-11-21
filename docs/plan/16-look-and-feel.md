@@ -368,6 +368,9 @@ else, and is never needed for anything the no-code tools can do.
   a feature is not done until design QA signs it off.
 - **Usability tests with design partners** at every integration checkpoint;
   findings are tracked like bugs.
+- **Product analytics, with consent:** anonymous usage measurement in the
+  console (switched off by default in the self-hosted edition) shows where
+  admins struggle, and feeds the targets in §8.4.
 - **Content design:** consistent terminology, and error messages that say what
   happened and what to do.
 

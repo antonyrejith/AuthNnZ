@@ -181,6 +181,7 @@ spec:
 | Service-to-service | mTLS (service mesh or SPIFFE-based; decided during foundations, D-19) |
 | Availability | ≥ 3 replicas across zones, PodDisruptionBudgets, graceful shutdown, readiness gates |
 | Scaling | HPA on CPU and request rate for `idp-runtime`, `pdp` and `directory-api`; KEDA on queue depth for `worker`; node autoscaling (Karpenter or the cloud equivalent) |
+| Connectivity | Static egress IPs per region; private endpoints through AWS PrivateLink, Azure Private Link and Google Private Service Connect (OPS-07) |
 | Secrets | External Secrets Operator syncing from the cloud secret manager or Vault; no secrets in Git or Helm values |
 | Migrations | A Job runs migrations before rollout. Migrations are backward-compatible, so old and new pods run side by side |
 | Isolation | `ext-runtime` runs on a dedicated, tainted node pool; dedicated cells get their own cluster |

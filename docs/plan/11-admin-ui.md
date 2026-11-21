@@ -51,6 +51,10 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
    reader labels, 40+ languages, right-to-left layouts, light and dark themes.
 12. **Help in context:** each screen links to docs, quick-starts and example
     configurations.
+13. **AI admin assistant.** Describe a change in plain language and get a
+    draft to review; ask questions about the configuration and audit trail.
+    Drafts are never published without review and respect the admin's
+    permissions (UX-22).
 
 ## 3. Admin console: screen inventory
 
@@ -91,6 +95,8 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 | User schema | **Attribute builder**: name, type, validation, required, unique, PII flag, who can read and edit (user, admin, app); used by forms and tokens |
 | Forms | Registration and profile forms built from the schema, per app or organization |
 | Imports and exports | Bulk import with password-hash format; progress, errors; scheduled exports |
+| Lifecycle rules | Dormant accounts, account expiry for contractors and guests, scheduled deprovisioning (IDM-18) |
+| HR provisioning | Connect HR systems (Workday, SAP SuccessFactors, BambooHR and others) for joiner, mover and leaver automation (IDM-19) |
 | Directory sync | Active Directory / LDAP agents, Google Workspace and Entra ID sync status |
 
 ### 3.4 Organizations (B2B)
@@ -137,6 +143,8 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
 | Screen | What it configures |
 |--------|--------------------|
+| **Security posture center** | Security score, findings with one-click fixes, access recommendations from real usage (SEC-16) |
+| Device trust | Connect device management and endpoint security tools; use device posture in policies (SEC-14) |
 | Attack protection | Brute-force thresholds, lockout, credential-stuffing defense, bot detection (CAPTCHA provider and when to challenge), breached-password response |
 | Risk rules | Signals and weights, CEL rules, actions per risk band (allow, challenge, block, notify); test against recent traffic |
 | Network | IP allow/deny lists, geo-blocking, trusted proxies |
@@ -149,6 +157,7 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 | Screen | What it configures |
 |--------|--------------------|
 | Actions | Code editor (TypeScript, Go, Rust or Python compiled to WASM), secrets, dependencies, test runner with sample events, logs, versions |
+| **Integration health** | Expiring IdP certificates and secrets, failing syncs and webhooks, connector errors, unused integrations (OPS-08) |
 | Webhooks | Endpoints, event types, signing secret, delivery log, retry and replay |
 | Event streams | Kafka, Kinesis, EventBridge, Pub/Sub, Event Hubs destinations and filters |
 | Connectors | Email, SMS, WhatsApp and push providers; CAPTCHA; KYC; SIEM; CRM — credentials, failover order, test send |
@@ -197,6 +206,7 @@ All of these work without code; see [16 — Look & feel](16-look-and-feel.md).
 | **Templates and push** | Template versions, linked children, push wizard (mode, waves, conflict rule, preview and simulation), live push status, rollback, drift report |
 | **Releases** | All drafts and published versions across the environment; diff; promote dev → stage → prod; approval queue; rollback; gradual rollout status; GitOps sync status |
 | Environments | Create and manage environments; data residency (read-only after creation) |
+| Console sign-in | Sign in to the console through the company's own identity provider; SCIM for admin accounts; group-to-admin-role mapping (TEN-23) |
 | Admin team | Admins, admin roles (built-in and custom), scope per environment or organization, admin MFA requirements |
 | Management API clients | Machine credentials for automation, with scopes |
 | Billing and usage | Plan, usage per meter, invoices, limits and alerts |

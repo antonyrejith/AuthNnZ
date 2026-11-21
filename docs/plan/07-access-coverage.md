@@ -88,7 +88,7 @@ never their own invoices."
 | 7 | **Relationship (ReBAC)** | Access derived from how things relate | A manager can view reports of their direct reports | Relation traversal (`viewer from parent`, `manager of`) | AUTHZ-03 |
 | 8 | **Hierarchy** | Permissions inherited down a tree of organizations or resources | Folder access applies to every file inside | Recursive relations | AUTHZ-03, ORG-06 |
 | 9 | **Attribute (ABAC)** | Decisions on attributes of user, resource or action | `user.department == resource.department`; clearance ≥ classification | CEL conditions on relations and permissions | AUTHZ-04, AUTHZ-19 |
-| 10 | **Context** | Time, IP/network, location, device posture, authentication strength, risk | Payroll only on managed devices, from office networks, with AAL2 | Request context in CEL and Cedar | AUTHZ-04, AUTHZ-05 |
+| 10 | **Context** | Time, IP/network, location, device posture, authentication strength, risk | Payroll only on managed devices, from office networks, with AAL2 | Request context in CEL and Cedar; device posture from device-trust integrations | AUTHZ-04, AUTHZ-05, SEC-14 |
 | 11 | **Policy (guardrails, PBAC)** | Organization-wide rules that override grants | "Never delete production data without phishing-resistant MFA" | Cedar `permit` / `forbid` (deny overrides) | AUTHZ-05 |
 | 12 | **Separation of duties** | Conflicting permissions cannot be combined or used together | The invoice creator cannot also approve it | Cedar rules + SoD checks on assignment | GOV-06, AUTHZ-05 |
 | 13 | **OAuth scope / application** | What a client application may do on the user's behalf | A reporting app gets `invoices:read` only | Scopes, resource indicators, RAR `authorization_details` | OAUTH-04, OAUTH-14 |

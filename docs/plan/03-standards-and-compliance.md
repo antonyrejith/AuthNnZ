@@ -134,7 +134,10 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices).
 | COPPA (US), age-appropriate design codes | Parental consent, age assurance | IDM-17 |
 | FedRAMP, CJIS, StateRAMP | Federal controls, FIPS crypto, PIV | SEC-12, AUTH-10, IND-06 |
 | DORA (EU financial sector) | ICT risk, incident reporting, resilience testing | OPS, incident process, exit plan (MIG-04) |
-| NIS2 (EU) | Security measures, incident reporting | Security program |
+| NIS2 (EU) | Security measures, incident reporting | Security program, OPS-13 |
+| Cyber Resilience Act (EU) | For the self-hosted edition: secure by default, vulnerability handling, SBOM, reporting actively exploited vulnerabilities within 24 hours, security updates for the support period | SBOM and signing, OPS-12, OPS-13, [18 §4](18-operating-the-service.md#4-security-incidents-and-breach-notification) |
+| European Accessibility Act | Consumer-facing digital services in the EU must be accessible | WCAG 2.2 AA (EN 301 549) on hosted screens, portals and emails ([16](16-look-and-feel.md)) |
+| EU AI Act | Transparency and documentation for AI features (design assistant, admin assistant, risk scoring); biometric verification for identity proofing handled with providers' conformity | Clear labeling of AI features, opt-out, model documentation, human review of every AI draft (UX-10, UX-22) |
 
 ## 4. Company certifications and attestations
 

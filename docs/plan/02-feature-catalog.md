@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 258 features are part of the first release** (decision D-23). None is
+**All 275 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -61,6 +61,8 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | TEN-20 | Partner base domains | White-label default URLs for every tenant of a partner (`{tenant}.login.partner.com`), and automatic organization subdomains from a tenant base domain |
 | TEN-21 | Domain lifecycle and safety | Guided DNS setup and live verification; automatic certificates from multiple CAs or bring-your-own; health dashboard; daily re-verification and takeover protection; safe primary-domain changes with dual issuers |
 | TEN-22 | Reverse-proxy mode | Serve login through the customer's own CDN or reverse proxy, including path-based hosting such as `acme.com/auth` |
+| TEN-23 | Console SSO for tenant admins | Tenant administrators sign in to the console and Management API through their own company identity provider (SAML or OIDC), with SCIM provisioning of admin accounts and group-to-admin-role mapping |
+| TEN-24 | Tenant moves | Move a tenant between regions, cells, dedicated cells and customer clouds with near-zero downtime; URLs unchanged; audited and reversible until cutover completes. See [18](18-operating-the-service.md) |
 
 ## B. Identity & directory (`IDM`)
 
@@ -83,6 +85,8 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | IDM-15 | Identity proofing (KYC) | Pluggable document + selfie and eKYC providers; NIST IAL2 flows; OpenID Identity Assurance claims |
 | IDM-16 | Support tools | User timeline, impersonation with consent and audit, guided recovery |
 | IDM-17 | Guardian relationships | Family, household, parent/child with parental consent and age gates |
+| IDM-18 | Lifecycle automation rules | Dormant-account handling (notify, disable, delete after configurable periods), account expiry for contractors and guests, scheduled deprovisioning, re-verification reminders |
+| IDM-19 | HR-driven provisioning | Joiner, mover and leaver automation from HR systems (Workday, SAP SuccessFactors, Oracle HCM, BambooHR, HiBob, Personio and generic SCIM or CSV feeds), with attribute mapping and pre-hire accounts |
 
 ## C. Authentication methods (`AUTH`)
 
@@ -94,7 +98,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTH-04 | SMS, voice and WhatsApp OTP | Pluggable providers with failover; SMS-pumping protection; per-tenant spend caps |
 | AUTH-05 | Passkeys / WebAuthn | Platform and roaming authenticators, synced and device-bound, conditional UI (autofill), attestation policy, FIDO MDS3 |
 | AUTH-06 | TOTP / HOTP | Authenticator apps |
-| AUTH-07 | Push MFA | Our own authenticator app and mobile SDK; number matching; biometric confirmation |
+| AUTH-07 | Push MFA | Our own authenticator app and mobile SDK; number matching; biometric confirmation; also used by admins to approve four-eyes changes and access requests |
 | AUTH-08 | Recovery | Recovery codes; configurable recovery journeys; admin-assisted recovery |
 | AUTH-09 | Social login | Google, Apple, Microsoft, GitHub, Facebook, LinkedIn, X, Amazon, Slack, Discord and more, plus a generic OAuth2/OIDC connector |
 | AUTH-10 | Certificates and smart cards | X.509 client certificates, PIV/CAC, mutual TLS |
@@ -252,7 +256,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DYN-05 | Expression language | CEL for conditions, mappings and validation everywhere |
 | DYN-06 | Actions | Sandboxed custom code (WASM; written in JS/TS, Go, Rust, Python) at hook points: pre-registration, post-login, pre-token, pre-MFA, post-password-change, and more; with secrets, timeouts and logs |
 | DYN-07 | Webhooks | Signed (Standard Webhooks), CloudEvents format, retries with backoff, dead-letter queue, replay |
-| DYN-08 | Event streaming | Kafka, Kinesis, EventBridge, Pub/Sub, Event Hubs sinks |
+| DYN-08 | Event streaming | Kafka, Kinesis, EventBridge, Pub/Sub, Event Hubs sinks; scheduled exports to data warehouses (Snowflake, BigQuery, Databricks) |
 | DYN-09 | Connector framework | IdPs, messaging (email, SMS, WhatsApp, push), CAPTCHA, KYC, risk, CRM — declared by manifest |
 | DYN-10 | Template engine | Emails, SMS and UI text; 40+ locales including RTL; per-org overrides |
 | DYN-11 | Configuration as code | YAML export/import and GitOps sync; Terraform provider; Pulumi; Kubernetes operator |
@@ -277,6 +281,9 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | SEC-11 | Leaked secret response | Secret-scanning partnerships; leaked client secrets and API keys revoked automatically |
 | SEC-12 | FIPS mode | FIPS 140-3 validated cryptography for government and regulated tenants |
 | SEC-13 | Network controls | IP allow/deny lists and geo-blocking per tenant and app |
+| SEC-14 | Device trust integrations | Device posture signals from device management and endpoint security tools (for example Microsoft Intune, Jamf, Google endpoint management, CrowdStrike, SentinelOne) and managed-device certificates, usable in MFA, session and authorization policies |
+| SEC-15 | Sign-up fraud protection | Disposable email and phone detection, phone-number intelligence, sign-up velocity and device-reuse rules, free-trial and promotion abuse detection |
+| SEC-16 | Security posture center | Tenant security score with findings and one-click fixes (weak policies, admins without phishing-resistant MFA, stale admins and keys, risky settings), and access recommendations from real usage (unused permissions and roles, over-privileged accounts) |
 
 ## L. Governance, audit & privacy (`GOV`)
 
@@ -302,6 +309,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | GOV-18 | Integrity verification | Signed Merkle checkpoints with external RFC 3161 timestamp anchoring; verification API and CLI |
 | GOV-19 | Platform audit trail | Our own Git, CI/CD, GitOps, OpenTofu, Kubernetes, cloud, KMS, database and access-system events in a write-once security account |
 | GOV-20 | Reasons and approvals | Required reasons for sensitive actions, change-ticket references on any change, recorded four-eyes approvals |
+| GOV-21 | Identity governance automation | Birthright access rules (automatic role assignment from attributes such as department or location), mover re-certification, role-mining suggestions from actual usage, entitlement catalog across connected applications |
 
 ## M. Experience: hosted UI, console, portals (`UX`)
 
@@ -328,6 +336,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | UX-19 | Runtime design tokens | Color, type, spacing, shape and effect tokens plus screen descriptors delivered at runtime, so hosted pages, web components and native SDKs match without rebuilds or app releases |
 | UX-20 | Rich console interactions | Command palette, shortcuts, side panels, inline editing, undo everywhere, saved views, bulk actions, presence and conflict warnings, guided setup, personalization |
 | UX-21 | Visual effects | Glass with per-surface control of blur, transparency, tint, saturation, edge highlights, texture and depth; gradients, mesh gradients, animated backgrounds, shadows, glow, shapes and motion; contrast kept at WCAG 2.2 AA behind glass; automatic solid fallbacks for reduced transparency or motion, high contrast, unsupported browsers, low-power devices and email; native platform materials in mobile SDKs. See [16 §2.2](16-look-and-feel.md#22-visual-effects-including-glass) |
+| UX-22 | AI admin assistant | Describe a change in plain language ("require passkeys for finance admins") and get a ready-to-review draft: settings, roles, policies, flows or CEL and Cedar expressions; explains decisions and audit events; answers questions about the tenant's configuration. Drafts only, never published without review; respects the admin's permissions; audited; can be turned off |
 
 ## N. Developer experience (`DX`)
 
@@ -340,6 +349,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | DX-05 | Documentation | Quick-starts, sample apps, interactive API explorer |
 | DX-06 | Test mode | Test users, captured OTP delivery, deterministic tokens |
 | DX-07 | Terraform provider | Full management API coverage |
+| DX-08 | MCP server and AI-ready docs | An official MCP server for the Management API, so customers' AI agents can read and draft configuration with tightly scoped, audited permissions; documentation published for AI coding tools (llms.txt and a docs MCP server) |
 
 ## O. Operations & commercial platform (`OPS`)
 
@@ -351,6 +361,13 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | OPS-04 | Multi-region | Active-active for global tenants; regional failover |
 | OPS-05 | Self-hosted edition | Helm chart, Kubernetes operator, air-gapped bundles, license enforcement |
 | OPS-06 | Marketplaces | AWS, Azure, GCP listings and private offers |
+| OPS-07 | Private connectivity | AWS PrivateLink, Azure Private Link and Google Private Service Connect endpoints; static egress IPs per region for allowlisting |
+| OPS-08 | Integration health center | Alerts and fixes for expiring IdP certificates and secrets, sync and webhook failures, connector errors and unused integrations |
+| OPS-09 | Trust center | Public security, compliance and privacy information: reports under NDA, sub-processors with change notices, residency, uptime, DPA, questionnaires |
+| OPS-10 | Platform abuse prevention | Tenant screening and verification, graduated limits, content scanning for phishing and brand impersonation, reputation monitoring, abuse reporting and takedown |
+| OPS-11 | Cost management | Cost attribution per tenant and cell, unit economics, budgets and anomaly alerts |
+| OPS-12 | Self-hosted release channels and LTS | Monthly releases, yearly long-term-support releases with 24 months of security fixes, supported upgrade paths, end-of-life notices |
+| OPS-13 | Incident and breach notifications | Targeted per-tenant incident notices, regulatory breach timelines, post-incident summaries, automatic SLA credits |
 
 ## P. Migration (`MIG`)
 
@@ -380,3 +397,28 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 | IND-10 | IoT, automotive & manufacturing |
 | IND-11 | AI agents & API platforms |
 | IND-12 | Travel & hospitality |
+
+---
+
+## Scope boundaries
+
+So that nothing is assumed silently, these items are listed explicitly and need
+a decision (D-24 in [06](06-decisions.md)).
+
+**Optional additions (not in the 275 features yet):**
+
+| Item | What it is | Recommendation |
+|------|-----------|----------------|
+| Virtual waiting room | Queue users fairly during extreme login surges (ticket sales, launches) | Add: valuable for consumer apps, moderate effort |
+| Secure Payment Confirmation | Passkey-based confirmation of card payments (W3C) in the banking pack | Add: small, strengthens the banking pack |
+| Identity-aware proxy | Put SSO and authorization in front of internal web apps that cannot integrate | Later product; partners cover it today |
+| Password vaulting for legacy apps | Store and replay passwords for apps without SSO | Leave out: weaker security model, separate product category |
+| Desktop operating-system login | Windows and macOS sign-in with passkeys and the platform's policies | Leave out of GA: needs device agents; revisit with demand |
+
+**Out of scope (we integrate rather than build):**
+
+- Privileged access management for servers and databases (credential vaulting, session recording).
+- Device management and endpoint security themselves (we consume their signals, SEC-14).
+- Identity verification, payment processing, email and SMS delivery networks (we connect to providers).
+- Customer data platforms and marketing automation (we stream events to them).
+

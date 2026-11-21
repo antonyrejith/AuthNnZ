@@ -33,7 +33,8 @@ release with every feature).
 | D-20 | Container base image | Distroless static · Chainguard/Wolfi · `scratch` | **Distroless static (Debian 13, nonroot)** | No shell or package manager, includes CA certificates and time zones, free and widely scanned |
 | D-21 | Audit strictness | Best effort · 100% with fail-closed capture | **✅ Accepted: 100% audit**; changes are rejected if they cannot be audited; decision and login events use durable spools with strict mode ([13](13-audit-and-change-tracking.md)) | Customers and auditors need provable completeness |
 | D-22 | Database change capture | Own reader on PostgreSQL logical replication · Debezium · triggers | **Own Go reader on logical replication**, running in the `worker` | No extra infrastructure (no Kafka Connect); works the same in SaaS and self-hosted |
-| D-23 | Release strategy | Phased releases · one release with every feature | **✅ Accepted: one release; all 258 features at GA**, built in parallel by 13 workstreams with integration checkpoints every 6 weeks ([05](05-roadmap-and-delivery.md)) | Customers get the complete platform at launch; nothing is deferred |
+| D-23 | Release strategy | Phased releases · one release with every feature | **✅ Accepted: one release; all 275 features at GA**, built in parallel by 13 workstreams with integration checkpoints every 6 weeks ([05](05-roadmap-and-delivery.md)) | Customers get the complete platform at launch; nothing is deferred |
+| D-24 | Scope boundaries | See the optional and out-of-scope lists in the [feature catalog](02-feature-catalog.md#scope-boundaries) | **Add** the virtual waiting room and Secure Payment Confirmation; **leave out** the identity-aware proxy, password vaulting and desktop login for GA; confirm the out-of-scope list | Keeps GA complete for the target segments without entering separate product categories |
 
 ## 2. ADR backlog
 
@@ -64,6 +65,8 @@ during the foundations stage, in this order:
 | 0020 | Container images, Helm chart and release pipeline | D-20 |
 | 0021 | Database change capture and audit reconciliation | D-22, 0008 |
 | 0022 | Hierarchical configuration: override policies, merge rules, shared references, templates and push | 0003 |
+| 0023 | Tenant moves between regions, cells and customer clouds | 0013 |
+| 0024 | AI assistant guardrails: drafts only, permission scoping, audit, opt-out | 0005, D-21 |
 
 ## 3. ADR template
 
