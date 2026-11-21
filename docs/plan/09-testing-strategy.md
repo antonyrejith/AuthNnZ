@@ -212,7 +212,8 @@ func TestPostgresUserStore(t *testing.T) {
   a matching audit event fails the build. Hash chains and sequences are verified
   for gaps.
 - **SDK tests** run against the all-in-one binary, the same one developers use
-  as a local emulator.
+  as a local emulator. One conformance suite runs the same scenarios for every
+  SDK, so all languages behave identically ([23 §4](23-sdks.md#4-consistent-behavior-in-every-sdk)).
 
 ## 5. Conformance and interoperability
 

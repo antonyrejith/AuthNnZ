@@ -3,7 +3,7 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 285 features are part of the first release** (decision D-23). None is
+**All 291 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
@@ -349,13 +349,19 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | ID | Capability | Details |
 |----|-----------|---------|
 | DX-01 | APIs | Public REST APIs described in OpenAPI 3.2 ([10](10-api-standards.md)); gRPC for the data plane |
-| DX-02 | SDKs | JS/TS, React, Next.js, Vue, Angular, Node.js, Go, Java/Spring, Python, .NET, PHP/Laravel, Ruby/Rails, iOS, Android, Flutter, React Native |
+| DX-02 | SDKs and framework integrations | Client, UI-component, server, authorization, AI/MCP and management SDKs for 25+ languages and frameworks: web (React, Next.js, Vue, Nuxt, Angular, Svelte, web components), mobile and desktop (Swift, Kotlin, Flutter, React Native, .NET MAUI, Electron), back ends (Node.js, Go, Java/Kotlin, Python, .NET, PHP, Ruby, Rust). See [23](23-sdks.md) |
 | DX-03 | CLI | Log in, manage tenants, export/import configuration, tail logs, mint test tokens |
 | DX-04 | Local emulator | One Docker image for development and CI |
 | DX-05 | Documentation | Quick-starts, sample apps, interactive API explorer |
 | DX-06 | Test mode | Test users, captured OTP delivery, deterministic tokens |
 | DX-07 | Terraform provider | Full management API coverage |
 | DX-08 | MCP server and AI-ready docs | An official MCP server for the Management API, so customers' AI agents can read and draft configuration with tightly scoped, audited permissions; documentation published for AI coding tools (llms.txt and a docs MCP server) |
+| DX-09 | Shared SDK behavior | Security defaults (PKCE, secure token storage, DPoP, rotation, app attestation), local token verification, safe retries and idempotency, typed errors, OpenTelemetry hooks, one conformance suite for all SDKs, signed open-source releases with SBOMs |
+| DX-10 | Test kit for customers' code | Test tokens with any claims, a fake authorization engine, user and organization fixtures, and the local emulator for integration tests |
+| DX-11 | Typed permission constants | CLI generates typed constants from the permission catalog, so permission typos fail at compile time and catalog changes show affected code |
+| DX-12 | Edge and serverless runtimes | Token verification and authorization in Cloudflare Workers, Vercel and Netlify edge functions, AWS Lambda, Azure Functions, Cloud Run functions, Deno and Bun |
+| DX-13 | Games and devices | Unity and Unreal Engine SDKs with device-flow sign-in for consoles and TVs; C and Rust libraries for constrained IoT devices |
+| DX-14 | OEM embedding kit | The all-in-one engine packaged to run alongside a software vendor's product, with the Management SDK, white-label and licensing |
 
 ## O. Operations & commercial platform (`OPS`)
 
@@ -415,7 +421,7 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 So that nothing is assumed silently, these items are listed explicitly and need
 a decision (D-24 in [06](06-decisions.md)).
 
-**Optional additions (not in the 285 features yet):**
+**Optional additions (not in the 291 features yet):**
 
 | Item | What it is | Recommendation |
 |------|-----------|----------------|

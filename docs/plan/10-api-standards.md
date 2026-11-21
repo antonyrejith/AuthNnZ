@@ -194,7 +194,7 @@ flowchart LR
 - **Self-service credentials:** create Management API clients and API keys in
   the console with exactly the scopes needed.
 - **Free sandbox tenant** and test mode (captured emails and SMS, test users).
-- **SDKs** in 15+ languages ([02](02-feature-catalog.md#n-developer-experience-dx)),
+- **SDKs** for 25+ languages and frameworks ([23](23-sdks.md)),
   a CLI, a Terraform provider, and Postman and Bruno collections generated from
   the spec.
 - **Local emulator:** one container image with every API for development and CI.

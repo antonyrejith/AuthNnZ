@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (285), with an ID and its owning workstream; all ship in the first release |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (291), with an ID and its owning workstream; all ship in the first release |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -43,6 +43,7 @@ engineering plan. Code follows once the decisions in
 | 20 | [Guided tours](docs/plan/20-guided-tours.md) | "Take a tour" in every UI, per role and feature; practice mode; tour builder for customers; what's new |
 | 21 | [Localization](docs/plan/21-localization.md) | 40+ languages everywhere, language selection, local formats, names and addresses, Unicode safety, country-specific content, translation process |
 | 22 | [Commercialization](docs/plan/22-commercialization.md) | How it is sold: editions mapped to features, pricing model, routes to market, buying journey, sales enablement, licensing and partner billing, legal readiness, go-to-market team |
+| 23 | [SDKs](docs/plan/23-sdks.md) | Using the platform in code: SDK families, 25+ languages and frameworks, examples, consistent secure behavior, typed permissions, test kit, distribution, embedding options |
 
 **Delivery**
 
@@ -93,12 +94,12 @@ on either side.
 
 **Delivery: one release, everything included** (indicative; weeks from kickoff):
 
-All 285 features ship together at GA; nothing is split into phases. Thirteen
-workstreams (about 72 engineers, about 101 people) build in parallel, with an
+All 291 features ship together at GA; nothing is split into phases. Thirteen
+workstreams (about 75 engineers, about 104 people) build in parallel, with an
 integration checkpoint every six weeks and design partners testing pre-release
 builds. A 16-person operations team (SRE, support, customer success, security
-operations, trust and safety) joins before GA, for about 117 people at GA, and
-about 20 go-to-market people join from month 9 (about 137 in total).
+operations, trust and safety) joins before GA, for about 120 people at GA, and
+about 20 go-to-market people join from month 9 (about 140 in total).
 
 | Stage | Weeks | Outcome |
 |-------|-------|---------|
@@ -106,7 +107,7 @@ about 20 go-to-market people join from month 9 (about 137 in total).
 | Parallel build | 8–64 | All workstreams build their catalog sections; checkpoint every 6 weeks |
 | Hardening and certification | 64–80 | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
 | Release candidate | 80–90 | Design partners run the release candidate; fixes only |
-| **GA** | **90 (about 21 months)** | **All 285 features, every deployment model, every industry pack** |
+| **GA** | **90 (about 21 months)** | **All 291 features, every deployment model, every industry pack** |
 
 **How it is sold:** one platform packaged as five editions with add-ons,
 offered as shared SaaS, dedicated cell, customer cloud or self-hosted, and sold

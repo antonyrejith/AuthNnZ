@@ -106,6 +106,7 @@ Terms used across the plan, in alphabetical order within each group.
 | Term | Meaning |
 |------|---------|
 | **ADR** | Architecture decision record: a short document explaining a significant decision |
+| **BFF (backend-for-frontend)** | A small server-side component that keeps tokens out of the browser for single-page apps |
 | **Design tokens** | Named design values (colors, spacing, effects) shared by every UI surface |
 | **Locale** | A language and region combination (for example `fr-CA`) that decides language and formats |
 | **Practice mode** | A sample environment where admins can try every feature without touching real data |
@@ -113,6 +114,7 @@ Terms used across the plan, in alphabetical order within each group.
 | **LTS** | Long-term support release of the self-hosted edition |
 | **RPO / RTO** | How much data may be lost / how long recovery may take after a disaster |
 | **RTL** | Right-to-left scripts such as Arabic and Hebrew, which need mirrored layouts |
+| **SDK** | Software development kit: libraries developers add to their code to use the platform |
 | **SBOM** | Software bill of materials: the exact list of components and versions in a release |
 | **Server-driven UI** | Screens described as data by the server and rendered by web and native clients |
 | **SLA / SLO** | Contractual service level / internal reliability target |

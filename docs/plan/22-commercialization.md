@@ -148,8 +148,8 @@ To prepare with legal counsel during the build:
 | Month 12 | Sales leader, 2 solutions engineers, partner manager, commercial counsel | POC kit, contracts, first partners, marketplace listings |
 | Month 15 | 5 account executives, 1 more solutions engineer, 1 more partner manager, demand generation and marketing operations (2), sales operations (1), customer education (1) | Pipeline for GA, pricing page and calculator, academy |
 
-**About 20 go-to-market people at GA**, for an organization of **about 137
-people** in total, including the 117 in engineering, design, product and
+**About 20 go-to-market people at GA**, for an organization of **about 140
+people** in total, including the 120 in engineering, design, product and
 operations ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
 
 **Before GA:**
