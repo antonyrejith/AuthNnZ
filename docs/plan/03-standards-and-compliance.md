@@ -93,6 +93,8 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 | OpenTelemetry | Traces, metrics, logs |
 | SLSA, SBOM (SPDX / CycloneDX), Sigstore | Supply-chain security of our builds |
 | OWASP ASVS 5.0 | Secure-coding verification baseline (Level 3 for identity modules) |
+| RFC 8785 (JCS), RFC 3161, signed tree heads (as in RFC 9162) | Audit hash chain, trusted timestamps and checkpoints ([13](13-audit-and-change-tracking.md)) |
+| NIST SP 800-53 AU family, NIST SP 800-92 | Audit content, protection, non-repudiation, retention and log management |
 | WCAG 2.2 AA | Accessibility of every user interface |
 
 ### 1.6 Authorization models and references
@@ -122,7 +124,7 @@ thumbprint), 8037 (EdDSA), 8725 (JWT best current practices). Phase 1 (JWE in 5)
 | India DPDP Act 2023 | Consent records, data principal rights, children's data | GOV-07, IDM-17 |
 | Brazil LGPD, others | Consent and rights | GOV-07 |
 | HIPAA (US) | Access control, audit, unique user ID, automatic logoff | AUTHZ, GOV-01, SESS-01, BAA |
-| PCI DSS v4.0.x | Requirement 8: MFA for cardholder-data access, password rules, lockout | AUTH-01/20, SEC-01, GOV-08 |
+| PCI DSS v4.0.x | Requirement 8: MFA for cardholder-data access, password rules, lockout. Requirement 10: log and protect all access | AUTH-01/20, SEC-01, GOV-01, GOV-08 |
 | PSD2 / PSD3 (EU), UK Open Banking | SCA, dynamic linking, consent | AUTH-21, OAUTH-14, IND-03 |
 | SOX | Access reviews, separation of duties | GOV-04, GOV-06 |
 | COPPA (US), age-appropriate design codes | Parental consent, age assurance | IDM-17 |

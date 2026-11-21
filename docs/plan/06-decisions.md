@@ -5,8 +5,8 @@
 Each decision has a recommendation. Decisions D-01 to D-08 block kickoff;
 the rest can be made during Phase 0 (D-19 in Phase 2).
 
-**Accepted so far:** D-03 (Go, latest stable release) and D-15 (latest stable
-version of everything).
+**Accepted so far:** D-03 (Go, latest stable release), D-15 (latest stable
+version of everything) and D-21 (100% audit).
 
 | ID | Decision | Options | Recommendation | Why |
 |----|----------|---------|----------------|-----|
@@ -30,6 +30,8 @@ version of everything).
 | D-18 | Front-end stack | React · Vue · Svelte; component library | **React + TypeScript + TanStack + Radix UI + Tailwind CSS; Lit for the hosted login** ([11 §8](11-admin-ui.md#8-front-end-technology)) | Largest ecosystem and hiring pool; Lit keeps the login page small and embeddable anywhere |
 | D-19 | Service-to-service mTLS | Service mesh (Istio ambient, Linkerd) · SPIFFE/SPIRE-issued certificates · application-level mTLS | Decide in Phase 2 with load-test data | Needed for Zero Trust inside cells; adds operational weight |
 | D-20 | Container base image | Distroless static · Chainguard/Wolfi · `scratch` | **Distroless static (Debian 13, nonroot)** | No shell or package manager, includes CA certificates and time zones, free and widely scanned |
+| D-21 | Audit strictness | Best effort · 100% with fail-closed capture | **✅ Accepted: 100% audit**; changes are rejected if they cannot be audited; decision and login events use durable spools with strict mode ([13](13-audit-and-change-tracking.md)) | Customers and auditors need provable completeness |
+| D-22 | Database change capture | Own reader on PostgreSQL logical replication · Debezium · triggers | **Own Go reader on logical replication**, running in the `worker` | No extra infrastructure (no Kafka Connect); works the same in SaaS and self-hosted |
 
 ## 2. ADR backlog
 
@@ -45,7 +47,7 @@ during Phase 0, in this order:
 | 0005 | Unified authorization model (relationships, CEL conditions, Cedar guardrails) | D-05 |
 | 0006 | Key management hierarchy and signing-key rotation | D-07 |
 | 0007 | Event bus, transactional outbox and delivery guarantees | D-12 |
-| 0008 | Audit log schema (OCSF) and tamper evidence | 0007 |
+| 0008 | Audit architecture: completeness guarantees, record schema, hash chain and checkpoints, retention | 0007, D-21 |
 | 0009 | API conventions (versioning, pagination, errors, idempotency, IDs) | — |
 | 0010 | Extension sandbox and hook contract | D-10 |
 | 0011 | Session model and logout propagation | 0004 |
@@ -58,6 +60,7 @@ during Phase 0, in this order:
 | 0018 | OpenAPI toolchain and code generation | D-16, 0009 |
 | 0019 | Front-end architecture and design system | D-18 |
 | 0020 | Container images, Helm chart and release pipeline | D-20 |
+| 0021 | Database change capture and audit reconciliation | D-22, 0008 |
 
 ## 3. ADR template
 

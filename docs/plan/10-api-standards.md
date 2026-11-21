@@ -91,7 +91,12 @@ parameter that a caller could change.
 - **Long-running operations** (imports, exports, bulk changes) return
   `202 Accepted` with an operation resource (`/v1/operations/{operation_id}`)
   that reports progress and the result.
-- **Bulk endpoints** return a result per item; partial failure is explicit.
+- **Bulk endpoints** return a result per item; partial failure is explicit,
+  and each item gets its own audit event.
+- **Change reasons:** any write accepts `Change-Reason` and `Change-Ticket`
+  headers, recorded in the audit event. Operations marked
+  `x-audit-reason: required` (deleting users, impersonation, weakening a policy,
+  key export, break-glass) reject requests without a reason.
 
 ## 5. Errors
 
@@ -137,8 +142,9 @@ All errors use **RFC 9457 Problem Details** (`application/problem+json`):
 - TLS 1.3 only for public endpoints (TLS 1.2 allowed per tenant for legacy
   clients); HSTS; strict CORS allowlists per application.
 - Every Management API operation declares its required permission
-  (`x-required-permission`) and scopes, enforced by our own authorization engine
-  and audited.
+  (`x-required-permission`), scopes and audit event (`x-audit-event`). The
+  permission is enforced by our own authorization engine; every call, including
+  reads of sensitive data, is audited ([13](13-audit-and-change-tracking.md)).
 - Rate limits per tenant, credential and endpoint, advertised with the
   `RateLimit-Policy` and `RateLimit` headers; `429` includes `Retry-After`.
 - Request size limits; no sensitive data in URLs; input validated against the
@@ -169,8 +175,8 @@ flowchart LR
 ```
 
 - **Lint rules** encode this document: naming, pagination parameters, problem
-  details on every error response, `x-required-permission` on every Management
-  API operation, examples on every schema.
+  details on every error response, `x-required-permission` and `x-audit-event`
+  on every Management API operation, examples on every schema.
 - **Go server code** generated as strict, typed interfaces (generator chosen in
   Phase 0, D-16). Handlers only map between API types and use cases.
 - **SDKs:** a generated core per language with a hand-written, idiomatic layer

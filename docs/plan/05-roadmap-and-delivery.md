@@ -63,15 +63,17 @@ modern methods; basic RBAC works.
 **Scope:** TEN-01, 03 (pooled), 06, 08, 09 (basic) · IDM-01, 02, 03 (static),
 05, 07 (basic), 12 · AUTH-01, 03, 05, 06, 08, 09 (top 4 + generic) · FED-01 ·
 OAUTH-01 to 07 · SESS-01 to 04 · AUTHZ-01 (basic), 02, 06 (single), 17, 21 (direct
-grants), 22, 25, 26 (basic), 27 (built-in roles) ·
+grants), 14 (all decisions logged), 22, 25, 26 (basic), 27 (built-in roles) ·
 ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
-10 · SEC-01, 02, 08 (basic), 09 · GOV-01 (basic), 10 · UX-01, 03, 06 · DX-01,
+10 · SEC-01, 02, 08 (basic), 09 · GOV-01, 10, 11, 12, 16, 18 (signed checkpoints),
+19 · UX-01, 03, 06 · DX-01,
 02 (first wave), 05 · OPS-01 (metering) · MIG-04
 
 **Exit criteria:**
 - OpenID conformance suite (Basic and Config OP) passing in CI
 - p99 targets met for token and login endpoints in load tests at 25% of cell target
 - External penetration test completed; no open critical or high findings
+- Audit coverage matrix and write-ahead-log reconciliation passing: zero unaudited changes; hash-chain verification passing
 - 3+ design partners live in staging; at least one in production
 
 ### Phase 2 — Enterprise & B2B (weeks 20–36) → public GA
@@ -83,7 +85,8 @@ ORG-01 · M2M-01 · DYN-01, 02 (engine + default flows), 05, 07, 09 (framework),
 OAUTH-08 to 11, 15, 18 · SESS-03 (Actions), 10 · AUTHZ-23, 27 (custom roles) ·
 ORG-02 to 05, 07 · M2M-02, 06 ·
 DYN-02 (A/B), 03, 04, 06, 11 (YAML, Terraform), 12, 13 · SEC-03, 05, 06, 10,
-13 · GOV-02, 03, 07 (basic) · UX-02, 04, 05, 07 · DX-02 (second wave), 03, 04,
+13 · GOV-02, 03, 07 (basic), 13 (configuration and identity), 14, 15, 17, 20 ·
+UX-02, 04, 05, 07 · DX-02 (second wave), 03, 04,
 06, 07 · OPS-01 (billing), 05 (internal Helm) · MIG-01 (first importers), 02 ·
 IND-01, 02
 
@@ -100,7 +103,7 @@ IND-01, 02
 authorization vendors.
 
 **Scope:** AUTHZ-01 (full DSL + visual editor), 03 to 10, 12 (sidecar), 14, 18,
-21 (explicit deny), 26 (full, with explain)
+21 (explicit deny), 26 (full, with explain) · GOV-13 (relationships, access-as-of)
 
 **Exit criteria:**
 - AuthZEN interoperability tests passing
@@ -115,7 +118,7 @@ authorization vendors.
 **Scope:** TEN-02, 09 (crypto-shredding) · IDM-10, 16 · AUTH-07, 13, 18, 22,
 23, 25, 29 · FED-13 · OAUTH-13, 16 · SESS-05 to 07 · AUTHZ-11, 12 (WASM,
 library), 13, 15, 16, 19, 24, 28 · ORG-06 · M2M-03, 07 · DYN-08, 11 (Pulumi, operator) · SEC-04, 07,
-08 (per-tenant keys), 11 · GOV-01 (tamper-evident), 04 to 09 · UX-08 · OPS-02,
+08 (per-tenant keys), 11 · GOV-04 to 09, 18 (RFC 3161 anchoring) · UX-08 · OPS-02,
 03 · MIG-01 (all importers), 03 · IND-09, 11
 
 **Exit criteria:**
@@ -211,6 +214,8 @@ regression limit on hot paths.
 | R10 | SMS cost and fraud | Medium | Medium | Pumping protection, spend caps, pass-through pricing, push and passkeys preferred |
 | R11 | Key-management failure | Low | Critical | KMS/HSM, automated rotation, key ceremonies, tested emergency runbooks |
 | R12 | Extension code abused or unstable | Medium | Medium | WASM sandbox, quotas, timeouts with fail-open/fail-closed policy per hook |
+| R13 | Audit gaps or audit pipeline outage | Low | Critical | Same-transaction capture (fail closed), durable spools, reconciliation, gapless sequences, hourly verification ([13](13-audit-and-change-tracking.md)) |
+| R14 | Audit storage cost (full decision logging) | High | Medium | Columnar compression, short hot retention for allow-decisions, Parquet archive, long hot retention priced as an add-on |
 
 ## 7. Immediate next steps (first two weeks)
 

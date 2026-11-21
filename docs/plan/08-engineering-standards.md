@@ -331,6 +331,49 @@ formatters:
   (otherwise a struct), nesting ≤ 3 levels, files ≤ 500 lines. Cognitive
   complexity above 20 fails CI.
 
+### 3.10 Audit rules
+
+100% audit ([13](13-audit-and-change-tracking.md)) is enforced in code, not by
+convention:
+
+- **Every write goes through `audit.Tx`.** Repository write methods accept only
+  an `audit.Tx`; the only way to get one is to open an audited change. Actor,
+  channel, request ID, trace ID and database transaction ID come from the
+  context automatically; the repository records the field-level diff.
+
+```go
+func (s *Service) UpdateMFAPolicy(ctx context.Context, cmd UpdateMFAPolicy) (MFAPolicy, error) {
+	ev := audit.Event{
+		Type:   "mfa_policy.updated",
+		Target: audit.Target{Type: "mfa_policy", ID: cmd.ID},
+		Reason: cmd.Reason,
+	}
+	return audit.Change(ctx, s.db, ev, func(tx audit.Tx) (MFAPolicy, error) {
+		before, err := s.policies.Get(tx, cmd.ID)
+		if err != nil {
+			return MFAPolicy{}, err
+		}
+		after, err := before.Apply(cmd)
+		if err != nil {
+			return MFAPolicy{}, err
+		}
+		return after, s.policies.Update(tx, before, after) // writes the row, the diff and the outbox entry
+	})
+}
+```
+
+- **Events outside a transaction** (decisions, failed logins, stateless token
+  issuance) use `audit.Spool`, never plain logging.
+- **Event types are registered** in the audit module's registry and published
+  in AsyncAPI; names follow `resource.past_tense_verb`. The registry has
+  CODEOWNERS from the security team.
+- **Field tags decide how values are recorded:** `audit:"secret"` (redacted,
+  fingerprint kept), `audit:"pii"` (encrypted with the subject's key). Excluding
+  a field (`audit:"-"`) needs security-team approval.
+- **API operations** declare `x-audit-event`, and `x-audit-reason: required`
+  for sensitive actions; CI checks both ([09 §4](09-testing-strategy.md#4-api-contract-and-security-matrices)).
+- Audit events are never written as ordinary log lines instead.
+
 ## 4. Front-end standards (TypeScript and React)
 
 - **TypeScript strict** plus `noUncheckedIndexedAccess`,

@@ -114,7 +114,11 @@ Phase 0 (task PM-02 in the roadmap). Vendors change offerings quickly.
    scopes, and human-in-the-loop approval through CIBA or push.
 7. **Multi-level tenancy.** ISVs can resell white-labeled identity to their own
    customers, with delegated administration and usage roll-up.
-8. **Migration without pain.** Lazy migration plus importers for the major
+8. **Provable 100% audit.** Every change, login, decision and staff action is
+   recorded with who, what, when, where, how and why, and customers can verify
+   cryptographically that nothing is missing or altered
+   (see [13](13-audit-and-change-tracking.md)).
+9. **Migration without pain.** Lazy migration plus importers for the major
    vendors, with password-hash compatibility, so users never reset passwords.
 
 ## 7. Packaging and pricing (draft)

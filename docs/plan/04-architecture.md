@@ -488,9 +488,10 @@ All IDs are prefixed, sortable identifiers (for example `usr_01JD…`,
   database transaction; a relay publishes to the bus. Delivery is at least once,
   and consumers deduplicate.
 - **Event schema:** CloudEvents envelope; audit payloads mapped to OCSF.
-- **Tamper evidence (Phase 4):** per-tenant hash chain over audit events, with
-  periodic anchors signed by a KMS key; a verification API proves the log was
-  not altered.
+- **100% audit (Phase 1):** every change is audited in the same transaction
+  (fail closed); a write-ahead-log reconciler proves no change escaped; a
+  per-tenant gapless sequence, hash chain and KMS-signed checkpoints make loss or
+  tampering detectable. Full design: [13 — Audit & change tracking](13-audit-and-change-tracking.md).
 - **Fan-out:** webhooks, SIEM streams, analytics, Shared Signals transmitter,
   usage metering.
 
@@ -616,7 +617,7 @@ flowchart LR
 | Scale per cell | 100 million identities; 1 billion relationship tuples |
 | Configuration propagation | p99 < 5 s from publish to every node |
 | Recovery | RPO ≤ 1 minute; RTO ≤ 15 minutes for regional failover |
-| Audit durability | No loss (outbox, at-least-once delivery, deduplication) |
+| Audit completeness | 100% of changes and authentication events, no loss (same-transaction outbox, reconciliation, gapless sequences); audit adds ≤ 2 ms p99 to writes |
 | Deployments | Zero downtime; database migrations backward-compatible (expand, migrate, contract) |
 | Accessibility | WCAG 2.2 AA for hosted UI and portals |
 

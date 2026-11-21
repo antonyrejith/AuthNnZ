@@ -168,7 +168,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTHZ-11 | Data filtering | Partial evaluation into query filters (SQL, Elasticsearch/OpenSearch, MongoDB) | 4 |
 | AUTHZ-12 | Edge / local PDP | Sidecar, embedded library and WASM builds with data sync; < 1 ms checks | 3→4 |
 | AUTHZ-13 | Gateway and mesh plugins | Envoy `ext_authz`, Istio, Kong, NGINX, AWS API Gateway, Azure APIM, Apigee, Kubernetes admission | 4 |
-| AUTHZ-14 | Decision logs | Sampled or full; streamed to SIEM and analytics | 3 |
+| AUTHZ-14 | Decision logs | Every decision recorded by default through a durable spool, with strict mode (refuse rather than leave unrecorded) (1); explanation references, SIEM and analytics streaming (3). See [13](13-audit-and-change-tracking.md) | 1→3 |
 | AUTHZ-15 | JIT and time-bound access | Requests, approvals, automatic expiry; break-glass with alerting | 4 |
 | AUTHZ-16 | Field and row-level helpers | SDK helpers to mask fields and filter rows | 4 |
 | AUTHZ-17 | Permissions in tokens | Scopes, roles and permissions claims with size controls | 1 |
@@ -251,7 +251,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 
 | ID | Capability | Details | Phase |
 |----|-----------|---------|-------|
-| GOV-01 | Audit log | Every admin and authentication event; OCSF schema; retention policy (1); tamper-evident hash chain (4) | 1→4 |
+| GOV-01 | Audit log | 100% of changes, authentication events and sensitive reads; OCSF mapping; per-tenant gapless sequence and hash chain; append-only storage; retention per plan. See [13](13-audit-and-change-tracking.md) | 1 |
 | GOV-02 | Log streaming | Splunk, Datadog, Elastic, Microsoft Sentinel, Sumo Logic, S3, generic HTTPS | 2 |
 | GOV-03 | Analytics | Sign-ups, logins, MFA adoption, failures, risk, funnel drop-off | 2 |
 | GOV-04 | Access reviews | Certification campaigns with reviewer delegation and auto-revoke | 4 |
@@ -260,7 +260,17 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | GOV-07 | Privacy | Versioned terms and consent records (2); purpose-based consent, DSAR export, right to erasure, minimization (4) | 2→4 |
 | GOV-08 | Compliance reports | SOC 2 evidence, PCI DSS requirement 8, HIPAA access reports | 4 |
 | GOV-09 | Retention and legal hold | Per data class | 4 |
-| GOV-10 | Change history | Who changed which configuration, with diffs | 1 |
+| GOV-10 | Change history | History tab on every object (configuration and data): who, when, channel, reason, diff; one-click restore | 1 |
+| GOV-11 | Complete change capture | Every create, update and delete from every channel (console, API, CLI, Terraform, GitOps, SCIM, sync, jobs, Actions) written in the same transaction as the change, with field-level before/after values; fail closed | 1 |
+| GOV-12 | Database change reconciliation | Change data capture from the PostgreSQL write-ahead log matched to audit events; unaudited-change alerts in production and build failures in CI | 1 |
+| GOV-13 | Point-in-time views | "As-of" view of any object and of a user's complete access at any past moment: configuration and identity data (2); relationships and full access-as-of (3) | 2→3 |
+| GOV-14 | Audit alerts | Rules that notify on chosen audit events (policy weakened, admin role granted, break-glass used) by email, Slack, webhook or SIEM | 2 |
+| GOV-15 | Access transparency | Our staff's access to tenant data requires tenant approval, is time-boxed and appears in the tenant's audit log | 2 |
+| GOV-16 | Audit the auditors | Every search, view and export of audit logs is itself audited | 1 |
+| GOV-17 | Customer-owned audit copy | Continuous export to the customer's own write-once bucket | 2 |
+| GOV-18 | Integrity verification | Signed Merkle checkpoints and a verification API and CLI (1); external RFC 3161 timestamp anchoring (4) | 1→4 |
+| GOV-19 | Platform audit trail | Our own Git, CI/CD, GitOps, OpenTofu, Kubernetes, cloud, KMS, database and access-system events in a write-once security account | 1 |
+| GOV-20 | Reasons and approvals | Required reasons for sensitive actions, change-ticket references on any change, recorded four-eyes approvals | 2 |
 
 ## M. Experience: hosted UI, console, portals (`UX`)
 

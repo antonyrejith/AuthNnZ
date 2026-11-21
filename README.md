@@ -19,7 +19,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (215), with an ID and a delivery phase |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (225), with an ID and a delivery phase |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -33,6 +33,7 @@ engineering plan. Code follows once the decisions in
 | 10 | [API standards](docs/plan/10-api-standards.md) | OpenAPI 3.2 contracts, conventions, errors, versioning, toolchain, developer portal |
 | 11 | [User interfaces & configuration screens](docs/plan/11-admin-ui.md) | Every screen in the admin console, organization portal, account portal and hosted login |
 | 12 | [Containers & deployment](docs/plan/12-containers-and-deployment.md) | Images, local development, Kubernetes, release pipeline, environments, self-hosted packaging |
+| 13 | [Audit & change tracking](docs/plan/13-audit-and-change-tracking.md) | 100% audit: what is recorded, completeness guarantees, record format, tamper evidence, history and as-of views, retention |
 
 **Delivery**
 
@@ -63,6 +64,7 @@ on either side.
 4. Standards-first with no lock-in (OIDC, SAML, SCIM, AuthZEN, Shared Signals) and full data export, password hashes included.
 5. Pre-built, pre-certified industry packs (FAPI 2.0 and open banking, SMART on FHIR, NIST AAL3, PIV/CAC, telecom).
 6. Native support for AI agents: an MCP-ready authorization server, delegated agent identities and human-in-the-loop approvals.
+7. Provable 100% audit: every change, login, decision and staff action recorded, tamper-evident and verifiable.
 
 **How it is built:**
 - Go (latest stable, 1.27 today) for every backend service; React and TypeScript for the UIs. Every

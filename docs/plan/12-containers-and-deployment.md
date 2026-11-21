@@ -185,6 +185,7 @@ spec:
 | Migrations | A Job runs migrations before rollout. Migrations are backward-compatible, so old and new pods run side by side |
 | Isolation | `ext-runtime` runs on a dedicated, tainted node pool; dedicated cells get their own cluster |
 | Observability | OpenTelemetry Collector; Prometheus, Loki and Tempo (or the customer's stack); dashboards and alerts stored as code |
+| Audit | Kubernetes API audit policy enabled; pgAudit for human database sessions; audit archive in write-once object storage; platform audit trail shipped to a separate security account ([13 §7](13-audit-and-change-tracking.md#7-platform-and-infrastructure-audit-our-side)) |
 
 ## 4. Build and release pipeline
 

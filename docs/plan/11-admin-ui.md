@@ -26,17 +26,21 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
    type-checked CEL and policy editors (autocomplete, errors as you type).
 4. **Simulate before publish.** "Test this flow as user X from country Y", "What
    changes if I publish this policy?", "Explain this decision".
-5. **History on every object.** Who changed what and when, with a diff and
-   one-click restore.
-6. **Environment switcher** (dev / stage / prod) always visible; production is
+5. **History on every object.** Who changed what, when, from which channel
+   and why, with a diff, one-click restore and an "as of" date picker to see
+   the object at any past moment.
+6. **Reason prompts.** Sensitive actions (delete, impersonate, weaken a policy,
+   break-glass) ask for a reason and optional ticket reference, recorded in the
+   audit log.
+7. **Environment switcher** (dev / stage / prod) always visible; production is
    color-coded and sensitive changes can require a second approver.
-7. **Permission-aware.** Admins only see and can only change what their admin
+8. **Permission-aware.** Admins only see and can only change what their admin
    role allows; read-only views show why something is locked (for example
    "enforced by platform policy").
-8. **Search and command palette** (`Ctrl/⌘ K`) across users, apps, settings and docs.
-9. **Accessible and international:** WCAG 2.2 AA, keyboard navigation, screen
+9. **Search and command palette** (`Ctrl/⌘ K`) across users, apps, settings and docs.
+10. **Accessible and international:** WCAG 2.2 AA, keyboard navigation, screen
    reader labels, 40+ languages, right-to-left layouts, light and dark themes.
-10. **Help in context:** each screen links to docs, quick-starts and example
+11. **Help in context:** each screen links to docs, quick-starts and example
     configurations.
 
 ## 3. Admin console: screen inventory
@@ -153,7 +157,12 @@ done in the UI can also be done through the API, the CLI, Terraform or YAML.
 
 | Screen | What it shows or configures |
 |--------|-----------------------------|
-| Audit log | Search and filter all events; export; verify tamper-evidence |
+| Audit explorer | Search by actor, target, type, channel, outcome, time and text; diff viewer; follow a request by trace ID; saved queries; export |
+| Access as-of | "Who had access to X on date Y?" and "What could user Z do on date Y?" |
+| Audit alerts | Rules that notify on chosen audit events |
+| Audit integrity | Chain and checkpoint verification status; download verification bundle for auditors |
+| Retention and legal hold | Retention per data class within plan and regulatory floors; legal holds |
+| Access transparency | Requests from our support staff to access tenant data: approve, deny, review what they did |
 | Log streams | SIEM destinations, filters and delivery health |
 | Analytics | Funnels (sign-up, login, MFA enrollment), failures by reason, method adoption, risk trends |
 | Access reviews | Campaigns, reviewers, progress, automatic revocation |
@@ -266,8 +275,8 @@ Versions follow the policy in [08 §1](08-engineering-standards.md#1-version-pol
 
 | Phase | UI scope |
 |-------|----------|
-| 1 | Console shell and design system; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit log; Releases (draft, publish, rollback); Admin team; hosted login core screens |
-| 2 | Organizations; Organization admin portal; Account portal; Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
-| 3 | Model editor; Relationships explorer; Policies; Playground; Decision logs |
-| 4 | Risk rules; Access reviews; Access requests and JIT; Consent and privacy; Reports; Event streams; Support console; Platform console for resellers |
+| 1 | Console shell and design system; Home; Applications; APIs; Users; Groups; User schema; Login methods; Social connections; Sessions and tokens; Roles and permissions; Signing keys; Attack protection (basic); Branding; Templates; Audit explorer and History tab on every object; Audit integrity; Releases (draft, publish, rollback); Admin team; hosted login core screens |
+| 2 | Organizations; Organization admin portal; Account portal; Audit alerts; Access transparency; As-of views (configuration and identity); Enterprise connections; Flow designer with simulator; Actions; Webhooks; Connectors; MFA and step-up policies; Custom domains; Log streams; Analytics; Imports; Directory sync; environment promotion |
+| 3 | Model editor; Relationships explorer; Policies; Playground; Decision logs; Access as-of |
+| 4 | Risk rules; Access reviews; Access requests and JIT; Consent and privacy; Reports; Retention and legal hold; Event streams; Support console; Platform console for resellers |
 | 5 | Industry-pack setup wizards; data residency and dedicated-cell views; self-hosted administration screens |

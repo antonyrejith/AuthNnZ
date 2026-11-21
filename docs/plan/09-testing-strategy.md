@@ -23,7 +23,7 @@ flowchart TB
 | Integration | One module with real infrastructure | testcontainers-go, embedded NATS | Every PR (sharded) | < 6 min |
 | Contract | Fakes vs real adapters; API vs OpenAPI; events vs AsyncAPI; breaking-change detection | Shared contract suites, kin-openapi, oasdiff | Every PR | < 3 min |
 | API | All deployables running; Management, protocol and authorization APIs | Go test client, Schemathesis | PR (smoke), main (full), nightly (Schemathesis) | < 10 min |
-| Security matrices | Tenant isolation and admin-permission matrix over every endpoint | Generated from OpenAPI | PR (smoke), main (full) | < 10 min |
+| Security and audit matrices | Tenant isolation, admin permissions and audit coverage over every endpoint; audit reconciliation | Generated from OpenAPI | PR (smoke), main (full) | < 10 min |
 | Conformance | OpenID (OIDC, logout, FAPI, CIBA), FIDO, SAML interop, SCIM, AuthZEN | Official suites in containers | Main, release | < 30 min |
 | End-to-end | Hosted login, console, portals, mobile SDKs | Playwright, XCUITest, Espresso | Main, release | < 20 min |
 | Front end | Components, hooks, accessibility, visual regression | Vitest, Testing Library, MSW, Storybook, axe | Every PR | < 4 min |
@@ -197,6 +197,14 @@ func TestPostgresUserStore(t *testing.T) {
   required permission (`x-required-permission` in OpenAPI). The suite calls
   every operation with every built-in admin role and compares the result with
   the expected allow/deny table.
+- **Audit coverage matrix.** Every mutating operation declares its audit event
+  (`x-audit-event`). The suite calls each one and checks that exactly that event
+  was recorded with the right actor, target, channel, field-level diff and
+  reason, and that secrets appear only as fingerprints.
+- **Audit reconciliation.** At the end of every integration and API suite, the
+  write-ahead-log reconciler checks the test databases: any row change without
+  a matching audit event fails the build. Hash chains and sequences are verified
+  for gaps.
 - **SDK tests** run against the all-in-one binary, the same one developers use
   as a local emulator.
 
@@ -315,8 +323,9 @@ func BenchmarkCheck(b *testing.B) {
 ### 8.3 Resilience
 
 Weekly chaos experiments in staging: kill pods, fail a zone, fail over the
-database, stop the event bus (logins must continue — static stability), slow
-down the KMS, cut network to connectors. A full regional disaster-recovery
+database, stop the event bus (logins must continue — static stability), kill
+the audit relay and writer mid-stream (no audit events may be lost or
+duplicated), slow down the KMS, cut network to connectors. A full regional disaster-recovery
 drill runs every quarter.
 
 ## 9. Quality gates
@@ -328,6 +337,7 @@ drill runs every quarter.
 | Test strength | Nightly mutation testing on security-critical modules; surviving mutants are reviewed weekly |
 | Security scans | govulncheck, gosec, Trivy (images), secret scanning on every PR; DAST (ZAP baseline) nightly on staging |
 | Flaky tests | Treated as bugs and fixed within 5 working days; no automatic retries at unit, integration or API level |
+| Audit | Zero unaudited changes (reconciliation); every mutating operation emits its declared event; no sequence gaps after chaos tests |
 | Bugs | Every production bug gets a regression test at the lowest level that reproduces it |
 
 ## 10. When each suite runs
