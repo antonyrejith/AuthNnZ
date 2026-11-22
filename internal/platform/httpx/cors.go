@@ -48,7 +48,8 @@ type cors struct {
 }
 
 // CORS returns middleware that implements CORS with an exact-origin
-// allowlist. Responses always carry Vary: Origin. A request from an origin
+// allowlist. Only the canonical form of an allowed origin is accepted and
+// echoed (lowercase, no default port, no path). Responses always carry Vary: Origin. A request from an origin
 // that is not allowed gets no CORS headers (the browser then blocks it); a
 // preflight from such an origin, or asking for a method or header that is
 // not allowed, gets a 403 permission_denied problem. Allowed preflights get
@@ -137,14 +138,17 @@ func (c *cors) allowed(origin string) (string, bool) {
 	if c.any {
 		return "*", true
 	}
+	// Browsers send origins in canonical form. A non-canonical form (upper
+	// case, default port, trailing slash) is not a browser's and is refused,
+	// so the echoed value is always exactly the canonical allowed origin.
 	n, ok := normalizeOrigin(origin)
-	if !ok {
+	if !ok || n != origin {
 		return "", false
 	}
 	if _, ok := c.origins[n]; !ok {
 		return "", false
 	}
-	return origin, true
+	return n, true
 }
 
 func (c *cors) wrap(next http.Handler) http.Handler {

@@ -53,6 +53,11 @@ func TestCORS(t *testing.T) {
 		{"preflight bad method", http.MethodOptions, "https://app.example.com", "DELETE", "", 403, ""},
 		{"preflight bad header", http.MethodOptions, "https://app.example.com", "GET", "x-evil", 403, ""},
 		{"plain options", http.MethodOptions, "https://app.example.com", "", "", 200, "https://app.example.com"},
+		{"non-canonical case", http.MethodGet, "https://APP.example.com", "", "", 200, ""},
+		{"non-canonical default port", http.MethodGet, "https://app.example.com:443", "", "", 200, ""},
+		{"non-canonical trailing slash", http.MethodGet, "https://app.example.com/", "", "", 200, ""},
+		{"non-canonical scheme case", http.MethodGet, "HTTPS://app.example.com", "", "", 200, ""},
+		{"preflight non-canonical", http.MethodOptions, "https://app.example.com:443", "GET", "", 403, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -41,8 +41,6 @@ func TestMain(m *testing.M) {
 
 // TestUpIsIdempotentWithOneVersionTablePerSchema applies two sets twice and
 // checks the version tables and the result.
-//
-// Covers: TEN-01
 func TestUpIsIdempotentWithOneVersionTablePerSchema(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -87,8 +85,6 @@ func TestUpIsIdempotentWithOneVersionTablePerSchema(t *testing.T) {
 
 // TestUpConcurrent runs Up from several goroutines at once; the advisory
 // lock makes each migration apply exactly once.
-//
-// Covers: TEN-01
 func TestUpConcurrent(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -156,6 +152,55 @@ func TestEnsureRoles(t *testing.T) {
 	}
 	if !appSafe || !platformSafe {
 		t.Fatalf("roles: app safe %v, platform safe %v", appSafe, platformSafe)
+	}
+}
+
+// TestEnsureRolesResetsSettingsAndMemberships proves that EnsureRoles
+// removes role-level and database-level settings (a default tenant) and
+// revokes memberships (a path to a more privileged role) of an existing role.
+//
+// Covers: SEC-09
+func TestEnsureRolesResetsSettingsAndMemberships(t *testing.T) {
+	t.Parallel()
+	env := dbtest.New(t)
+	role := "t_reset_" + uuid.NewString()[:8]
+	admin := connect(t, env.AdminURL)
+	t.Cleanup(func() {
+		_, _ = admin.Exec(context.Background(), `DROP ROLE IF EXISTS `+pgx.Identifier{role}.Sanitize())
+	})
+	const pw = "first-password-0001"
+	if err := migrate.EnsureLoginRole(t.Context(), env.AdminURL, role, false, secret.NewString(pw)); err != nil {
+		t.Fatal(err)
+	}
+	r := pgx.Identifier{role}.Sanitize()
+	for _, stmt := range []string{
+		`ALTER ROLE ` + r + ` SET app.tenant_id = '` + uuid.NewString() + `'`,
+		`ALTER ROLE ` + r + ` IN DATABASE ` + pgx.Identifier{env.Name}.Sanitize() + ` SET app.environment_id = '` + uuid.NewString() + `'`,
+		`GRANT pg_read_all_data TO ` + r,
+		`GRANT pg_monitor TO ` + r,
+	} {
+		if _, err := admin.Exec(t.Context(), stmt); err != nil {
+			t.Fatalf("%s: %v", stmt, err)
+		}
+	}
+	count := func() (settings, memberships int) {
+		t.Helper()
+		if err := admin.QueryRow(t.Context(), `
+			SELECT (SELECT count(*) FROM pg_db_role_setting WHERE setrole = r.oid),
+			       (SELECT count(*) FROM pg_auth_members WHERE member = r.oid)
+			FROM pg_roles r WHERE r.rolname = $1`, role).Scan(&settings, &memberships); err != nil {
+			t.Fatal(err)
+		}
+		return settings, memberships
+	}
+	if s, m := count(); s != 2 || m != 2 {
+		t.Fatalf("setup: %d settings, %d memberships; want 2 and 2", s, m)
+	}
+	if err := migrate.EnsureLoginRole(t.Context(), env.AdminURL, role, false, secret.NewString(pw)); err != nil {
+		t.Fatal(err)
+	}
+	if s, m := count(); s != 0 || m != 0 {
+		t.Fatalf("after EnsureRoles: %d settings, %d memberships; want none", s, m)
 	}
 }
 

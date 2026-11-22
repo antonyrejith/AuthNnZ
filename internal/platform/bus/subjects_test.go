@@ -101,6 +101,7 @@ func TestConfigFromEnvironment(t *testing.T) {
 		"PORTUN_BUS_REPLICAS":           "3",
 		"PORTUN_BUS_EMBEDDED_STORE_DIR": "/var/lib/portun/nats",
 		"PORTUN_BUS_AUDIT_MAX_AGE":      "720h",
+		"PORTUN_BUS_ALLOW_INSECURE":     "true",
 	}
 	var cfg bus.Config
 	err := config.Load("PORTUN_BUS_", &cfg, func(k string) (string, bool) {
@@ -126,6 +127,7 @@ func TestConfigFromEnvironment(t *testing.T) {
 		{"embedded store dir", cfg.Embedded.StoreDir == "/var/lib/portun/nats"},
 		{"embedded host default", cfg.Embedded.Host == "127.0.0.1"},
 		{"embedded port default", cfg.Embedded.Port == -1},
+		{"allow insecure", cfg.AllowInsecure},
 	}
 	for _, c := range checks {
 		if !c.ok {

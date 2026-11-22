@@ -43,6 +43,8 @@ type Problem struct {
 
 // WriteProblem writes err as problem details. The body holds only the
 // client-safe view of err (errs.Public); internal causes never appear in it.
+// For 5xx errors even the message is withheld: the detail is the code's
+// title and there are no field errors; the message is logged only.
 // Errors without a known code become a generic 500. 5xx errors are logged at
 // error level with their cause, 4xx at debug level.
 func WriteProblem(w http.ResponseWriter, r *http.Request, err error) {
@@ -64,7 +66,12 @@ func problemFor(r *http.Request, err error) (Problem, error) {
 	}
 	code, detail, fields := errs.Public(err)
 	if !code.Known() {
-		code, detail, fields = errs.CodeInternal, errs.CodeInternal.Title(), nil
+		code = errs.CodeInternal
+	}
+	if code.HTTPStatus() >= http.StatusInternalServerError {
+		// A server-side message can describe internals (roles, hosts,
+		// configuration); only the log gets it.
+		detail, fields = code.Title(), nil
 	}
 	p := Problem{
 		Type:   ProblemTypeBase + string(code),
@@ -120,7 +127,16 @@ func levelFor(status int) slog.Level {
 	return slog.LevelDebug
 }
 
-// sendProblem writes p. Problems are never cached.
+// staleHeaders are response headers a handler may have set for the response
+// it meant to send; they must not describe a problem response.
+var staleHeaders = []string{ //nolint:gochecknoglobals // constant list
+	"Set-Cookie", "Content-Encoding", "Content-Disposition", "Content-Range",
+	"Location", "ETag", "Last-Modified", "Content-Language",
+}
+
+// sendProblem writes p. Problems are never cached. Headers the handler set
+// for its own response (cookies, encodings, redirects, validators) are
+// removed; security headers, X-Request-Id, CORS headers and Vary are kept.
 func sendProblem(w http.ResponseWriter, p Problem) {
 	body, err := json.Marshal(p)
 	if err != nil {
@@ -130,8 +146,9 @@ func sendProblem(w http.ResponseWriter, p Problem) {
 	}
 	body = append(body, '\n')
 	h := w.Header()
-	h.Del("ETag")
-	h.Del("Last-Modified")
+	for _, k := range staleHeaders {
+		h.Del(k)
+	}
 	h.Set("Content-Type", ContentTypeProblem)
 	h.Set("Content-Length", strconv.Itoa(len(body)))
 	h.Set("X-Content-Type-Options", "nosniff")

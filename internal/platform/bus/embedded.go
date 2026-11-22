@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"net/netip"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,7 +23,9 @@ type EmbeddedConfig struct {
 	// StoreDir holds JetStream's file storage. Required: the data must
 	// survive restarts, so there is no temporary default.
 	StoreDir string `env:"STORE_DIR"`
-	// Host is the listen address. Empty means 127.0.0.1 (never all interfaces).
+	// Host is the listen address. Empty means 127.0.0.1. It must be a
+	// loopback address or "localhost": the embedded server does not support
+	// TLS, so it never listens where other hosts could reach it in clear text.
 	Host string `env:"HOST" default:"127.0.0.1"`
 	// Port is the client port; -1 (and 0) pick a random free port.
 	Port int `env:"PORT" default:"-1"`
@@ -69,10 +73,30 @@ type EmbeddedServer struct {
 }
 
 // StartEmbedded starts a NATS server with JetStream enabled and file storage
-// in cfg.StoreDir, and returns once it accepts connections. Clients
-// authenticate with the server's token (EmbeddedServer.Token).
+// in cfg.StoreDir, listening on the loopback address cfg.Host, and returns
+// once it accepts connections. Clients authenticate with the server's token
+// (EmbeddedServer.Token). A non-loopback Host is refused.
 func StartEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger) (*EmbeddedServer, error) {
+	return startEmbedded(ctx, cfg, logger, false)
+}
+
+// isLoopback reports whether host is "localhost" or a loopback IP address.
+func isLoopback(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	a, err := netip.ParseAddr(strings.Trim(host, "[]"))
+	return err == nil && a.IsLoopback()
+}
+
+// startEmbedded starts the server; with dontListen it opens no TCP listener
+// and accepts in-process connections only.
+func startEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger, dontListen bool) (*EmbeddedServer, error) {
 	cfg = cfg.withDefaults()
+	if !isLoopback(cfg.Host) {
+		return nil, errs.New(errs.CodeInvalidRequest,
+			"embedded bus: host must be a loopback address; the embedded server has no TLS and must not be reachable from other hosts")
+	}
 	logger = orDiscard(logger).With(slog.String("component", "nats_server"))
 	if cfg.StoreDir == "" {
 		return nil, errs.New(errs.CodeInvalidRequest, "embedded bus: store directory is required")
@@ -98,6 +122,7 @@ func StartEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger)
 		Authorization:          token.Reveal(),
 		NoSigs:                 true,
 		DisableJetStreamBanner: true,
+		DontListen:             dontListen,
 	})
 	if err != nil {
 		return nil, errs.Wrap(errs.CodeInvalidRequest, err, "embedded bus: invalid server options")
@@ -114,7 +139,11 @@ func StartEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger)
 		ns.WaitForShutdown()
 		return nil, errs.New(errs.CodeUnavailable, "embedded bus: server did not become ready")
 	}
-	logger.Info("embedded nats server started", slog.String("client_url", ns.ClientURL()), slog.String("store_dir", cfg.StoreDir))
+	clientURL := ns.ClientURL()
+	if dontListen {
+		clientURL = "in-process"
+	}
+	logger.Info("embedded nats server started", slog.String("client_url", clientURL), slog.String("store_dir", cfg.StoreDir))
 	return &EmbeddedServer{ns: ns, token: token, logger: logger}, nil
 }
 

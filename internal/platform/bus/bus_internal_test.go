@@ -2,6 +2,7 @@ package bus
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"testing"
@@ -156,6 +157,8 @@ func TestPublishErrorMapping(t *testing.T) {
 	}
 }
 
+// TestClassify checks how handler results settle messages: only ErrPoison
+// terminates at once.
 func TestClassify(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -167,8 +170,11 @@ func TestClassify(t *testing.T) {
 	}{
 		{"success", nil, 1, 0, outcomeAck},
 		{"success on last attempt", nil, 3, 3, outcomeAck},
-		{"poison", errs.New(errs.CodeInvalidRequest, "bad payload"), 1, 0, outcomeTerm},
-		{"wrapped poison", fmt.Errorf("decode: %w", errs.New(errs.CodeInvalidRequest, "bad")), 1, 0, outcomeTerm},
+		{"poison", ErrPoison, 1, 0, outcomeTerm},
+		{"wrapped poison", fmt.Errorf("decode: %w", ErrPoison), 1, 0, outcomeTerm},
+		{"poison in errs", errs.Wrap(errs.CodeInternal, ErrPoison, "bad payload"), 1, 0, outcomeTerm},
+		{"invalid request is not poison", errs.New(errs.CodeInvalidRequest, "bad payload"), 1, 0, outcomeRetry},
+		{"wrapped invalid request is not poison", fmt.Errorf("call: %w", errs.New(errs.CodeInvalidRequest, "bad")), 1, 0, outcomeRetry},
 		{"transient unlimited", errs.New(errs.CodeUnavailable, "db down"), 100, 0, outcomeRetry},
 		{"transient below max", errors.New("x"), 2, 3, outcomeRetry},
 		{"transient at max", errors.New("x"), 3, 3, outcomeTerm},
@@ -243,22 +249,77 @@ func TestConsumerSpecNormalize(t *testing.T) {
 	}
 }
 
+// TestConfigValidate checks the configuration rules, including that
+// external servers require TLS unless insecure connections are explicitly
+// allowed.
+//
+// Covers: SEC-08
 func TestConfigValidate(t *testing.T) {
 	t.Parallel()
-	ok := Config{}.withDefaults()
-	if err := ok.validate(); err != nil {
-		t.Fatalf("default config invalid: %v", err)
+	good := []Config{
+		{}, // embedded
+		{URL: "tls://x:4222"},
+		{URL: "TLS://a:4222, wss://b:443"},
+		{URL: "nats://x:4222", TLSCAFile: "ca.pem"},
+		{URL: "nats://x:4222", TLS: &tls.Config{MinVersion: tls.VersionTLS13}},
+		{URL: "nats://x:4222", AllowInsecure: true},
+	}
+	for i, c := range good {
+		if err := c.withDefaults().validate(); err != nil {
+			t.Errorf("good case %d: validate() = %v", i, err)
+		}
 	}
 	bad := []Config{
 		{Replicas: 3}, // embedded with replicas
-		{URL: "nats://x", Replicas: 9},
+		{URL: "tls://x", Replicas: 9},
 		{EventsMaxAge: -time.Second},
 		{RequestTimeout: -time.Second},
+		{URL: "nats://x:4222"},              // plaintext
+		{URL: "x:4222"},                     // no scheme means nats://
+		{URL: "tls://a:4222,nats://b:4222"}, // one plaintext server
+		{URL: "ws://x:80"},
 	}
 	for i, c := range bad {
 		if err := c.withDefaults().validate(); !errs.Is(err, errs.CodeInvalidRequest) {
 			t.Errorf("case %d: validate() = %v; want invalid_request", i, err)
 		}
+	}
+}
+
+// TestEmbeddedRefusesNonLoopbackHost checks that the embedded server, which
+// has no TLS, only listens on loopback addresses.
+//
+// Covers: SEC-08
+func TestEmbeddedRefusesNonLoopbackHost(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		host     string
+		loopback bool
+	}{
+		{"127.0.0.1", true},
+		{"127.0.0.2", true},
+		{"::1", true},
+		{"[::1]", true},
+		{"localhost", true},
+		{"0.0.0.0", false},
+		{"::", false},
+		{"10.0.0.5", false},
+		{"bus.example.com", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.host, func(t *testing.T) {
+			t.Parallel()
+			if got := isLoopback(tt.host); got != tt.loopback {
+				t.Fatalf("isLoopback(%q) = %v, want %v", tt.host, got, tt.loopback)
+			}
+			if tt.loopback {
+				return
+			}
+			_, err := StartEmbedded(t.Context(), EmbeddedConfig{StoreDir: t.TempDir(), Host: tt.host}, nil)
+			if !errs.Is(err, errs.CodeInvalidRequest) {
+				t.Fatalf("StartEmbedded on %q = %v; want invalid_request", tt.host, err)
+			}
+		})
 	}
 }
 
@@ -270,6 +331,10 @@ func TestAuthOptions(t *testing.T) {
 	opts, err := authOptions(Config{TLSCAFile: "ca.pem"})
 	if err != nil || len(opts) != 1 {
 		t.Fatalf("CA only: %d options, %v", len(opts), err)
+	}
+	opts, err = authOptions(Config{TLS: &tls.Config{MinVersion: tls.VersionTLS13}})
+	if err != nil || len(opts) != 1 {
+		t.Fatalf("TLS config only: %d options, %v", len(opts), err)
 	}
 	broken := "-----BEGIN NATS USER JWT-----\nnot-a-jwt\n------END NATS USER JWT------\n"
 	cfg := Config{}

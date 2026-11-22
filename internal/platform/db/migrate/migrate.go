@@ -65,7 +65,26 @@
 // rows. Never write the policy with current_setting(..., true) or a COALESCE
 // that could turn a missing tenant into a match.
 //
-// dbtest.AssertRLS checks these rules on a migrated database.
+// A table that also has an environment_id column is environment-scoped and
+// its policy needs the environment clause too, in this order:
+//
+//	USING (tenant_id = current_setting('app.tenant_id')::uuid
+//	       AND environment_id = current_setting('app.environment_id')::uuid)
+//	WITH CHECK (the same expression)
+//
+// db.InTenantTx always sets app.environment_id; without an environment it is
+// the empty string, so the uuid cast fails and the table fails closed.
+//
+// Never grant TRUNCATE, TRIGGER or REFERENCES on a tenant-owned table to the
+// application role: TRUNCATE ignores row-level security (a TRUNCATE in one
+// tenant's transaction empties the table for every tenant), TRIGGER lets the
+// role run code as the table owner, and REFERENCES lets it probe other
+// tenants' keys. Policies other than the one tenant policy must not apply to
+// the application role (no extra permissive policies for PUBLIC or for it).
+//
+// dbtest.AssertRLS checks these rules on a migrated database: the policy
+// expressions must equal the canonical deparsed form exactly, and a
+// behavioural check proves that one tenant sees only its own rows.
 package migrate
 
 import (

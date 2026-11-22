@@ -78,7 +78,7 @@ func countWidgets(t *testing.T, d *db.DB, tn scope.Tenant) int {
 // TestTenantIsolation proves that one tenant can neither see nor change
 // another tenant's rows, even with statements that do not filter by tenant.
 //
-// Covers: TEN-01
+// Covers: TEN-03
 func TestTenantIsolation(t *testing.T) { //nolint:tparallel // the group of statements runs before the final checks, which need its result
 	t.Parallel()
 	env := dbtest.New(t)
@@ -144,7 +144,7 @@ func TestTenantIsolation(t *testing.T) { //nolint:tparallel // the group of stat
 
 // TestEnvironmentSetting proves the environment of the scope is bound too.
 //
-// Covers: TEN-01
+// Covers: TEN-03
 func TestEnvironmentSetting(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -152,6 +152,8 @@ func TestEnvironmentSetting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Without an environment the setting is set too, to the empty string,
+	// so that environment-scoped policies fail closed.
 	tests := []struct {
 		name string
 		tn   scope.Tenant
@@ -165,7 +167,7 @@ func TestEnvironmentSetting(t *testing.T) {
 			t.Parallel()
 			var tenant, environment string
 			err := env.DB.InTenantTx(tenantCtx(t, tt.tn), func(ctx context.Context, tx pgx.Tx) error {
-				return tx.QueryRow(ctx, `SELECT current_setting('app.tenant_id'), coalesce(current_setting('app.environment_id', true), '')`).
+				return tx.QueryRow(ctx, `SELECT current_setting('app.tenant_id'), current_setting('app.environment_id')`).
 					Scan(&tenant, &environment)
 			})
 			if err != nil {
@@ -181,7 +183,7 @@ func TestEnvironmentSetting(t *testing.T) {
 // TestAppRoleFailsClosedOutsideTenantTx proves that the application role
 // sees no tenant's rows without a tenant transaction.
 //
-// Covers: TEN-01, SEC-09
+// Covers: TEN-03, SEC-09
 func TestAppRoleFailsClosedOutsideTenantTx(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -212,7 +214,7 @@ func TestAppRoleFailsClosedOutsideTenantTx(t *testing.T) {
 // transaction-local: with a pool of one connection, the connection used by a
 // tenant transaction has no tenant afterwards and fails closed.
 //
-// Covers: TEN-01
+// Covers: TEN-03
 func TestPooledConnectionCarriesNoTenant(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -250,10 +252,109 @@ func TestPooledConnectionCarriesNoTenant(t *testing.T) {
 	}
 }
 
+// TestSessionLevelScopeDoesNotLeak reproduces the security review's
+// pool-of-one scenario: code in tenant A's transaction sets the scope at
+// session level (set_config(..., false)). The next transaction, of tenant B
+// without an environment, must see neither A's tenant nor A's environment,
+// and the connection must not return to the pool with that state.
+//
+// Covers: TEN-03
+func TestSessionLevelScopeDoesNotLeak(t *testing.T) {
+	t.Parallel()
+	env := dbtest.New(t)
+	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 1, PlatformMaxConns: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	envA, err := ids.New[ids.EnvironmentKind]()
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := scope.Tenant{TenantID: newTenant(t).TenantID, EnvironmentID: envA}
+	b := newTenant(t)
+	var pidA int
+	if err := d.InTenantTx(tenantCtx(t, a), func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT pg_backend_pid(), set_config('app.tenant_id', $1, false), set_config('app.environment_id', $2, false)`,
+			a.TenantID.UUID().String(), envA.UUID().String()).Scan(&pidA, new(string), new(string))
+	}); err != nil {
+		t.Fatal(err)
+	}
+	var tenant, environment string
+	if err := d.InTenantTx(tenantCtx(t, b), func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT current_setting('app.tenant_id'), current_setting('app.environment_id')`).Scan(&tenant, &environment)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if tenant != b.TenantID.UUID().String() || environment != "" {
+		t.Fatalf("tenant B's transaction sees (%q, %q), want (%q, \"\")", tenant, environment, b.TenantID.UUID())
+	}
+	conn, err := db.AppPool(d).Acquire(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Release()
+	var pid int
+	var sessionTenant, sessionEnvironment *string
+	if err := conn.QueryRow(t.Context(), `SELECT pg_backend_pid(), current_setting('app.tenant_id', true), current_setting('app.environment_id', true)`).
+		Scan(&pid, &sessionTenant, &sessionEnvironment); err != nil {
+		t.Fatal(err)
+	}
+	if pid == pidA {
+		t.Fatalf("the pool reused backend %d, which carries a session-level tenant", pid)
+	}
+	if (sessionTenant != nil && *sessionTenant != "") || (sessionEnvironment != nil && *sessionEnvironment != "") {
+		t.Fatalf("pooled connection carries session scope (%v, %v)", sessionTenant, sessionEnvironment)
+	}
+}
+
+// TestOpenRefusesAppRoleObjects proves that Open refuses an application role
+// that owns a schema, a view, a sequence or a function, or may create objects
+// in a schema.
+//
+// Covers: SEC-09
+func TestOpenRefusesAppRoleObjects(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		ddl  string
+		want string
+	}{
+		{"owns a schema", `CREATE SCHEMA app_owned AUTHORIZATION portun_app`, "owns a schema"},
+		{"owns a view", `CREATE VIEW dbtest_app.v AS SELECT 1 AS x; ALTER VIEW dbtest_app.v OWNER TO portun_app`, "owns tables, views or sequences"},
+		{"owns a sequence", `CREATE SEQUENCE dbtest_app.s; ALTER SEQUENCE dbtest_app.s OWNER TO portun_app`, "owns tables, views or sequences"},
+		{"owns a function", `CREATE FUNCTION dbtest_app.f() RETURNS int LANGUAGE sql AS 'SELECT 1';
+			ALTER FUNCTION dbtest_app.f() OWNER TO portun_app`, "owns functions"},
+		{"create on schema", `GRANT CREATE ON SCHEMA dbtest_app TO portun_app`, "has CREATE on a schema"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			env := dbtest.New(t)
+			admin, err := pgx.Connect(t.Context(), env.AdminURL.Reveal())
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() { _ = admin.Close(context.Background()) }()
+			if _, err := admin.Exec(t.Context(), tt.ddl); err != nil {
+				t.Fatal(err)
+			}
+			d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL})
+			if err == nil {
+				d.Close()
+				t.Fatal("Open accepted the application role")
+			}
+			if !errs.Is(err, errs.CodeInvalidRequest) || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("err = %v, want CodeInvalidRequest mentioning %q", err, tt.want)
+			}
+		})
+	}
+}
+
 // TestInTenantTxRequiresScope proves that a missing tenant scope is an
 // internal error and that no transaction is started.
 //
-// Covers: TEN-01
+// Covers: TEN-03
 func TestInTenantTxRequiresScope(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -281,8 +382,6 @@ func TestInTenantTxRequiresScope(t *testing.T) {
 }
 
 // TestRollback proves that an error or a panic in fn rolls back its writes.
-//
-// Covers: TEN-01
 func TestRollback(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -326,8 +425,6 @@ func TestRollback(t *testing.T) {
 }
 
 // TestErrorMappingFromDatabase checks the mapping of real server errors.
-//
-// Covers: TEN-01
 func TestErrorMappingFromDatabase(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -385,7 +482,7 @@ func containsSQL(s string) bool {
 // TestPlatformTxSeesAllTenants proves that the platform role bypasses
 // row-level security.
 //
-// Covers: TEN-01
+// Covers: TEN-03
 func TestPlatformTxSeesAllTenants(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
@@ -441,7 +538,7 @@ func TestOpenRefusesUnsafeRoles(t *testing.T) {
 // TestOpenRefusesDefaultTenant proves that a role-level default for
 // app.tenant_id (which would act as a default tenant) is refused.
 //
-// Covers: SEC-09, TEN-01
+// Covers: SEC-09, TEN-03
 func TestOpenRefusesDefaultTenant(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)

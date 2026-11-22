@@ -32,7 +32,7 @@ func startServer(t *testing.T, storeDir string) *bus.EmbeddedServer {
 
 func connect(t *testing.T, srv *bus.EmbeddedServer) *bus.Bus {
 	t.Helper()
-	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
+	b, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
 	if err != nil {
 		t.Fatalf("Connect: %v", err)
 	}

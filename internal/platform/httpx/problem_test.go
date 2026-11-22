@@ -49,7 +49,7 @@ func TestWriteProblemEveryCode(t *testing.T) {
 				Title:     code.Title(),
 				Status:    code.HTTPStatus(),
 				Code:      code,
-				Detail:    "Client-safe message.",
+				Detail:    detailFor(code),
 				Instance:  "/v1/things/x",
 				RequestID: "req_test",
 			}
@@ -63,6 +63,115 @@ func TestWriteProblemEveryCode(t *testing.T) {
 			}
 			if !rec5xx && logged["level"] != "DEBUG" {
 				t.Fatalf("4xx must be logged at debug: %v", logged)
+			}
+		})
+	}
+}
+
+// detailFor is the detail a client gets for an error of code with the
+// message "Client-safe message.": 5xx problems carry only the title.
+func detailFor(code errs.Code) string {
+	if code.HTTPStatus() >= 500 {
+		return code.Title()
+	}
+	return "Client-safe message."
+}
+
+// TestWriteProblemHides5xxDetail reproduces the security review's example:
+// the message of a 5xx error (here from the database role check) reaches the
+// log but never the client, and neither do field errors.
+//
+// Covers: SEC-09
+func TestWriteProblemHides5xxDetail(t *testing.T) {
+	t.Parallel()
+	const msg = "insecure database roles: application role \"portun_app\" is a superuser"
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{"internal", errs.New(errs.CodeInternal, msg)},
+		{"unavailable with fields", errs.New(errs.CodeUnavailable, msg).WithFields(errs.FieldError{Pointer: "/db", Code: "down", Detail: msg})},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			logger, logs := newLogger()
+			r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/x", nil)
+			h := httpx.Recover(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				httpx.WriteProblem(w, r, tt.err)
+			}))
+			rec := serve(h, r)
+			if strings.Contains(rec.Body.String(), "insecure database roles") || strings.Contains(rec.Body.String(), "portun_app") {
+				t.Fatalf("5xx message leaked: %s", rec.Body.String())
+			}
+			p := decodeProblem(t, rec.Body)
+			code := errs.CodeOf(tt.err)
+			if p.Detail != code.Title() || p.Errors != nil {
+				t.Fatalf("problem = %+v, want detail %q and no field errors", p, code.Title())
+			}
+			if logged := logs.find(t, "request failed"); !strings.Contains(fmt.Sprint(logged["error"]), "insecure database roles") {
+				t.Fatalf("the message must be logged: %v", logged)
+			}
+		})
+	}
+}
+
+// TestProblemDropsHandlerHeaders reproduces the security review's panic case:
+// headers a handler set before failing must not describe the problem
+// response, while security, request-id, CORS and Vary headers survive.
+//
+// Covers: SEC-09
+func TestProblemDropsHandlerHeaders(t *testing.T) {
+	t.Parallel()
+	dropped := map[string]string{
+		"Set-Cookie":          "session=abc; Path=/; HttpOnly",
+		"Content-Encoding":    "gzip",
+		"Content-Disposition": "attachment; filename=report.csv",
+		"Content-Range":       "bytes 0-9/100",
+		"Location":            "https://evil.example/",
+		"ETag":                `"v1"`,
+		"Last-Modified":       "Mon, 02 Jan 2006 15:04:05 GMT",
+		"Content-Language":    "de",
+	}
+	kept := map[string]string{
+		"X-Frame-Options":             "DENY",
+		"Strict-Transport-Security":   "max-age=63072000",
+		"X-Request-Id":                "req_1",
+		"Access-Control-Allow-Origin": "https://app.example",
+		"Vary":                        "Origin",
+	}
+	tests := []struct {
+		name string
+		fail func(w http.ResponseWriter, r *http.Request)
+	}{
+		{"panic", func(http.ResponseWriter, *http.Request) { panic("boom") }},
+		{"write problem", func(w http.ResponseWriter, r *http.Request) {
+			httpx.WriteProblem(w, r, errs.New(errs.CodeNotFound, "Not here."))
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			logger, _ := newLogger()
+			h := httpx.Recover(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				for k, v := range dropped {
+					w.Header().Set(k, v)
+				}
+				for k, v := range kept {
+					w.Header().Set(k, v)
+				}
+				tt.fail(w, r)
+			}))
+			rec := serve(h, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/x", nil))
+			for k := range dropped {
+				if v := rec.Header().Get(k); v != "" {
+					t.Errorf("header %s = %q survived the problem response", k, v)
+				}
+			}
+			for k, v := range kept {
+				if got := rec.Header().Get(k); got != v {
+					t.Errorf("header %s = %q, want %q", k, got, v)
+				}
 			}
 		})
 	}
@@ -83,7 +192,7 @@ func TestWriteProblemMapping(t *testing.T) {
 		wantFields []errs.FieldError
 	}{
 		{"plain error", errors.New(secretCause), 500, errs.CodeInternal, "Internal error", nil},
-		{"nil error", nil, 500, errs.CodeInternal, "internal error", nil},
+		{"nil error", nil, 500, errs.CodeInternal, "Internal error", nil},
 		{"unknown code", errs.New("made_up", secretCause), 500, errs.CodeInternal, "Internal error", nil},
 		{"deadline", fmt.Errorf("query: %w", context.DeadlineExceeded), 504, errs.CodeDeadlineExceeded, "Deadline exceeded", nil},
 		{"max bytes", &http.MaxBytesError{Limit: 10}, 413, errs.CodePayloadTooLarge, "Request body must not exceed 10 bytes.", nil},

@@ -218,11 +218,14 @@ func TestRoleProblems(t *testing.T) {
 		{"app member of superuser", with(safeApp, func(f *roleFacts) { f.memberOfSuperuser = true }), safePlatform, []string{"member of a superuser"}},
 		{"app member of bypassrls", with(safeApp, func(f *roleFacts) { f.memberOfBypassRLS = true }), safePlatform, []string{"member of a role with BYPASSRLS"}},
 		{"app owns database", with(safeApp, func(f *roleFacts) { f.ownsDatabase = true }), safePlatform, []string{"owns the database"}},
-		{"app owns tables", with(safeApp, func(f *roleFacts) { f.ownsTables = true }), safePlatform, []string{"owns tables"}},
+		{"app owns tables", with(safeApp, func(f *roleFacts) { f.ownsRelations = true }), safePlatform, []string{"owns tables"}},
+		{"app owns a schema", with(safeApp, func(f *roleFacts) { f.ownsSchemas = true }), safePlatform, []string{"owns a schema"}},
+		{"app owns functions", with(safeApp, func(f *roleFacts) { f.ownsFunctions = true }), safePlatform, []string{"owns functions"}},
+		{"app can create", with(safeApp, func(f *roleFacts) { f.canCreate = true }), safePlatform, []string{"has CREATE"}},
 		{"app default tenant", with(safeApp, func(f *roleFacts) { f.tenantSetting = "x" }), safePlatform, []string{"default tenant"}},
 		{"platform no bypassrls", safeApp, with(safePlatform, func(f *roleFacts) { f.bypassRLS = false }), []string{"lacks BYPASSRLS"}},
 		{"platform superuser", safeApp, with(safePlatform, func(f *roleFacts) { f.superuser = true }), []string{"is a superuser"}},
-		{"platform owns tables", safeApp, with(safePlatform, func(f *roleFacts) { f.ownsTables = true }), []string{"owns tables"}},
+		{"platform owns tables", safeApp, with(safePlatform, func(f *roleFacts) { f.ownsRelations = true }), []string{"owns tables"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

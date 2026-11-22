@@ -11,14 +11,28 @@
 // Mount requirements: the transit mount must set disable_upsert=true
 // (POST <mount>/config/keys). Otherwise transit's encrypt endpoint silently
 // creates a missing key, which would resurrect a destroyed key's name with new
-// material. The adapter checks this before its first Encrypt (Check) and fails
-// closed. Recommended token policy, with <mount> the transit mount:
+// material. The adapter checks this (Check) before an Encrypt whenever the
+// key's purpose was not cached yet (the first use of each key in a process)
+// and whenever the last successful check is older than UpsertRecheckInterval,
+// and fails closed: a mount reconfigured to allow upsert at runtime is
+// noticed within that interval. Recommended token policy, with <mount> the
+// transit mount:
 //
 //	path "<mount>/keys/*"      { capabilities = ["create", "read", "update", "delete"] }
 //	path "<mount>/encrypt/*"   { capabilities = ["update"] }  # no "create": no upsert
 //	path "<mount>/decrypt/*"   { capabilities = ["update"] }
 //	path "<mount>/sign/*"      { capabilities = ["update"] }
 //	path "<mount>/config/keys" { capabilities = ["read"] }
+//
+// Creation: transit's key creation is an upsert that answers every caller
+// the same way, so CreateKey cannot learn from it who created a key. After
+// creating the key, CreateKey creates the claim key "<name>.created" (also
+// an upsert) and rotates it once. Transit rotates under the key's lock and
+// reports the new version, so exactly one rotation yields version 2: that
+// caller succeeds, and every other concurrent CreateKey for the name gets
+// CodeConflict. The claim key holds no data and stays, like the tombstone.
+// If a process fails between creating the key and rotating the claim, the
+// key exists and later CreateKey calls report CodeConflict.
 //
 // Destruction: DestroyKey first creates a tombstone key "<name>.destroyed"
 // (names of real keys cannot contain '.'), then sets deletion_allowed and
@@ -97,9 +111,15 @@ type KMS struct {
 	client *http.Client
 	// purposes caches the purpose of each key name; a transit key's type
 	// never changes, and destroyed names cannot be reused.
-	purposes     sync.Map
-	upsertSealed atomic.Bool
+	purposes sync.Map
+	// upsertCheckedAt is when Check last passed (Unix nanoseconds; 0 never
+	// or failed since).
+	upsertCheckedAt atomic.Int64
 }
+
+// UpsertRecheckInterval is the longest Encrypt relies on an earlier Check of
+// the mount's disable_upsert setting.
+const UpsertRecheckInterval = 5 * time.Minute
 
 var _ kms.KMS = (*KMS)(nil)
 
@@ -190,8 +210,10 @@ func validateMount(mount string) error {
 
 // Check verifies that OpenBao is reachable, the token may read the transit
 // mount's configuration, and the mount sets disable_upsert. Encrypt runs it
-// once before first use and refuses to encrypt until it passes.
+// on each key-cache miss and at least every UpsertRecheckInterval, and
+// refuses to encrypt until it passes.
 func (k *KMS) Check(ctx context.Context) error {
+	k.upsertCheckedAt.Store(0)
 	var out struct {
 		Data struct {
 			DisableUpsert bool `json:"disable_upsert"`
@@ -203,8 +225,14 @@ func (k *KMS) Check(ctx context.Context) error {
 	if !out.Data.DisableUpsert {
 		return errs.New(errs.CodeInternal, "OpenBao transit mount must set disable_upsert=true")
 	}
-	k.upsertSealed.Store(true)
+	k.upsertCheckedAt.Store(time.Now().UnixNano())
 	return nil
+}
+
+// upsertCheckStale reports whether Encrypt must run Check first.
+func (k *KMS) upsertCheckStale() bool {
+	at := k.upsertCheckedAt.Load()
+	return at == 0 || time.Since(time.Unix(0, at)) > UpsertRecheckInterval
 }
 
 // CreateKey implements kms.KMS.
@@ -239,6 +267,11 @@ func (k *KMS) CreateKey(ctx context.Context, name string, purpose kms.Purpose) (
 	if out.Data.Type != "" && out.Data.Type != want {
 		return "", errs.New(errs.CodeConflict, "key already exists")
 	}
+	// Exactly one concurrent creator wins the claim (see the package
+	// documentation).
+	if err := k.claim(ctx, name); err != nil {
+		return "", err
+	}
 	k.purposes.Store(name, purpose)
 	return ref, nil
 }
@@ -260,11 +293,11 @@ func (k *KMS) Encrypt(ctx context.Context, ref kms.KeyRef, plaintext, aad []byte
 	if err := kms.CheckDataSize(plaintext, aad); err != nil {
 		return nil, wrap(err)
 	}
-	name, err := k.use(ctx, ref, kms.PurposeEncrypt)
+	name, cached, err := k.useCached(ctx, ref, kms.PurposeEncrypt)
 	if err != nil {
 		return nil, err
 	}
-	if !k.upsertSealed.Load() {
+	if !cached || k.upsertCheckStale() {
 		if err := k.Check(ctx); err != nil {
 			return nil, err
 		}

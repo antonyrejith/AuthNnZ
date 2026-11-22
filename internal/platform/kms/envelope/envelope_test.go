@@ -161,7 +161,7 @@ func TestRewrapAfterRotation(t *testing.T) {
 
 // TestDEKRedacted checks no fmt verb prints a DEK.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestDEKRedacted(t *testing.T) {
 	t.Parallel()
 	_, env, kek := setup(t)

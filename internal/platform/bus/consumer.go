@@ -165,9 +165,17 @@ type Delivery struct {
 	Published    time.Time // when the stream stored the message
 }
 
+// ErrPoison marks a message that can never be processed (for example an
+// undecodable payload). A handler returns it, usually wrapped
+// (fmt.Errorf("decode: %w", bus.ErrPoison)), to terminate the message.
+var ErrPoison = errors.New("bus: poison message")
+
 // Handler processes one delivery. Returning nil acknowledges the message.
-// An error carrying errs.CodeInvalidRequest marks the message as poison: it
-// is terminated (never redelivered) and logged. Any other error, and a panic
+// An error that wraps ErrPoison (errors.Is) marks the message as poison: it
+// is terminated (never redelivered) and logged. Error codes do not: an
+// errs.CodeInvalidRequest from a dependency, for instance, is retried like
+// any other error, so a misclassified transient failure never drops a
+// message. Any other error, and a panic
 // (which is recovered and logged), retries the message after the backoff
 // delay, until MaxDeliver attempts when it is set. Handlers must be
 // idempotent on Delivery.ID: delivery is at least once. The context is
@@ -190,8 +198,8 @@ func classify(err error, attempt uint64, maxDeliver int) (outcome, string) {
 	switch {
 	case err == nil:
 		return outcomeAck, ""
-	case errs.Is(err, errs.CodeInvalidRequest):
-		return outcomeTerm, "poison: invalid_request"
+	case errors.Is(err, ErrPoison):
+		return outcomeTerm, "poison"
 	case maxDeliver > 0 && attempt >= uint64(maxDeliver):
 		return outcomeTerm, "max deliveries reached"
 	default:

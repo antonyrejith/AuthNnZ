@@ -59,6 +59,7 @@ func TestKeyRefProvider(t *testing.T) {
 	}
 }
 
+// Covers: SEC-08
 func TestCiphertextFormat(t *testing.T) {
 	t.Parallel()
 	payload := []byte("payload")

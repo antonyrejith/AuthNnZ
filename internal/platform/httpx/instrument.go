@@ -29,11 +29,14 @@ type InstrumentConfig struct {
 	TracerProvider trace.TracerProvider
 	MeterProvider  metric.MeterProvider
 	Propagator     propagation.TextMapPropagator
-	// PublicEndpoint starts a new trace for every request and links the
-	// caller's trace context instead of adopting it, so internet clients
-	// cannot choose our trace IDs or force sampling. Leave it false behind a
-	// gateway that is the trust boundary for trace headers.
-	PublicEndpoint bool
+	// TrustInboundTraceContext adopts the caller's trace context (the span
+	// becomes a child of the inbound traceparent) and baggage. Set it only
+	// where every caller is trusted, for example behind a gateway that is the
+	// trust boundary for trace headers. By default inbound trace context is
+	// untrusted: every request starts a new trace that links the caller's
+	// span context, and inbound baggage is dropped, so clients can neither
+	// choose our trace IDs, force sampling, nor inject baggage.
+	TrustInboundTraceContext bool
 }
 
 // Instrument returns middleware that creates a server span per request and
@@ -76,7 +79,7 @@ func Instrument(cfg InstrumentConfig) (Middleware, error) {
 	in := &instrumenter{
 		tracer:     tp.Tracer(instrumentationName, trace.WithInstrumentationVersion(v), trace.WithSchemaURL(semconv.SchemaURL)),
 		propagator: cfg.Propagator,
-		public:     cfg.PublicEndpoint,
+		trusted:    cfg.TrustInboundTraceContext,
 		duration:   duration,
 		active:     active,
 	}
@@ -88,7 +91,7 @@ func Instrument(cfg InstrumentConfig) (Middleware, error) {
 type instrumenter struct {
 	tracer     trace.Tracer
 	propagator propagation.TextMapPropagator
-	public     bool
+	trusted    bool
 	duration   httpconv.ServerRequestDuration
 	active     httpconv.ServerActiveRequests
 }
@@ -138,9 +141,11 @@ func (in *instrumenter) parent(r *http.Request) (context.Context, []trace.SpanSt
 		return ctx, nil
 	}
 	extracted := in.propagator.Extract(ctx, propagation.HeaderCarrier(r.Header))
-	if !in.public {
+	if in.trusted {
 		return extracted, nil
 	}
+	// Untrusted: keep the request context (no inbound baggage) and only link
+	// the caller's span context.
 	remote := trace.SpanContextFromContext(extracted)
 	if !remote.IsValid() {
 		return ctx, nil
