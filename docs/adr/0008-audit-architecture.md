@@ -90,7 +90,8 @@ timestamp tokens, and works offline on exported records.
 transaction, every inserted, updated or deleted row (table and primary key)
 must be listed in `change.rows` of an audit record inserted into the outbox in
 the same transaction. Excluded: a reviewed allowlist of ephemeral tables, the
-audit schema itself, outbox deletes, and migration version tables (migrations
+audit schema itself, `outbox.messages` (delivery records written in the same
+transaction as the audited change they describe), and migration version tables (migrations
 are recorded in the platform trail by the release pipeline). Unmatched rows
 raise an unaudited-change alert (metric, log, platform audit event) in
 production and fail integration test suites.
