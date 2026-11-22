@@ -26,10 +26,11 @@ export `GOTOOLCHAIN=go1.27.4`.
 ## Gates before any commit
 
 ```bash
-make pincheck lint build test test-integration
+make pincheck lint build test test-integration tidy-check secrets cover-check
 ```
 
-All must pass. Never commit with failing gates; never claim a result that was
+All must pass. `make gates` adds `vuln` (needs network access to vuln.go.dev;
+it always runs in CI). Never commit with failing gates; never claim a result that was
 not produced by an actual run.
 
 ## Rules
