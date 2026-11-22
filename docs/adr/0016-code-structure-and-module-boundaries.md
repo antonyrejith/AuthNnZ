@@ -4,6 +4,16 @@
 - Date: 2026-11-22
 - Deciders: Principal Architect, under the approved plan ([08 §2](../plan/08-engineering-standards.md#2-repository-and-code-structure))
 
+## Context
+Module boundaries must survive years of work by many contributors and allow
+modules to become services later ([08 §2](../plan/08-engineering-standards.md)).
+
+## Options considered
+1. Conventions only: erode without enforcement.
+2. One Go module per business module: heavy versioning overhead.
+3. One Go module with `internal/` boundaries plus lint-enforced layer rules.
+   Chosen.
+
 ## Decision
 ```
 internal/platform/<pkg>          technical packages, no business rules
@@ -23,5 +33,6 @@ cmd/<deployable>/                         wiring only
   `init()` side effects, no dependency-injection framework.
 
 ## Consequences
-- The compiler enforces module privacy through `internal/`; golangci-lint
-  enforces banned packages.
+- The compiler enforces module privacy through `internal/`. The layer rules
+  (domain imports, app never imports adapters, platform never imports a module)
+  are depguard rules with file globs in `.golangci.yml`, plus banned packages.

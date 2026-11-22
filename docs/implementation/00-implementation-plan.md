@@ -80,7 +80,7 @@ concrete choices for implementation:
 |--------------|---------|
 | `tenancy.partners`, `tenancy.tenants`, `tenancy.environments` | Hierarchy, status, region, key reference |
 | `config.objects`, `config.versions`, `config.publications` | Versioned configuration with draft, published and archived states, change notes, checksums |
-| `audit.outbox` | Same-transaction audit records with the database transaction ID |
+| `outbox.messages` | Same-transaction audit records and events with the database transaction ID ([ADR-0007](../adr/0007-event-bus-and-outbox.md)) |
 | `audit.events` (partitioned by month) | Append-only records with per-tenant gapless sequence, previous hash and hash |
 | `audit.checkpoints` | Signed Merkle roots per tenant |
 | `keys.tenant_keks`, `keys.data_keys` | Envelope-encryption key references; destroyed for crypto-shredding |

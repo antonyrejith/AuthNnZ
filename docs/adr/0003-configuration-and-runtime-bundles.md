@@ -30,10 +30,13 @@ platform → partner → tenant → environment → organization path → applic
 **Runtime bundles:** publishing compiles a tenant environment into an
 immutable bundle (resolved settings, compiled CEL programs, indexes) with a
 monotonically increasing version and a checksum, stored in
-`config.bundles(tenant_id, environment_id, version, checksum, payload)`. A
-`config.<tenant>.<env>` message is published on the bus. Each process keeps the
-current bundle per tenant environment behind an `atomic.Pointer`, loads lazily
-on first use, and swaps atomically on notification. Long-running transactions
+`config.bundles(tenant_id, environment_id, version, checksum, payload)`
+(PostgreSQL is the bundle store in B0; object storage with a regional cache, as
+in [04 §2.3](../plan/04-architecture.md), is added with cells in B10). A
+`bundle.published` message is published on `config.<tenant>.<env>`. Each
+process keeps bundles in a size-bounded LRU cache per tenant environment, each
+entry behind an `atomic.Pointer`; it loads lazily on first use and swaps
+atomically on notification, so memory does not grow with the tenant count. Long-running transactions
 (for example a login flow) record the bundle version they started with.
 
 **Static stability:** if the bus is unavailable, processes poll the latest

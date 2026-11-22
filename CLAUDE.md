@@ -66,4 +66,6 @@ not produced by an actual run.
 ## Git
 
 - Develop on `claude/enterprise-auth-service-gai45l`; push only there.
-- Commit messages: what and why, the task ID, and what was verified.
+- Commit messages follow Conventional Commits (plan 08 §5), e.g.
+  `feat(audit): add hash-chain writer (T0.8)`, and state what and why, the task
+  ID, and what was verified.

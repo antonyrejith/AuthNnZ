@@ -33,12 +33,30 @@ a `scope.Tenant` to the context. Code that touches tenant data obtains it with
 - The application connects as role `portun_app`, which does not own the tables
   and has no `BYPASSRLS`. Migrations run as the owner role.
 - All tenant data access goes through `db.InTenantTx(ctx, fn)`, which starts a
-  transaction and runs `SET LOCAL app.tenant_id` from the context scope. Pool
+  transaction and sets the tenant from the context scope with
+  `SELECT set_config('app.tenant_id', $1, true)` (bound parameter, never string
+  formatting; transaction-local). Pool
   connections therefore never carry another tenant's setting.
 - Platform-level work (managing tenants, the audit writer, the change-capture
   reconciler) uses a separate pool as role `portun_platform` with `BYPASSRLS`,
   through `db.InPlatformTx`, which is used only by those components and is
   itself audited.
+
+**Other stores:** Valkey keys, NATS subjects and object-storage paths always
+start with the tenant ID (`t:<tenant>:…`, `audit.<tenant>`, `<tenant>/…`), built
+only by helpers that take an `ids.TenantID`. Environment-scoped tables also
+carry `environment_id`, and their policies compare it with `app.environment_id`.
+
+**Isolation tiers:** shared cells (RLS as above), dedicated databases per tenant
+and dedicated cells (D-07) run the same code; the tier changes only connection
+routing (increment B10).
+
+## Options considered
+1. Database per tenant everywhere: strongest, unmanageable at thousands of
+   tenants. Kept as a tier, not the default.
+2. Schema per tenant: migration cost grows with tenants. Rejected.
+3. Shared tables with `tenant_id` and forced row-level security. Chosen as the
+   default tier.
 
 ## Consequences
 - A missing `WHERE tenant_id = …` cannot leak data: the database filters it.
