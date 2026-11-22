@@ -56,8 +56,8 @@ func mapErr(err error) error {
 }
 
 // read runs fn in a read-only platform transaction.
-func (r *Repository) read(ctx context.Context, fn func(ctx context.Context, tx pgx.Tx) error) error {
-	return r.db.InPlatformTx(ctx, fn, db.ReadOnly()) //nolint:wrapcheck // db maps errors to *errs.Error
+func (r *Repository) read(ctx context.Context, fn func(ctx context.Context, q db.Querier) error) error {
+	return r.db.ReadPlatform(ctx, fn) //nolint:wrapcheck // db maps errors to *errs.Error
 }
 
 // nullUUID returns the argument for a nullable uuid column.
@@ -276,7 +276,7 @@ func nullString(s string) any {
 // GetTenant implements app.Repository.
 func (r *Repository) GetTenant(ctx context.Context, id ids.TenantID) (domain.Tenant, error) {
 	var t domain.Tenant
-	err := r.read(ctx, func(ctx context.Context, tx pgx.Tx) (err error) {
+	err := r.read(ctx, func(ctx context.Context, tx db.Querier) (err error) {
 		t, err = scanTenant(tx.QueryRow(ctx, `SELECT `+tenantColumns+` FROM tenancy.tenants WHERE id = $1`, id.UUID()))
 		return err
 	})
@@ -286,7 +286,7 @@ func (r *Repository) GetTenant(ctx context.Context, id ids.TenantID) (domain.Ten
 // GetOperation implements app.Repository.
 func (r *Repository) GetOperation(ctx context.Context, id ids.OperationID) (domain.Operation, error) {
 	var o domain.Operation
-	err := r.read(ctx, func(ctx context.Context, tx pgx.Tx) (err error) {
+	err := r.read(ctx, func(ctx context.Context, tx db.Querier) (err error) {
 		o, err = scanOperation(tx.QueryRow(ctx, `SELECT `+operationColumns+` FROM tenancy.operations WHERE id = $1`, id.UUID()))
 		return err
 	})
@@ -312,7 +312,7 @@ func (r *Repository) ListTenants(ctx context.Context, f app.ListFilter) ([]domai
 		afterTime, afterID = ts, id
 	}
 	var out []domain.Tenant
-	err := r.read(ctx, func(ctx context.Context, tx pgx.Tx) error {
+	err := r.read(ctx, func(ctx context.Context, tx db.Querier) error {
 		rows, err := tx.Query(ctx, `SELECT `+tenantColumns+` FROM tenancy.tenants
 WHERE ($1::uuid IS NULL OR partner_id = $1)
   AND (($2 = '' AND status <> 'deleted') OR status = $2)
@@ -334,7 +334,7 @@ func (r *Repository) ResolveHost(ctx context.Context, host string) (domain.Host,
 		h domain.Host
 		t domain.Tenant
 	)
-	err := r.read(ctx, func(ctx context.Context, tx pgx.Tx) error {
+	err := r.read(ctx, func(ctx context.Context, tx db.Querier) error {
 		var tn, en uuid.UUID
 		err := tx.QueryRow(ctx, `SELECT owner_tenant_id, environment_id, created_at FROM tenancy.hosts WHERE host = $1`, host).Scan(&tn, &en, &h.CreatedAt)
 		if err != nil {
@@ -351,7 +351,7 @@ func (r *Repository) ResolveHost(ctx context.Context, host string) (domain.Host,
 // and hosts.
 func (r *Repository) TenantRecords(ctx context.Context, id ids.TenantID) (app.TenantRecords, error) {
 	var rec app.TenantRecords
-	err := r.read(ctx, func(ctx context.Context, tx pgx.Tx) error {
+	err := r.read(ctx, func(ctx context.Context, tx db.Querier) error {
 		t, err := scanTenant(tx.QueryRow(ctx, `SELECT `+tenantColumns+` FROM tenancy.tenants WHERE id = $1`, id.UUID()))
 		if err != nil {
 			return err
