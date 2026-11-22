@@ -5,6 +5,16 @@
 // example "ten_01h455vb4pex5vsknk084sn02q". Each kind of ID is a distinct Go
 // type, so an ID of one kind cannot be used where another kind is expected
 // (ADR-0002).
+//
+// # The zero ID
+//
+// The zero value of an ID means "no ID". It never has an external form:
+// String returns "", MarshalText (and so JSON) produces "", and Value stores
+// SQL NULL. Parse rejects the nil UUID ("<prefix>_00000000000000000000000000"),
+// so the zero ID cannot be supplied in its external form. UnmarshalText
+// accepts the empty string only as "absent" and yields the zero ID; callers
+// that require an ID check IsZero. Struct fields that may be absent use the
+// `json:",omitzero"` option, which omits a zero ID instead of writing "".
 package ids
 
 import (
@@ -52,11 +62,17 @@ func Parse[K Kind](s string) (ID[K], error) {
 	if err != nil {
 		return ID[K]{}, err
 	}
+	if u == uuid.Nil {
+		return ID[K]{}, errs.New(errs.CodeInvalidRequest, "identifier must not be the nil identifier")
+	}
 	return ID[K]{u: u}, nil
 }
 
-// String returns the external form.
+// String returns the external form, or "" for the zero ID.
 func (id ID[K]) String() string {
+	if id.IsZero() {
+		return ""
+	}
 	var k K
 	return k.Prefix() + "_" + encode(id.u)
 }
@@ -67,15 +83,15 @@ func (id ID[K]) UUID() uuid.UUID { return id.u }
 // IsZero reports whether id is the zero value.
 func (id ID[K]) IsZero() bool { return id.u == uuid.Nil }
 
-// MarshalText implements encoding.TextMarshaler (used by JSON).
+// MarshalText implements encoding.TextMarshaler (used by JSON). The zero ID
+// marshals to "", consistent with String.
 func (id ID[K]) MarshalText() ([]byte, error) {
-	if id.IsZero() {
-		return []byte{}, nil
-	}
 	return []byte(id.String()), nil
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler (used by JSON).
+// UnmarshalText implements encoding.TextUnmarshaler (used by JSON). The
+// empty string means "absent" and yields the zero ID; any other input must
+// be a valid, non-nil identifier of kind K.
 func (id *ID[K]) UnmarshalText(b []byte) error {
 	if len(b) == 0 {
 		*id = ID[K]{}

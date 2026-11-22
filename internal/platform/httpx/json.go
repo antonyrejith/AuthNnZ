@@ -173,7 +173,7 @@ func semanticError(err error, se *jsonv2.SemanticError) error {
 // withField returns an invalid_request error with one field error.
 func withField(cause error, msg string, fe errs.FieldError) error {
 	e := errs.Wrap(errs.CodeInvalidRequest, cause, msg)
-	return e.WithFields(fe) //nolint:wrapcheck // WithFields copies a platform error; errs.Wrap already wrapped the cause
+	return e.WithFields(fe)
 }
 
 // isNumberSyntax reports a JSON number that does not fit the Go number type

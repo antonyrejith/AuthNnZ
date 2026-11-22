@@ -58,6 +58,7 @@ func TestParseRejectsInvalid(t *testing.T) {
 		{"uppercase", "ten_01H455VB4PEX5VSKNK084SN02Q"},
 		{"excluded letter", "ten_01h455vb4pex5vsknk084sn0iq"},
 		{"overflow", "ten_8zzzzzzzzzzzzzzzzzzzzzzzzz"},
+		{"nil identifier", "ten_00000000000000000000000000"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -76,6 +77,12 @@ func TestRoundTripProperty(t *testing.T) {
 		var u uuid.UUID
 		copy(u[:], rapid.SliceOfN(rapid.Byte(), 16, 16).Draw(t, "bytes"))
 		id := ids.FromUUID[ids.UserKind](u)
+		if u == uuid.Nil {
+			if id.String() != "" || !id.IsZero() {
+				t.Fatalf("nil UUID must be the zero ID with no external form, got %q", id)
+			}
+			return
+		}
 		parsed, err := ids.Parse[ids.UserKind](id.String())
 		if err != nil {
 			t.Fatalf("Parse(%q): %v", id, err)
@@ -206,4 +213,32 @@ func FuzzParse(f *testing.F) {
 			t.Fatalf("Parse(%q).String() = %q", s, id.String())
 		}
 	})
+}
+
+// TestZeroID: the zero ID has no external form; String, MarshalText and
+// JSON agree, and "" decodes only to the zero ID (review finding R14).
+func TestZeroID(t *testing.T) {
+	t.Parallel()
+	var zero ids.TenantID
+	if zero.String() != "" {
+		t.Fatalf("zero String() = %q, want empty", zero.String())
+	}
+	b, err := zero.MarshalText()
+	if err != nil || string(b) != "" {
+		t.Fatalf("zero MarshalText() = %q, %v", b, err)
+	}
+	type doc struct {
+		Tenant ids.TenantID `json:"tenant,omitzero"`
+	}
+	out, err := json.Marshal(doc{})
+	if err != nil || string(out) != "{}" {
+		t.Fatalf("omitzero json = %s, %v", out, err)
+	}
+	set := doc{Tenant: ids.FromUUID[ids.TenantKind](uuid.MustParse("01890a5d-ac96-774b-bcce-b302099a8057"))}
+	if err := json.Unmarshal([]byte(`{"tenant":""}`), &set); err != nil || !set.Tenant.IsZero() {
+		t.Fatalf(`"" must decode to the zero ID: %+v, %v`, set, err)
+	}
+	if err := json.Unmarshal([]byte(`{"tenant":"ten_00000000000000000000000000"}`), &set); err == nil {
+		t.Fatal("the nil identifier decoded")
+	}
 }

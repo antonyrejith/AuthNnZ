@@ -109,7 +109,7 @@ func Parse(r Request, binding string, keys int) (Page, error) {
 		}
 	}
 	if len(fields) > 0 {
-		return Page{}, errs.New(errs.CodeInvalidRequest, "invalid paging parameters").WithFields(fields...) //nolint:wrapcheck // errs constructor
+		return Page{}, errs.New(errs.CodeInvalidRequest, "invalid paging parameters").WithFields(fields...)
 	}
 	return Page{Size: size, After: after}, nil
 }
@@ -146,7 +146,7 @@ func Encode(binding string, keys []string) string {
 func Decode(token, binding string) ([]string, error) {
 	keys, err := decode(token, binding)
 	if err != nil {
-		return nil, errs.New(errs.CodeInvalidRequest, "invalid page_token").WithFields(tokenField(err.Error())) //nolint:wrapcheck // errs constructor
+		return nil, errs.New(errs.CodeInvalidRequest, "invalid page_token").WithFields(tokenField(err.Error()))
 	}
 	return keys, nil
 }

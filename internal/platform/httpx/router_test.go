@@ -62,7 +62,7 @@ func TestRouter(t *testing.T) {
 			}
 			if rec.Header().Get("Content-Type") == httpx.ContentTypeProblem {
 				p := decodeProblem(t, rec.Body)
-				if p.Status != tt.wantCode || p.RequestID == "" {
+				if p.Status != tt.wantCode || p.RequestID == "" || (tt.wantCode == 405 && p.Code != "method_not_allowed") {
 					t.Fatalf("problem %+v", p)
 				}
 			}

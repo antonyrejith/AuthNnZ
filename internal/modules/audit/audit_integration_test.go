@@ -503,11 +503,12 @@ func TestProtection(t *testing.T) {
 	}
 	sec := ev.Change.Diff[byPath["/api_secret"]]
 	secAfter, _ := sec.After.(map[string]any)
-	if secAfter["redacted"] != "[REDACTED]" || !strings.HasPrefix(secAfter["fingerprint"].(string), "sha256:") ||
-		len(secAfter["fingerprint"].(string)) != len("sha256:")+16 {
+	fp, _ := secAfter["fingerprint"].(string)
+	if secAfter["redacted"] != "[REDACTED]" || !strings.HasPrefix(fp, "sha256:") || len(fp) != len("sha256:")+16 {
 		t.Errorf("secret entry = %+v", sec)
 	}
-	nested := ev.Change.Diff[byPath["/secrets"]].After.(map[string]any)["k"].(map[string]any)
+	secrets, _ := ev.Change.Diff[byPath["/secrets"]].After.(map[string]any)
+	nested, _ := secrets["k"].(map[string]any)
 	if nested["redacted"] != "[REDACTED]" {
 		t.Errorf("nested secret = %+v", nested)
 	}
@@ -524,11 +525,12 @@ func TestProtection(t *testing.T) {
 		})
 		return out, err
 	}
-	got, err := reveal(afterPtr, email.After.(string))
+	emailAfter, _ := email.After.(string)
+	got, err := reveal(afterPtr, emailAfter)
 	if err != nil || got != emailValue {
 		t.Fatalf("decrypt email = %v, %v", got, err)
 	}
-	if _, err := reveal("/change/diff/0/before", email.After.(string)); err == nil {
+	if _, err := reveal("/change/diff/0/before", emailAfter); err == nil {
 		t.Error("ciphertext decrypted at another pointer")
 	}
 	if ip, err := reveal("/channel/ip", ev.Channel.IP); err != nil || ip != clientIP {
@@ -556,7 +558,8 @@ func TestProtection(t *testing.T) {
 	for _, r := range f.outbox(t) {
 		e := decode(t, r)
 		if e.Type == "widget.created" && e.Change.Diff[0].Path == "/api_secret" {
-			if fp := e.Change.Diff[0].After.(map[string]any)["fingerprint"]; fp != secAfter["fingerprint"] {
+			after, _ := e.Change.Diff[0].After.(map[string]any)
+			if fp := after["fingerprint"]; fp != secAfter["fingerprint"] {
 				t.Errorf("fingerprint of the same secret differs: %v vs %v", fp, secAfter["fingerprint"])
 			}
 		}
@@ -564,7 +567,7 @@ func TestProtection(t *testing.T) {
 			t.Errorf("erasure rows = %+v", e.Change.Rows)
 		}
 	}
-	if _, err := reveal(afterPtr, email.After.(string)); !errors.Is(err, keystore.ErrShredded) {
+	if _, err := reveal(afterPtr, emailAfter); !errors.Is(err, keystore.ErrShredded) {
 		t.Errorf("decrypt after shred = %v, want ErrShredded", err)
 	}
 	if ip, err := reveal("/channel/ip", ev.Channel.IP); err != nil || ip != clientIP {
@@ -647,7 +650,8 @@ func TestEmitThroughBus(t *testing.T) {
 		t.Errorf("data key creation not recorded: %+v", created)
 	}
 	err = f.env.DB.InTenantTx(anon, func(ctx context.Context, tx pgx.Tx) error {
-		v, err := f.a.DecryptPersonal(ctx, tx, f.tenant, ev.ID, "/details/username", ev.Details["username"].(string))
+		username, _ := ev.Details["username"].(string)
+		v, err := f.a.DecryptPersonal(ctx, tx, f.tenant, ev.ID, "/details/username", username)
 		if err == nil && v != emailValue {
 			t.Errorf("username = %v", v)
 		}

@@ -324,7 +324,7 @@ func (b *Bus) Consume(ctx context.Context, spec ConsumerSpec, handle Handler) (*
 	c.unwatch = context.AfterFunc(ctx, c.requestStop)
 	go c.keepalive()
 	go c.run(it)
-	c.logger.Info("bus consumer started", slog.Bool("ordered", spec.Ordering == OrderedBySubject))
+	c.logger.InfoContext(ctx, "bus consumer started", slog.Bool("ordered", spec.Ordering == OrderedBySubject))
 	return c, nil
 }
 

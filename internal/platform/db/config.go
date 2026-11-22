@@ -104,7 +104,7 @@ func (c Config) Validate() error {
 		}
 	}
 	if len(fields) > 0 {
-		return errs.New(errs.CodeInvalidRequest, "invalid database configuration").WithFields(fields...) //nolint:wrapcheck // errs constructor
+		return errs.New(errs.CodeInvalidRequest, "invalid database configuration").WithFields(fields...)
 	}
 	return nil
 }

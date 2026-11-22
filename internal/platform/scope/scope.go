@@ -5,6 +5,7 @@ package scope
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/antonyrejith/portun/internal/platform/errs"
 	"github.com/antonyrejith/portun/internal/platform/ids"
@@ -87,6 +88,24 @@ type Request struct {
 	Operation    string `json:"operation,omitempty"`
 	ChangeReason string `json:"change_reason,omitempty"`
 	ChangeTicket string `json:"change_ticket,omitempty"`
+}
+
+// LogValue implements slog.LogValuer. It omits IP and UserAgent, which are
+// personal data (they belong in audit records, not in logs), and the change
+// reason, which is free text.
+func (r Request) LogValue() slog.Value {
+	attrs := make([]slog.Attr, 0, 5)
+	add := func(key, value string) {
+		if value != "" {
+			attrs = append(attrs, slog.String(key, value))
+		}
+	}
+	add("request_id", r.RequestID)
+	add("channel", r.Channel)
+	add("client_id", r.ClientID)
+	add("operation", r.Operation)
+	add("change_ticket", r.ChangeTicket)
+	return slog.GroupValue(attrs...)
 }
 
 // WithRequest returns a context carrying r.

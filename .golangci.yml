@@ -5,6 +5,7 @@ run:
 linters:
   default: standard
   enable:
+    - bidichk
     - bodyclose
     - contextcheck
     - depguard
@@ -20,6 +21,7 @@ linters:
     - nilnil
     - noctx
     - nolintlint
+    - paralleltest
     - revive
     - rowserrcheck
     - sloglint
@@ -31,11 +33,15 @@ linters:
     - usestdlibvars
     - wrapcheck
   settings:
+    errcheck:
+      check-type-assertions: true
     gocognit:
       min-complexity: 20
     sloglint:
       attr-only: true
       key-naming-case: snake
+      context: scope
+      no-global: all
     tagliatelle:
       case:
         rules:
@@ -50,6 +56,7 @@ linters:
         - errors.Join(
         - errs.New(
         - errs.Wrap(
+        - .WithFields(
         - (context.Context).Err()
     depguard:
       rules:
@@ -61,6 +68,24 @@ linters:
               desc: "use log/slog"
             - pkg: "github.com/pkg/errors"
               desc: "use the standard errors package and fmt.Errorf with %w"
+        # Module layers (ADR-0016). depguard matches import paths by prefix,
+        # so "an application layer never imports an adapter layer" (a
+        # wildcard module name) is enforced by tools/layercheck (make lint),
+        # which also re-checks these two rules.
+        domain-layer:
+          list-mode: strict
+          files:
+            - "**/internal/modules/*/internal/domain/**"
+          allow:
+            - $gostd
+            - github.com/antonyrejith/portun/internal/platform/ids$
+            - github.com/antonyrejith/portun/internal/platform/errs$
+        platform-independent-of-modules:
+          files:
+            - "**/internal/platform/**"
+          deny:
+            - pkg: github.com/antonyrejith/portun/internal/modules
+              desc: "platform packages must not import business modules (ADR-0016)"
   exclusions:
     rules:
       - path: _test\.go
@@ -70,7 +95,7 @@ linters:
           - gocognit
           - gosec
           - forbidigo
-      - path: tools/pincheck/
+      - path: tools/(pincheck|covercheck|layercheck)/
         linters:
           - forbidigo
           - gochecknoglobals

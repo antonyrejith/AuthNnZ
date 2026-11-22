@@ -143,7 +143,7 @@ func startEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger,
 	if dontListen {
 		clientURL = "in-process"
 	}
-	logger.Info("embedded nats server started", slog.String("client_url", clientURL), slog.String("store_dir", cfg.StoreDir))
+	logger.InfoContext(ctx, "embedded nats server started", slog.String("client_url", clientURL), slog.String("store_dir", cfg.StoreDir))
 	return &EmbeddedServer{ns: ns, token: token, logger: logger}, nil
 }
 

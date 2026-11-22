@@ -198,7 +198,7 @@ func Connect(ctx context.Context, cfg Config, logger *slog.Logger) (*Bus, error)
 		return nil, errs.Wrap(errs.CodeInternal, err, "bus: create JetStream context")
 	}
 	b.nc, b.js = nc, js
-	logger.Info("bus connected", slog.String("server_name", nc.ConnectedServerName()), slog.Bool("embedded", b.embedded != nil))
+	logger.InfoContext(ctx, "bus connected", slog.String("server_name", nc.ConnectedServerName()), slog.Bool("embedded", b.embedded != nil))
 	return b, nil
 }
 
@@ -291,7 +291,7 @@ func (b *Bus) Close(ctx context.Context) error {
 		problems = append(problems, ctx.Err())
 	}
 	b.shutdownEmbedded()
-	b.logger.Info("bus closed")
+	b.logger.InfoContext(ctx, "bus closed")
 	if len(problems) > 0 {
 		err := errors.Join(problems...)
 		return errs.Wrap(errs.CodeOf(problems[0]), err, "bus: close")

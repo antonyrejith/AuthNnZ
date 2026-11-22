@@ -107,7 +107,7 @@ func TestUpValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			err := Up(context.Background(), secret.NewString(tt.url), tt.sets...)
+			err := Up(context.Background(), nil, secret.NewString(tt.url), tt.sets...)
 			if !errs.Is(err, tt.want) {
 				t.Fatalf("err = %v, want %s", err, tt.want)
 			}

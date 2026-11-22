@@ -107,7 +107,7 @@ func TestPoolConfig(t *testing.T) {
 
 func TestOpenValidatesBeforeConnecting(t *testing.T) {
 	t.Parallel()
-	_, err := Open(context.Background(), Config{})
+	_, err := Open(context.Background(), Config{}, nil)
 	if !errs.Is(err, errs.CodeInvalidRequest) {
 		t.Fatalf("err = %v, want CodeInvalidRequest", err)
 	}

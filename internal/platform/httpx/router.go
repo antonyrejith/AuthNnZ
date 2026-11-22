@@ -58,13 +58,8 @@ func (u *unmatchedWriter) WriteHeader(code int) {
 		WriteProblem(u.ResponseWriter, u.r, errs.New(errs.CodeNotFound, "No resource matches the request path."))
 	case http.StatusMethodNotAllowed:
 		u.replaced = true
-		// errs has no 405 code yet: the status stays 405 (with the Allow header
-		// ServeMux set) and the code is invalid_request.
-		p, err := problemFor(u.r, errs.New(errs.CodeInvalidRequest, "The method is not allowed for this resource."))
-		p.Status = http.StatusMethodNotAllowed
-		p.Title = "Method not allowed"
-		logProblem(u.r, p, err)
-		sendProblem(u.ResponseWriter, p)
+		// ServeMux has already set the Allow header.
+		WriteProblem(u.ResponseWriter, u.r, errs.New(errs.CodeMethodNotAllowed, "The method is not allowed for this resource."))
 	default:
 		u.ResponseWriter.WriteHeader(code)
 	}

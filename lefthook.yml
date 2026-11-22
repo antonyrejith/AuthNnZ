@@ -1,0 +1,16 @@
+# Git pre-commit hooks (lefthook, pinned in the tools module). Install with
+# "make hooks" after "make tools". The hooks are a fast local preview; CI
+# runs every gate (make gates).
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.go"
+      run: ./bin/golangci-lint fmt --diff {staged_files}
+    pincheck:
+      run: ./bin/pincheck .
+    lint:
+      glob: "*.go"
+      run: ./bin/golangci-lint run --new-from-rev=HEAD ./...
+    secrets:
+      run: ./bin/gitleaks git --pre-commit --staged --no-banner --redact --config .gitleaks.toml .

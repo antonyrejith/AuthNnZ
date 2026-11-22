@@ -75,39 +75,39 @@ func (d *DB) InTenantTx(ctx context.Context, fn func(ctx context.Context, tx pgx
 		}
 		return nil
 	}
-	return runTx(ctx, d.app, txOptions(opts), bind, fn)
+	return d.runTx(ctx, d.app, txOptions(opts), bind, fn)
 }
 
 // InPlatformTx runs fn in a transaction on the platform pool, which bypasses
 // row-level security. Only platform components use it (ADR-0002). Commit,
 // rollback and error mapping are as for InTenantTx.
 func (d *DB) InPlatformTx(ctx context.Context, fn func(ctx context.Context, tx pgx.Tx) error, opts ...TxOption) error {
-	return runTx(ctx, d.platform, txOptions(opts), nil, fn)
+	return d.runTx(ctx, d.platform, txOptions(opts), nil, fn)
 }
 
 // rollbackTimeout bounds a rollback, which runs even when ctx is done.
 const rollbackTimeout = 5 * time.Second
 
 // runTx begins a transaction, runs setup (if any) and fn, and commits.
-func runTx(ctx context.Context, pool *pgxpool.Pool, o pgx.TxOptions, setup, fn TxFunc) error {
+func (d *DB) runTx(ctx context.Context, pool *pgxpool.Pool, o pgx.TxOptions, setup, fn TxFunc) error {
 	tx, err := pool.BeginTx(ctx, o)
 	if err != nil {
 		return MapError(err)
 	}
 	defer func() {
 		if p := recover(); p != nil {
-			rollback(ctx, tx)
+			d.rollback(ctx, tx)
 			panic(p)
 		}
 	}()
 	if setup != nil {
 		if err := setup(ctx, tx); err != nil {
-			rollback(ctx, tx)
+			d.rollback(ctx, tx)
 			return MapError(err)
 		}
 	}
 	if err := fn(ctx, tx); err != nil {
-		rollback(ctx, tx)
+		d.rollback(ctx, tx)
 		return MapError(err)
 	}
 	if err := tx.Commit(ctx); err != nil {
@@ -119,10 +119,10 @@ func runTx(ctx context.Context, pool *pgxpool.Pool, o pgx.TxOptions, setup, fn T
 // rollback rolls tx back even if ctx is done. A failed rollback is logged
 // only: pgx then closes the connection, which ends the transaction on the
 // server, and the caller already returns the original error.
-func rollback(ctx context.Context, tx pgx.Tx) {
+func (d *DB) rollback(ctx context.Context, tx pgx.Tx) {
 	rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), rollbackTimeout)
 	defer cancel()
 	if err := tx.Rollback(rctx); err != nil {
-		slog.WarnContext(ctx, "database transaction rollback failed", slog.String("error", err.Error()))
+		d.logger.WarnContext(ctx, "database transaction rollback failed", slog.String("error", err.Error()))
 	}
 }

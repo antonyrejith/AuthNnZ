@@ -9,11 +9,22 @@
 //		Timeout  time.Duration `env:"TIMEOUT" default:"5s"`
 //		Password secret.String `env:"PASSWORD" required:"true"`
 //		DB       DBConfig      `envPrefix:"DB_"`
+//		Common                 // embedded: its fields use the same prefix
+//		Cache    *Cache        `env:"-"` // explicitly not configuration
 //	}
 //
 // Supported field types: string, bool, all integer kinds, float32/64,
 // time.Duration, []string (comma-separated), and any type that implements
 // encoding.TextUnmarshaler (such as secret.String).
+//
+// The loader fails closed. Tags and field types are validated for every
+// field before any value is read, so a mistake in the struct is reported even
+// when no variable is set: an unsupported type, a default that does not
+// parse, required combined with default, env and envPrefix together, an env
+// tag on an unexported field, or a struct field with neither env nor
+// envPrefix (which would otherwise be silently ignored). Embedded structs,
+// exported or not, are walked with the same prefix. Error messages name the
+// variable but never include its value, which can be a secret.
 package config
 
 import (
@@ -58,42 +69,90 @@ var (
 	durationType    = reflect.TypeFor[time.Duration]()            //nolint:gochecknoglobals // immutable type handle
 )
 
+// loadStruct walks the fields of v and appends every problem.
 func loadStruct(prefix string, v reflect.Value, lookup LookupFunc, problems *[]error) {
 	t := v.Type()
 	for i := range t.NumField() {
-		f := t.Field(i)
-		if !f.IsExported() {
-			continue
-		}
-		fv := v.Field(i)
-		if nested, ok := f.Tag.Lookup("envPrefix"); ok {
-			if fv.Kind() != reflect.Struct {
-				*problems = append(*problems, fmt.Errorf("field %s: envPrefix requires a struct", f.Name))
-				continue
-			}
-			loadStruct(prefix+nested, fv, lookup, problems)
-			continue
-		}
-		if err := loadField(prefix, f, fv, lookup); err != nil {
+		if err := loadOne(prefix, t.Field(i), v.Field(i), lookup, problems); err != nil {
 			*problems = append(*problems, err)
 		}
 	}
 }
 
-// loadField sets one field from its variable or default. Fields without an
-// env tag are left alone.
-func loadField(prefix string, f reflect.StructField, fv reflect.Value, lookup LookupFunc) error {
-	name, ok := f.Tag.Lookup("env")
-	if !ok {
+func loadOne(prefix string, f reflect.StructField, fv reflect.Value, lookup LookupFunc, problems *[]error) error {
+	env, hasEnv := f.Tag.Lookup("env")
+	nested, hasPrefix := f.Tag.Lookup("envPrefix")
+	switch {
+	case env == "-":
+		return nil // explicitly not configuration
+	case hasEnv && hasPrefix:
+		return fmt.Errorf("field %s: env and envPrefix are mutually exclusive", f.Name)
+	case hasPrefix:
+		if !isPlainStruct(f.Type) {
+			return fmt.Errorf("field %s: envPrefix requires a struct", f.Name)
+		}
+		if !f.IsExported() && !f.Anonymous {
+			return fmt.Errorf("field %s: envPrefix on an unexported field", f.Name)
+		}
+		loadStruct(prefix+nested, fv, lookup, problems)
 		return nil
+	case hasEnv:
+		if !f.IsExported() {
+			return fmt.Errorf("field %s: env tag on an unexported field", f.Name)
+		}
+		return loadField(prefix, env, f, fv, lookup)
+	case f.Anonymous && f.Type.Kind() == reflect.Pointer && isPlainStruct(f.Type.Elem()):
+		return fmt.Errorf("field %s: embedded struct pointers are not supported; embed the struct", f.Name)
+	case f.Anonymous && isPlainStruct(f.Type):
+		// Embedded structs, exported or not, contribute their fields with
+		// the same prefix (the exported fields of an unexported embedded
+		// struct are settable).
+		loadStruct(prefix, fv, lookup, problems)
+		return nil
+	case f.IsExported() && isPlainStruct(f.Type):
+		return fmt.Errorf("field %s: a struct field needs an envPrefix tag (or env:%q to ignore it)", f.Name, "-")
+	default:
+		return nil // untagged non-struct fields are not configuration
+	}
+}
+
+// isPlainStruct reports struct types that are not themselves values (a
+// TextUnmarshaler such as time.Time is a value).
+func isPlainStruct(t reflect.Type) bool {
+	return t.Kind() == reflect.Struct && !reflect.PointerTo(t).Implements(textUnmarshaler)
+}
+
+// loadField validates the field's tags and type, then sets it from its
+// variable or default.
+func loadField(prefix, name string, f reflect.StructField, fv reflect.Value, lookup LookupFunc) error {
+	if name == "" {
+		return fmt.Errorf("field %s: empty env tag", f.Name)
 	}
 	key := prefix + name
+	if err := supported(f.Type); err != nil {
+		return fmt.Errorf("%s (field %s): %w", key, f.Name, err)
+	}
+	required, err := requiredTag(f)
+	if err != nil {
+		return fmt.Errorf("%s (field %s): %w", key, f.Name, err)
+	}
+	def, hasDefault := f.Tag.Lookup("default")
+	if required && hasDefault {
+		return fmt.Errorf("%s (field %s): required and default are mutually exclusive", key, f.Name)
+	}
+	if hasDefault {
+		// Parse the default into a scratch value, so a bad default fails
+		// even when the variable is set.
+		if err := setValue(reflect.New(f.Type).Elem(), def); err != nil {
+			return fmt.Errorf("%s (field %s): invalid default: %w", key, f.Name, err)
+		}
+	}
 	raw, set := lookup(key)
 	if !set || raw == "" {
-		raw, set = f.Tag.Lookup("default")
+		raw, set = def, hasDefault
 	}
 	if !set {
-		if f.Tag.Get("required") == "true" {
+		if required {
 			return fmt.Errorf("%s is required", key)
 		}
 		return nil
@@ -104,23 +163,70 @@ func loadField(prefix string, f reflect.StructField, fv reflect.Value, lookup Lo
 	return nil
 }
 
+func requiredTag(f reflect.StructField) (bool, error) {
+	r, ok := f.Tag.Lookup("required")
+	if !ok {
+		return false, nil
+	}
+	b, err := strconv.ParseBool(r)
+	if err != nil {
+		return false, errors.New(`the required tag must be "true" or "false"`)
+	}
+	return b, nil
+}
+
+// supported reports an error for field types the loader cannot parse.
+func supported(t reflect.Type) error {
+	if reflect.PointerTo(t).Implements(textUnmarshaler) || t == durationType {
+		return nil
+	}
+	switch t.Kind() { //nolint:exhaustive // every other kind is unsupported
+	case reflect.String, reflect.Bool,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return nil
+	case reflect.Slice:
+		if t.Elem().Kind() == reflect.String {
+			return nil
+		}
+	}
+	return fmt.Errorf("unsupported field type %s", t)
+}
+
+// setValue parses raw into v. Errors never include raw: a configuration
+// value can be a secret.
 func setValue(v reflect.Value, raw string) error {
 	if v.CanAddr() && v.Addr().Type().Implements(textUnmarshaler) {
-		u, _ := v.Addr().Interface().(encoding.TextUnmarshaler)
+		u, ok := v.Addr().Interface().(encoding.TextUnmarshaler)
+		if !ok {
+			return fmt.Errorf("unsupported field type %s", v.Type())
+		}
 		if err := u.UnmarshalText([]byte(raw)); err != nil {
-			return fmt.Errorf("parse: %w", err)
+			// The unmarshaler's message may quote the value; report the type.
+			return fmt.Errorf("invalid value for type %s", v.Type())
 		}
 		return nil
 	}
 	if v.Type() == durationType {
 		d, err := time.ParseDuration(raw)
 		if err != nil {
-			return fmt.Errorf("parse duration: %w", err)
+			return errors.New("invalid duration")
 		}
 		v.SetInt(int64(d))
 		return nil
 	}
 	return setBasic(v, raw)
+}
+
+// numErr describes a strconv error by its reason only; NumError.Error
+// quotes the input.
+func numErr(kind string, err error) error {
+	var ne *strconv.NumError
+	if errors.As(err, &ne) {
+		return fmt.Errorf("invalid %s: %w", kind, ne.Err)
+	}
+	return fmt.Errorf("invalid %s", kind)
 }
 
 func setBasic(v reflect.Value, raw string) error {
@@ -130,25 +236,25 @@ func setBasic(v reflect.Value, raw string) error {
 	case reflect.Bool:
 		b, err := strconv.ParseBool(raw)
 		if err != nil {
-			return fmt.Errorf("parse bool: %w", err)
+			return numErr("boolean", err)
 		}
 		v.SetBool(b)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		n, err := strconv.ParseInt(raw, 10, v.Type().Bits())
 		if err != nil {
-			return fmt.Errorf("parse integer: %w", err)
+			return numErr("integer", err)
 		}
 		v.SetInt(n)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		n, err := strconv.ParseUint(raw, 10, v.Type().Bits())
 		if err != nil {
-			return fmt.Errorf("parse unsigned integer: %w", err)
+			return numErr("unsigned integer", err)
 		}
 		v.SetUint(n)
 	case reflect.Float32, reflect.Float64:
 		f, err := strconv.ParseFloat(raw, v.Type().Bits())
 		if err != nil {
-			return fmt.Errorf("parse float: %w", err)
+			return numErr("number", err)
 		}
 		v.SetFloat(f)
 	case reflect.Slice:

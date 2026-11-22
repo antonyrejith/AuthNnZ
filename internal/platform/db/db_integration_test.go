@@ -218,7 +218,7 @@ func TestAppRoleFailsClosedOutsideTenantTx(t *testing.T) {
 func TestPooledConnectionCarriesNoTenant(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
-	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 1, PlatformMaxConns: 1})
+	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 1, PlatformMaxConns: 1}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func TestPooledConnectionCarriesNoTenant(t *testing.T) {
 func TestSessionLevelScopeDoesNotLeak(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
-	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 1, PlatformMaxConns: 1})
+	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 1, PlatformMaxConns: 1}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -339,7 +339,7 @@ func TestOpenRefusesAppRoleObjects(t *testing.T) {
 			if _, err := admin.Exec(t.Context(), tt.ddl); err != nil {
 				t.Fatal(err)
 			}
-			d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL})
+			d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL}, nil)
 			if err == nil {
 				d.Close()
 				t.Fatal("Open accepted the application role")
@@ -523,7 +523,7 @@ func TestOpenRefusesUnsafeRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cfg := db.Config{AppURL: secretOf(tt.app(env)), PlatformURL: secretOf(tt.platform(env))}
-			d, err := db.Open(t.Context(), cfg)
+			d, err := db.Open(t.Context(), cfg, nil)
 			if err == nil {
 				d.Close()
 				t.Fatal("Open accepted unsafe roles")
@@ -552,7 +552,7 @@ func TestOpenRefusesDefaultTenant(t *testing.T) {
 		` SET app.tenant_id = '`+uuid.NewString()+`'`); err != nil {
 		t.Fatal(err)
 	}
-	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL})
+	d, err := db.Open(t.Context(), db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL}, nil)
 	if err == nil {
 		d.Close()
 		t.Fatal("Open accepted a default tenant")

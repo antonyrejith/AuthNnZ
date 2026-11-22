@@ -137,6 +137,145 @@ func TestLoadRejectsBadTargets(t *testing.T) {
 	}
 }
 
+type Common struct {
+	Region string `env:"REGION" default:"eu"`
+}
+
+type hidden struct {
+	Zone string `env:"ZONE" required:"true"`
+}
+
+type embedding struct {
+	Common
+	hidden
+
+	Name string            `env:"NAME"`
+	Skip struct{ X int }   `env:"-"`
+	When time.Duration     `env:"WHEN" default:"1s"`
+	Tags map[string]string // untagged non-struct: not configuration
+}
+
+// TestLoadEmbeddedStructs: embedded structs, exported or not, are loaded
+// with the same prefix (review finding R5).
+func TestLoadEmbeddedStructs(t *testing.T) {
+	t.Parallel()
+	var cfg embedding
+	err := config.Load("P_", &cfg, lookupFrom(map[string]string{"P_ZONE": "z1", "P_NAME": "n"}))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Region != "eu" || cfg.Zone != "z1" || cfg.Name != "n" || cfg.When != time.Second {
+		t.Fatalf("Load() = %+v", cfg)
+	}
+	err = config.Load("P_", &embedding{}, lookupFrom(nil))
+	if err == nil || !strings.Contains(err.Error(), "P_ZONE is required") {
+		t.Fatalf("missing required field of an unexported embedded struct: %v", err)
+	}
+}
+
+// TestLoadRejectsBadStructs: the loader fails closed on struct mistakes,
+// even when no variable is set (review findings R5, R17).
+func TestLoadRejectsBadStructs(t *testing.T) {
+	t.Parallel()
+	type inner struct {
+		A string `env:"A"`
+	}
+	type untaggedStruct struct {
+		DB inner
+	}
+	type embeddedPointer struct {
+		*inner
+	}
+	type bothTags struct {
+		DB inner `env:"DB" envPrefix:"DB_"`
+	}
+	type unexportedEnv struct {
+		token string `env:"TOKEN"`
+	}
+	type requiredWithEmptyDefault struct {
+		A string `env:"A" required:"true" default:""`
+	}
+	type requiredWithDefault struct {
+		A string `env:"A" required:"true" default:"x"`
+	}
+	type badRequired struct {
+		A string `env:"A" required:"yes"`
+	}
+	type badDefault struct {
+		N int `env:"N" default:"many"`
+	}
+	type unsupportedNoValue struct {
+		C chan int `env:"C"`
+	}
+	type emptyEnv struct {
+		A string `env:""`
+	}
+	tests := []struct {
+		name   string
+		target any
+		want   string
+	}{
+		{"struct without envPrefix", &untaggedStruct{}, "field DB: a struct field needs an envPrefix"},
+		{"embedded pointer", &embeddedPointer{}, "embedded struct pointers"},
+		{"env and envPrefix", &bothTags{}, "mutually exclusive"},
+		{"env on unexported field", &unexportedEnv{token: "kept"}, "unexported"},
+		{"required with empty default", &requiredWithEmptyDefault{}, "required and default"},
+		{"required with default", &requiredWithDefault{}, "required and default"},
+		{"bad required tag", &badRequired{}, "required tag"},
+		{"bad default", &badDefault{}, "N (field N): invalid default"},
+		{"unsupported type without value", &unsupportedNoValue{}, "unsupported field type"},
+		{"empty env tag", &emptyEnv{}, "empty env tag"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := config.Load("", tt.target, lookupFrom(nil))
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("Load() error = %v, want %q", err, tt.want)
+			}
+		})
+	}
+}
+
+// TestLoadValidatesDefaultWhenSet: a bad default fails even when the
+// variable is set (review finding R17).
+func TestLoadValidatesDefaultWhenSet(t *testing.T) {
+	t.Parallel()
+	type badDefault struct {
+		N int `env:"N" default:"many"`
+	}
+	err := config.Load("", &badDefault{}, lookupFrom(map[string]string{"N": "3"}))
+	if err == nil || !strings.Contains(err.Error(), "invalid default") {
+		t.Fatalf("Load() error = %v", err)
+	}
+}
+
+// TestLoadErrorsOmitValues: parse errors never contain the value, which can
+// be a secret (review finding R17).
+func TestLoadErrorsOmitValues(t *testing.T) {
+	t.Parallel()
+	const value = "hunter2-SENSITIVE-VALUE"
+	env := map[string]string{
+		"P_DEBUG": value, "P_TIMEOUT": value, "P_PORT": value, "P_RATIO": value,
+		"P_TENANT": value, "P_DB_URL": "x", "P_DB_MAX_CONNS": value,
+	}
+	err := config.Load("P_", &appConfig{}, lookupFrom(env))
+	if err == nil {
+		t.Fatal("Load succeeded")
+	}
+	if strings.Contains(err.Error(), value) {
+		t.Fatalf("error leaks the value: %v", err)
+	}
+	for _, want := range []string{
+		"P_DEBUG: invalid boolean", "P_TIMEOUT: invalid duration", "P_PORT: invalid unsigned integer",
+		"P_RATIO: invalid number", "P_TENANT: invalid value", "P_DB_MAX_CONNS: invalid integer",
+	} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error does not contain %q: %v", want, err)
+		}
+	}
+}
+
 func TestFromEnv(t *testing.T) {
 	t.Setenv("PORTUN_TEST_DB_URL", "postgres://env")
 	var cfg appConfig
