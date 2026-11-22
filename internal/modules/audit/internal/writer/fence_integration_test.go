@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/antonyrejith/portun/internal/modules/audit"
 	"github.com/antonyrejith/portun/internal/platform/bus"
 	"github.com/antonyrejith/portun/internal/platform/db/dbtest"
 	"github.com/antonyrejith/portun/internal/platform/errs"
@@ -34,8 +33,9 @@ func TestFencing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err := json.Marshal(audit.Event{
-		ID: id, Time: time.Now().UTC(), Category: audit.CategoryPlatform, Type: "tenant.created", Outcome: audit.OutcomeSuccess,
+	// A plain map, not audit.Event: the audit facade imports this package.
+	raw, err := json.Marshal(map[string]any{
+		"id": id, "time": time.Now().UTC(), "category": "platform", "type": "tenant.created", "outcome": "success",
 	})
 	if err != nil {
 		t.Fatal(err)

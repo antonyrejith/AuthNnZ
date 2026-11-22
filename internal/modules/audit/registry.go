@@ -50,6 +50,19 @@ const (
 	// TypeDataKeyCreated records the creation of a data subject's key
 	// outside another change (for events written through the spool).
 	TypeDataKeyCreated = "data_key.created"
+	// TypeAuditSearched records a search of audit records (GOV-16).
+	TypeAuditSearched = "audit.searched"
+	// TypeAuditViewed records the view of one audit record (GOV-16).
+	TypeAuditViewed = "audit.viewed"
+	// TypeAuditExported records an export of audit records (GOV-16).
+	TypeAuditExported = "audit.exported"
+	// TypeAuditVerified records an integrity verification (GOV-16).
+	TypeAuditVerified = "audit.verified"
+	// TypeRetentionPolicyChanged records a change of a chain's retention
+	// policy.
+	TypeRetentionPolicyChanged = "audit.retention_policy_changed"
+	// TypeRetentionApplied records the application of retention.
+	TypeRetentionApplied = "audit.retention_applied"
 )
 
 // OCSF classes used by the built-in types.
@@ -79,6 +92,12 @@ func NewRegistry() *Registry {
 	for _, t := range []EventType{
 		{Name: TypeTransactionFailed, Category: CategoryData, OCSFClassUID: ocsfAPIActivity},
 		{Name: TypeDataKeyCreated, Category: CategoryKeyManagement, OCSFClassUID: ocsfEntityManagement},
+		{Name: TypeAuditSearched, Category: CategoryAuditAccess, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"query": FieldPlain}},
+		{Name: TypeAuditViewed, Category: CategoryAuditAccess, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"event_id": FieldPlain}},
+		{Name: TypeAuditExported, Category: CategoryAuditAccess, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"query": FieldPlain, "chain": FieldPlain, "range": FieldPlain}},
+		{Name: TypeAuditVerified, Category: CategoryAuditAccess, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"chain": FieldPlain, "range": FieldPlain}},
+		{Name: TypeRetentionPolicyChanged, Category: CategoryPlatform, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"details": FieldPlain}},
+		{Name: TypeRetentionApplied, Category: CategoryPlatform, OCSFClassUID: ocsfAPIActivity, Details: map[string]FieldClass{"details": FieldPlain}},
 	} {
 		if err := r.Register(t); err != nil {
 			panic("audit: built-in event type: " + err.Error())
