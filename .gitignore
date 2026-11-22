@@ -17,3 +17,6 @@ coverage.*
 
 # Front-end dependencies
 node_modules/
+
+# Temporary git worktrees used by implementation agents
+/.claude/worktrees/
