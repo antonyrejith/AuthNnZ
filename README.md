@@ -48,6 +48,14 @@ owner can rename it to `portun`.
 | 24 | [Every form the platform takes](docs/plan/24-product-forms.md) | Ways to run it, ways to use it from code, connectors into other ecosystems, product lines sold separately, apps, services and programs |
 | 25 | [Business setup guide](docs/plan/25-business-setup-guide.md) | Owner's guide: name protection, company and contracts, accounts and keys, compliance program, security testing, design partners, vendors, deferred decisions, checklist by stage |
 
+**Implementation**
+
+| # | Document | Answers |
+|---|----------|---------|
+| I-00 | [Implementation plan](docs/implementation/00-implementation-plan.md) | Environment, architecture to build, increments B0–B12, tasks, agents, review cycles, quality gates (awaiting approval) |
+| I-01 | [Requirement map](docs/implementation/01-requirement-map.md) | Every feature mapped to an increment and a verification class |
+| I-02 | [Tracker](docs/implementation/TRACKER.md) | Live task status and evidence |
+
 **Delivery**
 
 | # | Document | Answers |
