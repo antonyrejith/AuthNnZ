@@ -364,3 +364,46 @@ func TestUnrelatedFilesIgnored(t *testing.T) {
 	}
 	equal(t, fb.published(), ids(0, 2))
 }
+
+// TestCursorBeyondLastSegmentKeepsRecords: a valid cursor naming a segment
+// after the last existing one is inconsistent; no segment is deleted and
+// every record is shipped, in order, from the first segment.
+//
+// Covers: GOV-11
+func TestCursorBeyondLastSegmentKeepsRecords(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	cfg := spool.Config{Dir: dir, SegmentBytes: 150}
+	j, err := spool.Open(cfg, &fakeBus{}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	appendN(t, j, 0, 12)
+	if err := j.Close(); err != nil {
+		t.Fatal(err)
+	}
+	before := segFiles(t, dir)
+	if len(before) < 2 {
+		t.Fatalf("setup: %d segments, want at least 2", len(before))
+	}
+	writeCursor(t, dir, `{"segment":999,"offset":5}`)
+
+	fb := &fakeBus{}
+	j2 := open(t, cfg, fb)
+	after := segFiles(t, dir)
+	if len(after) != len(before) {
+		t.Fatalf("segments after open = %v, want %v", after, before)
+	}
+	for i := range before {
+		if after[i] != before[i] {
+			t.Fatalf("segments after open = %v, want %v", after, before)
+		}
+	}
+	if !j2.Pending() {
+		t.Error("records not pending after open")
+	}
+	if n, err := j2.ShipOnce(t.Context()); err != nil || n != 12 {
+		t.Fatalf("ShipOnce = %d, %v", n, err)
+	}
+	equal(t, fb.published(), ids(0, 12))
+}

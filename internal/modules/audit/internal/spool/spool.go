@@ -219,11 +219,11 @@ func (j *Journal) recover() error {
 	if err != nil {
 		return err
 	}
-	nums, err := j.liveSegments(cur, found)
+	nums, cursorValid, err := j.liveSegments(cur, found)
 	if err != nil {
 		return err
 	}
-	if !found || cur.Segment < nums[0] {
+	if !found || !cursorValid || cur.Segment < nums[0] {
 		cur = position{Segment: nums[0]}
 	}
 	for _, n := range nums {
@@ -256,31 +256,36 @@ func (j *Journal) recover() error {
 
 // liveSegments removes segments before the cursor (left by a crash between
 // the cursor update and the deletion) and returns the rest, creating the
-// first segment of an empty journal.
-func (j *Journal) liveSegments(cur position, found bool) ([]uint64, error) {
-	nums, err := j.listSegments()
+// first segment of an empty journal. A cursor naming a segment after the
+// last existing one is inconsistent: cursorValid is false, nothing is
+// deleted and the caller resends from the first segment.
+func (j *Journal) liveSegments(cur position, found bool) (nums []uint64, cursorValid bool, err error) {
+	nums, err = j.listSegments()
 	if err != nil {
-		return nil, err
+		return nil, false, err
+	}
+	if found && len(nums) > 0 && cur.Segment > nums[len(nums)-1] {
+		return nums, false, nil
 	}
 	for len(nums) > 0 && found && nums[0] < cur.Segment {
 		if err := os.Remove(j.segPath(nums[0])); err != nil {
-			return nil, errs.Wrap(errs.CodeUnavailable, err, "audit spool: remove shipped segment")
+			return nil, false, errs.Wrap(errs.CodeUnavailable, err, "audit spool: remove shipped segment")
 		}
 		nums = nums[1:]
 	}
 	if len(nums) > 0 {
-		return nums, nil
+		return nums, true, nil
 	}
 	next := max(cur.Segment, 1)
 	f, err := os.OpenFile(j.segPath(next), os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
-		return nil, errs.Wrap(errs.CodeUnavailable, err, "audit spool: create segment")
+		return nil, false, errs.Wrap(errs.CodeUnavailable, err, "audit spool: create segment")
 	}
 	_ = f.Close()
 	if err := syncDir(j.cfg.Dir); err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return []uint64{next}, nil
+	return []uint64{next}, true, nil
 }
 
 // repairSegment returns the length of the segment's valid prefix,
