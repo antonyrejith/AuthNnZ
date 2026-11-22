@@ -33,7 +33,7 @@ func TestSecretsNeverPrint(t *testing.T) {
 	}
 	outputs := map[string]string{
 		"%v":   fmt.Sprintf("%v", s),
-		"%s":   fmt.Sprintf("%s", s), //nolint:staticcheck // S1025: deliberately exercises the %s verb
+		"%s":   fmt.Sprintf("%s", s),
 		"%+v":  fmt.Sprintf("%+v", s),
 		"%#v":  fmt.Sprintf("%#v", s),
 		"%q":   fmt.Sprintf("%q", s),

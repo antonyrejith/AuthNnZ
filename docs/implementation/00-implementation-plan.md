@@ -1,6 +1,6 @@
 # 00 — Implementation Plan
 
-**Status: proposed, awaiting owner approval.** No implementation starts before
+**Status: proposed, approved by the owner.** No implementation starts before
 approval.
 
 This plan turns the approved product plan ([`docs/plan`](../plan)) and the
