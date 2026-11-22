@@ -15,14 +15,14 @@ type Category string
 
 // Event categories.
 const (
-	CategoryConfiguration  Category = "configuration"   // configuration objects, publications
-	CategoryData           Category = "data"            // tenant data (users, groups, apps, ...)
-	CategoryAuthentication Category = "authentication"  // logins, MFA, sessions, tokens
-	CategoryAuthorization  Category = "authorization"   // allow and deny decisions
-	CategorySensitiveRead  Category = "sensitive_read"  // revealing PII, exports, impersonation
-	CategoryAuditAccess    Category = "audit_access"    // search, view, export of audit records
-	CategoryKeyManagement  Category = "key_management"  // key creation, rotation, destruction
-	CategoryPlatform       Category = "platform"        // partners, tenants, platform operations
+	CategoryConfiguration  Category = "configuration"  // configuration objects, publications
+	CategoryData           Category = "data"           // tenant data (users, groups, apps, ...)
+	CategoryAuthentication Category = "authentication" // logins, MFA, sessions, tokens
+	CategoryAuthorization  Category = "authorization"  // allow and deny decisions
+	CategorySensitiveRead  Category = "sensitive_read" // revealing PII, exports, impersonation
+	CategoryAuditAccess    Category = "audit_access"   // search, view, export of audit records
+	CategoryKeyManagement  Category = "key_management" // key creation, rotation, destruction
+	CategoryPlatform       Category = "platform"       // partners, tenants, platform operations
 )
 
 // Outcome is the result of the audited action.
@@ -39,8 +39,8 @@ const (
 // Fields are never removed or renamed; new optional fields may be added.
 type Event struct {
 	ID             ids.AuditEventID   `json:"id"`
-	Sequence       uint64             `json:"sequence"` // assigned by the writer; 0 until written; hashed
-	Time           time.Time          `json:"time"`     // UTC, set at capture, millisecond precision
+	Sequence       uint64             `json:"sequence"`  // assigned by the writer; 0 until written; hashed
+	Time           time.Time          `json:"time"`      // UTC, set at capture, millisecond precision
 	TenantID       ids.TenantID       `json:"tenant_id"` // zero => platform chain
 	EnvironmentID  ids.EnvironmentID  `json:"environment_id"`
 	OrganizationID ids.OrganizationID `json:"organization_id"`
@@ -73,8 +73,8 @@ type Actor struct {
 
 // Channel is how the request arrived.
 type Channel struct {
-	Type      string `json:"type"` // console, api, cli, terraform, gitops, scim, system, ...
-	IP        string `json:"ip,omitempty"`        // personal data: encrypted
+	Type      string `json:"type"`                 // console, api, cli, terraform, gitops, scim, system, ...
+	IP        string `json:"ip,omitempty"`         // personal data: encrypted
 	UserAgent string `json:"user_agent,omitempty"` // personal data: encrypted
 }
 
