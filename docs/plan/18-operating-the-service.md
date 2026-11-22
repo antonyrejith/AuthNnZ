@@ -7,16 +7,22 @@ cost.
 
 ## 1. Operating model at GA
 
-| Function | Responsibility | Staffing at GA |
-|----------|----------------|----------------|
-| **Site reliability (SRE)** | 24/7 on-call in follow-the-sun rotations, incident command, capacity, disaster recovery | Infrastructure workstream plus 4 additional SREs |
-| **Customer support** | Tiered support per edition, troubleshooting, escalations to engineering | 6 support engineers |
-| **Customer success** | Onboarding, migrations, health reviews for larger customers | 3 |
-| **Security operations** | Detection and response for the platform, threat hunting, vulnerability management | 2, plus the security team |
-| **Trust and safety** | Abuse prevention and takedowns (§7) | 1 |
+These functions must be in place at GA. **Who provides them is decided before
+hardening (D-30):** a small hired team assisted by Claude, a managed-service
+partner, or a mix. Claude prepares the runbooks, dashboards, alerts and
+playbooks, and helps with diagnosis and fixes, but an accountable person must
+be on call.
 
-These 16 people join during hardening (weeks 64–90), so they are trained and
-rehearsed before GA ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
+| Function | Responsibility | Typical size at GA |
+|----------|----------------|--------------------|
+| **Site reliability (SRE)** | 24/7 on-call in follow-the-sun rotations, incident command, capacity, disaster recovery | Enough people for a sustainable 24/7 rotation (usually 4 or more) |
+| **Customer support** | Tiered support per edition, troubleshooting, escalations to engineering | Grows with the number of paying customers |
+| **Customer success** | Onboarding, migrations, health reviews for larger customers | 1–3, or partners (D-27) |
+| **Security operations** | Detection and response for the platform, threat hunting, vulnerability management | 1–2, or a managed security provider |
+| **Trust and safety** | Abuse prevention and takedowns (§7) | Part-time at first |
+
+Whoever provides these functions starts during hardening, so they are trained
+and rehearsed before GA.
 
 ## 2. Support
 

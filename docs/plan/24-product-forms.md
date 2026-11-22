@@ -91,7 +91,7 @@ platform without migrating anything.
 | Academy and certification | Training and certification for customers, partners and developers |
 | Migration program | Importers, dual running and services to move from other providers |
 | Startup program | Credits and support for early-stage companies |
-| Free tier and community | Free Developer edition, open-source SDKs, free self-hosted developer edition, community forum (D-08) |
+| Free tier and community | Free Developer edition, free SDKs, free self-hosted developer edition (all under our proprietary license, D-08), community forum |
 
 ## 7. Feature IDs
 

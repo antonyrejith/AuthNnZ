@@ -46,15 +46,21 @@ digest, unpinned action or `@latest` anywhere in the repository.
 
 ### 1.3 Listed exceptions
 
-Exceptions are few, documented here and reviewed in an ADR; adding one needs
-security-team approval.
+Exceptions are few, documented here and reviewed in an ADR; adding one needs a
+security-focused review and the owner's agreement.
 
 | Exception | Why | How it is controlled |
 |-----------|-----|----------------------|
-| Dependency declarations inside the **SDK packages we publish** (for example Python and npm libraries) | Exact pins inside a library break our customers' dependency resolution | The SDKs' own builds, lock files and tools are pinned; each declared range is reviewed, and CI tests the lowest and highest version in it |
 | **Third-party scripts** a vendor does not allow to pin (for example a CAPTCHA widget) | The vendor serves only its current version | Loaded only on challenge screens, restricted by Content Security Policy; strict tenants can use our self-hosted proof-of-work challenge instead |
 | **Fast-changing security data** (IP reputation, breached-password updates, FIDO metadata) | Must stay fresh to protect users | A scheduled pipeline produces versioned, signature-verified snapshots; services reference an explicit snapshot; every switch is recorded in the audit trail and can be reverted |
 | **Cloud end of support** | Providers force upgrades when a version leaves support | We track those dates and upgrade before them, so an upgrade is never forced on us |
+
+**Our published SDKs pin exactly too** (D-15). Each SDK declares the exact
+versions of its dependencies. Because exact pins inside a library can conflict
+with other libraries in a customer's application, SDKs keep runtime
+dependencies to a minimum (none where the language's standard library is
+enough), and a dependency's security fix ships as a new SDK patch release
+quickly.
 
 ### 1.4 How an upgrade happens
 
@@ -68,9 +74,9 @@ security-team approval.
    with CVE ID, needed feature, end of support, scheduled refresh), links the
    release notes that were read, and notes the risk. Major versions need an
    upgrade plan or ADR.
-3. **Reviewed by the owner** through CODEOWNERS on `go.mod`, `package.json`,
-   Dockerfiles, charts and OpenTofu files. Security-critical dependencies
-   (cryptography, JOSE, SAML, WebAuthn, database driver) need two approvals.
+3. **Reviewed** by an independent review pass (§5); security-critical
+   dependencies (cryptography, JOSE, SAML, WebAuthn, database driver) also get a
+   security-focused review of the release notes and changes.
 4. **Fully verified:** every CI gate, including conformance suites, benchmarks
    and audit checks.
 5. **Released like any change:** dev → staging → canary cell → waves.
@@ -131,12 +137,12 @@ Once the repository exists, the lock files and manifests are the source of truth
 ### 2.1 Monorepo layout
 
 ```
-authnnz/
+portun/
 ├── cmd/                        # Thin main packages: load config, wire modules, run. No business logic.
-│   ├── authnnz/                #   all-in-one binary (local dev, small and air-gapped installs)
+│   ├── portun/                #   all-in-one binary (local dev, small and air-gapped installs)
 │   ├── router/ idp-runtime/ pdp/ directory-api/ mgmt-api/ worker/ ext-runtime/
 │   ├── edge-pdp/ connector-agent/
-│   └── authnnzctl/             #   CLI
+│   └── portunctl/             #   CLI
 ├── internal/
 │   ├── platform/               # Cross-cutting technical packages (no business rules):
 │   │   ├── tenancy/ ids/ errs/ log/ telemetry/ config/ crypto/ db/ bus/ httpx/ grpcx/ egress/ version/
@@ -157,7 +163,7 @@ authnnz/
 │   ├── e2e/ conformance/ load/ isolation/ chaos/
 ├── tools/                      # Custom linters and developer tools
 ├── docs/                       # plan/, adr/, runbooks/, module docs
-├── .github/                    # Workflows, CODEOWNERS, PR and issue templates
+├── .github/                    # Workflows, PR and issue templates, review automation
 ├── .devcontainer/              # Reproducible development environment
 ├── go.mod go.sum Makefile .golangci.yml renovate.json .node-version .editorconfig
 ```
@@ -416,11 +422,11 @@ func (s *Service) UpdateMFAPolicy(ctx context.Context, cmd UpdateMFAPolicy) (MFA
 - **Events outside a transaction** (decisions, failed logins, stateless token
   issuance) use `audit.Spool`, never plain logging.
 - **Event types are registered** in the audit module's registry and published
-  in AsyncAPI; names follow `resource.past_tense_verb`. The registry has
-  CODEOWNERS from the security team.
+  in AsyncAPI; names follow `resource.past_tense_verb`. Changes to the registry
+  always get a security-focused review.
 - **Field tags decide how values are recorded:** `audit:"secret"` (redacted,
   fingerprint kept), `audit:"pii"` (encrypted with the subject's key). Excluding
-  a field (`audit:"-"`) needs security-team approval.
+  a field (`audit:"-"`) needs a security-focused review and an ADR.
 - **API operations** declare `x-audit-event`, and `x-audit-reason: required`
   for sensitive actions; CI checks both ([09 §4](09-testing-strategy.md#4-api-contract-and-security-matrices)).
 - Audit events are never written as ordinary log lines instead.
@@ -451,19 +457,23 @@ func (s *Service) UpdateMFAPolicy(ctx context.Context, cmd UpdateMFAPolicy) (MFA
   LCP < 1.5 s on a typical 4G phone, with any customer theme; console routes
   code-split, route changes < 200 ms; Core Web Vitals for every UI: LCP < 2.5 s,
   INP < 200 ms, CLS < 0.1.
-- **Design quality:** design QA sign-off is part of the definition of done for
+- **Design quality:** a design QA check is part of the definition of done for
   every UI change ([16 §8](16-look-and-feel.md#8-design-quality-of-our-own-product)).
 
 ## 5. Git workflow, reviews and releases
 
 - **Trunk-based development** with short-lived branches; squash merges;
   [Conventional Commits](https://www.conventionalcommits.org/) messages; signed
-  commits; protected `main` (CI green, required reviews, linear history).
+  commits; protected `main` (all CI checks green, review pass completed, linear
+  history).
 - **Pull requests:** about 400 changed lines or fewer; template covering what,
   why, how it was tested, security impact and screenshots.
-- **Reviews:** one approval; two approvals and a CODEOWNER for security-critical
-  paths (`authn`, `oauth`, `session`, `keys`, `authz`, `tenancy`,
-  `platform/crypto`, `platform/db`).
+- **Reviews (D-29):** every pull request gets an independent review pass by
+  Claude, separate from the session that wrote the code. Security-critical paths
+  (`authn`, `oauth`, `session`, `keys`, `authz`, `tenancy`, `platform/crypto`,
+  `platform/db`, the audit registry) also get a security-focused review pass. No
+  human approval is required; the owner can review any pull request, and human
+  review can be added later without changing anything else.
 - **Review checklist:** correctness · tests · tenant isolation · authorization
   on every endpoint · audit events · error mapping · no secrets in logs ·
   metrics and traces · API spec and docs updated · backward compatibility ·

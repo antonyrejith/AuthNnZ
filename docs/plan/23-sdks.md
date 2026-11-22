@@ -40,9 +40,9 @@ designed during the build.
 **Sign-in in a web app (React):**
 
 ```tsx
-<AuthnnzProvider domain="login.acme.com" clientId="app_01JD...">
+<PortunProvider domain="login.acme.com" clientId="app_01JD...">
   <App />
-</AuthnnzProvider>
+</PortunProvider>
 
 function Header() {
   const { user, signIn, signOut } = useAuth();
@@ -55,7 +55,7 @@ function Header() {
 **Protecting an API (Python, FastAPI):**
 
 ```python
-authz = Authnnz(issuer="https://login.acme.com", audience="https://api.acme.com")
+authz = Portun(issuer="https://login.acme.com", audience="https://api.acme.com")
 
 @app.post("/invoices/{invoice_id}/approve")
 def approve(invoice_id: str, user = Depends(authz.require(P.api.invoices.approve, resource=("invoice", "invoice_id")))):
@@ -73,7 +73,7 @@ await admin.roleAssignments.create({ userId: user.id, roleId: 'rol_finance_manag
 **Signing in on iOS (Swift):**
 
 ```swift
-let session = try await Authnnz.shared.signIn(presenting: window) // passkey first, hosted or native screens
+let session = try await Portun.shared.signIn(presenting: window) // passkey first, hosted or native screens
 let invoices = try await api.get("/invoices", token: session.accessToken)
 ```
 
@@ -104,7 +104,7 @@ The CLI generates typed permission constants from the customer's permission
 catalog ([14 §2.1](14-integration-and-enforcement.md#21-permission-catalog-module--component--action)):
 
 ```bash
-authnnzctl codegen permissions --lang typescript --out src/permissions.ts
+portunctl codegen permissions --lang typescript --out src/permissions.ts
 ```
 
 Code then uses `P.api.invoices.approve` instead of the string
@@ -128,10 +128,14 @@ without network calls:
 - **Published where developers look:** npm, Maven Central, PyPI, NuGet, Go
   modules, Swift Package Manager, Gradle, pub.dev, Packagist, RubyGems,
   crates.io, the Unity Asset Store and Unreal Marketplace.
-- **Open source** under the Apache 2.0 license (D-08), so customers can read
-  exactly what runs in their applications.
-- **Signed releases** with provenance and an SBOM for each SDK release; minimal
-  dependencies, all pinned ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)).
+- **Proprietary license** (D-08): SDKs are free to use with the platform under
+  our license; they are not open source.
+- **Our own registry where needed:** directories that only accept open-source
+  code (for example the WordPress plugin directory) are replaced by our own
+  download site, and the Terraform provider is served from our own registry.
+- **Signed releases** with provenance and an SBOM for each SDK release; exact
+  pinned dependencies, kept to a minimum (D-15,
+  [08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)).
 - **Semantic versioning**; each major version supported for at least 24 months
   after the next one ships ([18 §5](18-operating-the-service.md#5-releases-and-support-after-ga)).
 - **Docs** for every SDK: quick-starts, API reference generated from code,

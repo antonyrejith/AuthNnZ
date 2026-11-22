@@ -15,7 +15,7 @@ tamper evidence are very hard to retrofit.
 |-------|----------|---------------------------|
 | **Every change** to data or configuration (create, update, delete, publish, rollback, promote, import, sync), from every channel: console, API, CLI, Terraform, GitOps, SCIM, directory sync, JIT provisioning, connector agents, Actions, scheduled jobs | Always, with field-level before/after values | No |
 | **Every authentication event**: login success and failure, MFA, factor enrollment and removal, password change and reset, recovery, federation, session start and end, token issue, refresh, revoke and introspection, consent, step-up, lockout, risk decisions | Always | No |
-| **Every authorization decision**: allow and deny, with the explanation reference | Always by default (see §6 for volume) | Only allow-decisions on resources the tenant marks non-sensitive, and that choice is itself audited and shown in the console |
+| **Every authorization decision**: allow and deny, with the explanation reference | Always (see §6 for volume) | No |
 | **Sensitive reads**: revealing masked PII, exports, data-subject requests, impersonation, viewing secrets metadata, bulk reads through the API | Always | No |
 | **Audit access**: every search, view and export of audit logs ("audit the auditors") | Always | No |
 | **Our staff and systems**: support access to tenant data, platform operations, deployments, infrastructure, database sessions, key operations | Always, in a separate platform trail; staff access to tenant data is also shown to the tenant | No |
@@ -54,8 +54,8 @@ These guarantees are how we can say 100% and prove it.
    decisions, failed logins and stateless token issuance are written to a
    durable local spool, sized for at least 24 hours of outage, before the
    response returns. In **strict mode** (the default), if the spool is full the
-   request is refused rather than left unrecorded. A tenant can explicitly
-   choose availability over strictness; that choice is audited.
+   request is refused rather than left unrecorded. Strict mode is always on;
+   no tenant can turn it off (D-21).
 7. **No bypass for humans.** No one has standing access to production
    databases or clusters. Break-glass access is just-in-time, approved,
    session-recorded and statement-logged (pgAudit). Infrastructure changes
@@ -199,7 +199,7 @@ flowchart LR
 | **Audit explorer** | Search and filter by actor, target, type, channel, outcome, time and free text; diff viewer; follow a request across services by trace ID; saved queries |
 | **Audit alerts** | Rules that notify (email, Slack, webhook, SIEM) on events such as "MFA policy weakened", "admin role granted", "signing key exported", "break-glass used" |
 | **Reasons and approvals** | Sensitive actions require a reason; any change can carry a ticket reference (Jira, ServiceNow); four-eyes approvals are recorded with both people |
-| **Integrity verification** | Console status, API and CLI (`authnnzctl audit verify --from … --to …`) to prove no events are missing or altered; usable by external auditors |
+| **Integrity verification** | Console status, API and CLI (`portunctl audit verify --from … --to …`) to prove no events are missing or altered; usable by external auditors |
 | **Customer-owned copy** | Continuous export to the customer's own write-once bucket and SIEM, so they hold an independent copy |
 | **Access transparency** | Any access by our support staff to a tenant's data needs the tenant's approval, is time-boxed, and appears in the tenant's audit log |
 | **Reports** | Change report per period, privileged-activity report, access-as-of report, failed-login report, compliance evidence packs |
@@ -249,7 +249,7 @@ platform trail kept in a dedicated, write-once security account:
 | Access system | Just-in-time access requests, approvals, recorded sessions |
 | Support tooling | Every support action on a tenant, mirrored into that tenant's audit log |
 
-These feed the security team's SIEM with detection rules (for example "production
+These feed the platform's security monitoring (SIEM) with detection rules (for example "production
 access without an approved request").
 
 ## 8. How audit completeness is tested

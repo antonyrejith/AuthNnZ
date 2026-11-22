@@ -10,7 +10,7 @@ down without breaking anyone. This document defines how.
 
 ```mermaid
 flowchart TB
-    P[Platform: AuthNnZ<br/>security baselines and defaults] --> R[Partner / reseller<br/>for example TelcoCloud]
+    P[Platform: Portun<br/>security baselines and defaults] --> R[Partner / reseller<br/>for example TelcoCloud]
     P --> T1[Tenant: Acme]
     R --> T2[Tenant: SMB customer A]
     R --> T3[Tenant: SMB customer B]
@@ -62,8 +62,12 @@ available" notice.
 
 - **A new tenant starts with every setting in Default mode.** It behaves with
   the product defaults until someone changes something.
-- **A new organization or sub-organization starts with each setting in the mode
-  its parent chose for new children**, per setting:
+- **A new organization or sub-organization: the admin chooses the starting
+  mode when creating it** (in the console's create dialog, or with an API
+  parameter). The choice is pre-selected from the parent's default for new
+  children, which the parent can configure, per setting if needed. Every
+  setting can still be switched to another mode at any time afterwards (§2.3).
+  The choices are:
   - **Parent** (out of the box), so a tenant's customizations reach its customer
     organizations automatically. If the parent never changed that setting, its
     value is still the product default.

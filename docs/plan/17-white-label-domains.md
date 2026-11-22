@@ -2,7 +2,7 @@
 
 Every URL, email address, certificate and identifier that end users,
 developers or administrators see can carry the customer's brand. With
-white-labeling enabled, nothing visible reveals AuthNnZ unless the customer
+white-labeling enabled, nothing visible reveals Portun unless the customer
 chooses to show it.
 
 ## 1. What runs on the customer's domain
@@ -34,7 +34,7 @@ Domains follow the hierarchy and setting modes
 
 | Level | Example | Notes |
 |-------|---------|-------|
-| **Platform default** | `acme.eu.authnnz.io` | Used only when no other domain is set and the customer is not under a white-label partner |
+| **Platform default** | `acme.eu.portun.io` | Used only when no other domain is set and the customer is not under a white-label partner |
 | **Partner base domain** | `{tenant}.login.partner.com` | Every tenant of the partner gets a white-label URL automatically, without configuring anything; our domain never appears |
 | **Tenant domains** | `login.acme.com`, `login.acme.de` | One primary and any number of aliases, per environment (for example `login.dev.acme.com` for dev) |
 | **Organization domains** | `globex.login.acme.com` (automatic) or `login.globex.com` (own) | Organizations follow the tenant's domain (**Parent** mode), get an automatic vanity subdomain from a tenant base domain, or use their own domain (**Own**) |

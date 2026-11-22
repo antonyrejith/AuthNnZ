@@ -235,7 +235,7 @@ hierarchy.
 Partners and tenants can present the platform as their own product: product
 name, logo, colors, custom domain, email sender, help and support links,
 across the console, organization admin portal, account portal and emails.
-Nothing in a white-labeled experience mentions AuthNnZ unless the customer
+Nothing in a white-labeled experience mentions Portun unless the customer
 chooses to. Domains, URLs, certificates, email senders and passkeys on the
 customer's domain are covered in [17 — White-label domains](17-white-label-domains.md).
 
@@ -361,11 +361,14 @@ else, and is never needed for anything the no-code tools can do.
 
 ### 8.5 How design quality is ensured
 
-- **Design team:** product designers, a visual and brand designer, a content
-  designer and a UX researcher inside the Experience workstream
-  ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
-- **Design review is part of the definition of done** for every UI change:
-  a feature is not done until design QA signs it off.
+- **Design work by Claude:** screens, the design system, prototypes and
+  content are designed and built by Claude in the Experience workstream
+  ([05 §4](05-roadmap-and-delivery.md#4-workstreams)), following this document.
+- **Design QA is part of the definition of done** for every UI change:
+  automated visual-regression, accessibility and performance checks plus a
+  design review pass against the principles in §8.1.
+- **Optional external design review:** a brand or UX specialist can review the
+  default themes and key flows before GA.
 - **Usability tests with design partners** at every integration checkpoint;
   findings are tracked like bugs.
 - **Product analytics, with consent:** anonymous usage measurement in the

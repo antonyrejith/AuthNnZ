@@ -1,14 +1,15 @@
-# AuthNnZ — Enterprise Identity & Access Platform
+# Portun — Enterprise Identity & Access Platform
 
-> **Working name.** A fully configuration-driven ("100% dynamic"), multi-tenant
-> **Authentication (AuthN) + Authorization (AuthZ)** service that can be sold as
-> multi-tenant SaaS, a dedicated cloud, or self-hosted software, and that any
-> product, enterprise or regulated institution can adopt without writing
-> identity code.
+> **Portun** (from Portunus, the Roman god of keys and doors) is a fully
+> configuration-driven ("100% dynamic"), multi-tenant **Authentication (AuthN) +
+> Authorization (AuthZ)** platform, sold as multi-tenant SaaS, a dedicated cloud,
+> or self-hosted software, so any product, enterprise or regulated institution
+> can adopt it without writing identity code.
 
-**Status:** Planning. This repository currently contains the product and
-engineering plan. Code follows once the decisions in
-[`06-decisions.md`](docs/plan/06-decisions.md) are confirmed.
+**Status:** Planning complete; decisions recorded in
+[`06-decisions.md`](docs/plan/06-decisions.md). Claude implements the platform
+next, following this plan (D-28). The repository is still named `AuthNnZ`; the
+owner can rename it to `portun`.
 
 ---
 
@@ -19,7 +20,7 @@ engineering plan. Code follows once the decisions in
 | # | Document | Answers |
 |---|----------|---------|
 | 1 | [Product vision & business model](docs/plan/01-product-vision.md) | Who buys it, why they switch, how we package and price it |
-| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (296), with an ID and its owning workstream; all ship in the first release |
+| 2 | [Feature catalog](docs/plan/02-feature-catalog.md) | Every capability (298), with an ID and its owning workstream; all ship in the first release |
 | 3 | [Standards, compliance & industry packs](docs/plan/03-standards-and-compliance.md) | Which RFC/OpenID/OASIS/W3C standards, certifications and regulations we cover, and the vertical bundles |
 | 7 | [Authentication & authorization coverage](docs/plan/07-access-coverage.md) | Every authentication type and every authorization level (user, role, group, organization, resource, attribute, field, row, …) |
 
@@ -45,6 +46,7 @@ engineering plan. Code follows once the decisions in
 | 22 | [Commercialization](docs/plan/22-commercialization.md) | How it is sold: editions mapped to features, pricing model, routes to market, buying journey, sales enablement, licensing and partner billing, legal readiness, go-to-market team |
 | 23 | [SDKs](docs/plan/23-sdks.md) | Using the platform in code: SDK families, 25+ languages and frameworks, examples, consistent secure behavior, typed permissions, test kit, distribution, embedding options |
 | 24 | [Every form the platform takes](docs/plan/24-product-forms.md) | Ways to run it, ways to use it from code, connectors into other ecosystems, product lines sold separately, apps, services and programs |
+| 25 | [Business setup guide](docs/plan/25-business-setup-guide.md) | Owner's guide: name protection, company and contracts, accounts and keys, compliance program, security testing, design partners, vendors, deferred decisions, checklist by stage |
 
 **Delivery**
 
@@ -93,28 +95,37 @@ on either side.
 - Signed, minimal container images; Helm on Kubernetes with GitOps and canary
   releases; the same images for SaaS, customer cloud and air-gapped installs.
 
-**Delivery: one release, everything included** (indicative; weeks from kickoff):
+**Delivery: one release, everything included:**
 
-All 296 features ship together at GA; nothing is split into phases. Thirteen
-workstreams (about 77 engineers, about 106 people) build in parallel, with an
-integration checkpoint every six weeks and design partners testing pre-release
-builds. A 16-person operations team (SRE, support, customer success, security
-operations, trust and safety) joins before GA, for about 122 people at GA, and
-about 20 go-to-market people join from month 9 (about 142 in total).
+All 298 features ship together at GA; nothing is split into phases (D-23).
+Claude implements the platform workstream by workstream, in dependency order
+(D-28), with an independent review pass on every pull request (D-29), an
+integration checkpoint every six weeks, and design partners testing
+pre-release builds. The owner holds the decisions, accounts and company-side
+work ([25](docs/plan/25-business-setup-guide.md)).
 
-| Stage | Weeks | Outcome |
-|-------|-------|---------|
-| Foundations | 0–8 | Decisions, repository, CI/CD, core libraries (tenancy, configuration, audit, crypto), spikes, hiring ramp |
-| Parallel build | 8–64 | All workstreams build their catalog sections; checkpoint every 6 weeks |
-| Hardening and certification | 64–80 | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
-| Release candidate | 80–90 | Design partners run the release candidate; fixes only |
-| **GA** | **90 (about 21 months)** | **All 296 features, every deployment model, every industry pack** |
+| Stage | Outcome |
+|-------|---------|
+| Foundations | `CLAUDE.md`, ADRs, repository, CI/CD, core libraries (tenancy, configuration, audit, crypto), spikes, first timeline estimate |
+| Build | Engines, then every capability with its UI, API, SDK and Terraform support; checkpoint every 6 weeks |
+| Hardening and certification | Full-scale load, chaos and DR drills, penetration tests, OpenID/FIDO/FAPI certification, SOC 2 Type II window |
+| Release candidate | Design partners run the release candidate; fixes only |
+| **GA** | **All 298 features, every deployment model on AWS, Azure and Google Cloud, every industry pack** |
+
+The calendar timeline is estimated at the end of foundations from measured
+progress.
 
 **How it is sold:** one platform packaged as five editions with add-ons,
 offered as shared SaaS, dedicated cell, customer cloud or self-hosted, and sold
 through self-service, direct sales, partners, OEM and cloud marketplaces
 ([22](docs/plan/22-commercialization.md)).
 
-**Next step:** confirm the open decisions in
-[`06-decisions.md`](docs/plan/06-decisions.md), including team and budget
-(D-14), then start the foundations stage.
+**Key decisions:** name Portun; Go; AWS, Azure and Google Cloud from day one;
+fully proprietary licensing; all segments at once; one release; 100% audit with
+no opt-outs; exact pinned versions everywhere; Claude implements and reviews.
+Deferred: budget, pricing, go-to-market team and production operations
+([06](docs/plan/06-decisions.md)).
+
+**Next steps:** the owner starts name protection and design-partner recruitment
+([25](docs/plan/25-business-setup-guide.md)); Claude starts the foundations
+stage ([05 §10](docs/plan/05-roadmap-and-delivery.md#10-immediate-next-steps)).

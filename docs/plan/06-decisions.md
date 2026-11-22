@@ -1,43 +1,58 @@
 # 06 — Decisions & ADR Backlog
 
-## 1. Decisions needed during the foundations stage
+## 1. Decision register
 
-Each decision has a recommendation. Decisions D-01 to D-08 block kickoff;
-the rest during the foundations stage (weeks 0–8).
+Decisions recorded on 21 November 2026 with the product owner. Each decision is
+**accepted**, **accepted with a foundations spike** (the direction is set and a
+short experiment picks the exact option, recorded in an ADR), or **deferred**
+until the stated point.
 
-**Accepted so far:** D-03 (Go, pinned exact release), D-15 (exact pinned
-versions everywhere, explicit upgrades only), D-21 (100% audit) and D-23 (one
-release with every feature).
+### 1.1 Accepted
 
-| ID | Decision | Options | Recommendation | Why |
-|----|----------|---------|----------------|-----|
-| D-01 | Product name and brand | Keep "AuthNnZ" or rename | Pick a market name during foundations (trademark and domain check); keep AuthNnZ as the code name | The name appears in domains, SDK package names and token issuers, so change it before SDKs ship |
-| D-02 | Go-to-market focus at launch | B2B SaaS · B2C CIAM · regulated industries · enterprise workforce | **Every segment is supported at GA (D-23).** Sales and marketing lead with B2B SaaS and developer-led CIAM; regulated industries are sold with the industry packs and partners | The product scope is complete; the decision is where sales effort goes first |
-| D-03 | Backend language | Go · Java/Kotlin · Rust | **✅ Accepted: Go, pinned to an exact release (1.27.4 at start)** | Static binaries for edge and on-prem, strong identity ecosystem, native FIPS 140-3 crypto module, hiring pool |
-| D-04 | Protocol layer: build or adopt | Own implementation on vetted primitives · fosite · zitadel/oidc · Spring Authorization Server · fork Keycloak | **Own implementation on vetted primitives**, using existing frameworks as references | The authorization server is the core product: it must be fully dynamic, multi-tenant and FAPI-ready. Forking a large server brings its architecture and limits with it |
-| D-05 | Authorization engine | Embed OpenFGA · embed SpiceDB · own Zanzibar; Cedar · OPA | **Decide by a foundations spike.** Start from an embeddable Apache-2.0 Zanzibar engine behind our own DSL and interface, plus `cedar-go` for guardrails | Proven semantics now, freedom to replace later |
-| D-06 | Deployment models at GA | SaaS only · some models later · all at GA | **All at GA:** multi-tenant SaaS, dedicated cells, customer VPC, self-hosted and air-gapped, from one codebase (the all-in-one binary exists from the first weeks) | Customers in every segment need their model on day one; one codebase keeps the cost of each extra model low |
-| D-07 | Primary cloud | AWS · Azure · GCP | **AWS first**, cloud-agnostic through Kubernetes and abstractions (KMS, storage, bus) | Largest marketplace, CloudHSM and KMS maturity. Add Azure next for Microsoft-centric enterprises |
-| D-08 | Licensing model | Proprietary · open core · source-available | **Proprietary core, open-source SDKs, connectors and Terraform provider**, free self-hosted developer edition | Protects the business while keeping the developer funnel open |
-| D-09 | Repository strategy | Monorepo · polyrepo | **Monorepo for services and web apps; separate repositories per public SDK** | Atomic changes across modules; SDKs need their own release cadence and package registries |
-| D-10 | Extension runtime | WASM (wazero) · V8 isolates · containers or microVMs | **WASM (wazero)** | Pure Go, strong isolation, millisecond start, multi-language |
-| D-11 | Global data strategy | Region-homed PostgreSQL · distributed SQL | **Region-homed PostgreSQL per cell** for data residency; **distributed SQL (CockroachDB or YugabyteDB, PostgreSQL-compatible)** for tenants that need global active-active; chosen by a foundations spike | Residency and simplicity for most tenants; global active-active available at GA; SQL kept portable |
-| D-12 | Event bus | NATS JetStream · Kafka | **NATS JetStream internally**, Kafka and cloud streams as customer sinks | Light enough for edge and on-prem |
-| D-13 | Compliance automation | Vanta · Drata · Secureframe · others | Choose during foundations by price and auditor network | Cuts SOC 2 and ISO effort substantially |
-| D-14 | Budget, team and timeline | — | Confirm the team plan in [05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team) | Everything else depends on capacity |
-| D-15 | Version policy | Floating or automatically updated versions · exact pins with explicit upgrades | **✅ Accepted: exact pinned versions everywhere**, starting from the latest stable release; nothing upgrades automatically; every upgrade is an intentional, reviewed pull request ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)) | Builds and deployments are reproducible, and every change of version is deliberate, reviewed and audited |
-| D-16 | OpenAPI → Go server generator | ogen · oapi-codegen · hand-written | **Decide by a foundations spike**: strict typed interfaces, request validation, OpenAPI 3.1/3.2 support | Generated interfaces keep code and spec identical |
-| D-17 | SDK generation | OpenAPI Generator · commercial generators · hand-written | **Generated core + hand-written idiomatic layer**; evaluate generators during foundations on output quality per language | SDK quality decides developer adoption |
-| D-18 | Front-end stack | React · Vue · Svelte; component library | **React + TypeScript + TanStack + Radix UI + Tailwind CSS; Lit for the hosted login** ([11 §8](11-admin-ui.md#8-front-end-technology)) | Largest ecosystem and hiring pool; Lit keeps the login page small and embeddable anywhere |
-| D-19 | Service-to-service mTLS | Service mesh (Istio ambient, Linkerd) · SPIFFE/SPIRE-issued certificates · application-level mTLS | Decide during foundations with spike measurements | Needed for Zero Trust inside cells; adds operational weight |
-| D-20 | Container base image | Distroless static · Chainguard/Wolfi · `scratch` | **Distroless static (Debian 13, nonroot)** | No shell or package manager, includes CA certificates and time zones, free and widely scanned |
-| D-21 | Audit strictness | Best effort · 100% with fail-closed capture | **✅ Accepted: 100% audit**; changes are rejected if they cannot be audited; decision and login events use durable spools with strict mode ([13](13-audit-and-change-tracking.md)) | Customers and auditors need provable completeness |
-| D-22 | Database change capture | Own reader on PostgreSQL logical replication · Debezium · triggers | **Own Go reader on logical replication**, running in the `worker` | No extra infrastructure (no Kafka Connect); works the same in SaaS and self-hosted |
-| D-23 | Release strategy | Phased releases · one release with every feature | **✅ Accepted: one release; all 296 features at GA**, built in parallel by 13 workstreams with integration checkpoints every 6 weeks ([05](05-roadmap-and-delivery.md)) | Customers get the complete platform at launch; nothing is deferred |
-| D-24 | Scope boundaries | See the optional and out-of-scope lists in the [feature catalog](02-feature-catalog.md#scope-boundaries) | **Add** the virtual waiting room and Secure Payment Confirmation; **leave out** the identity-aware proxy, password vaulting and desktop login for GA; confirm the out-of-scope list | Keeps GA complete for the target segments without entering separate product categories |
-| D-25 | Pricing and packaging | Usage dimensions, edition boundaries, price points | **Validate the edition table and usage dimensions in [22](22-commercialization.md) with design partners and pricing research during foundations**; public self-service prices, quoted Enterprise and Regulated | Packaging is configuration, so it can be tuned after launch without engineering |
-| D-26 | Go-to-market organization and budget | Hire before GA · hire after GA | **Hire about 20 go-to-market people from month 9** ([22 §8](22-commercialization.md#8-go-to-market-team-and-timeline)) | Pipeline, partners, marketplaces and references must exist on launch day |
-| D-27 | Partner and services model | In-house services · partner-led services · mixed | **Partner-led implementation**, with a small in-house team for migrations and strategic accounts | Scales without a large services organization and keeps margins high |
+| ID | Decision | Choice | Consequences |
+|----|----------|--------|--------------|
+| D-01 | Product name | **Portun**, for both the code and the market (from Portunus, the Roman god of keys and doors) | Packages, CLI (`portunctl`), images and URLs use `portun`. Domains shown in the plan (`portun.io`) are placeholders until a domain is secured; domain and trademark checks are owner tasks ([25 §1](25-business-setup-guide.md#1-name-and-brand-protection)) |
+| D-02 | Sales and marketing focus at launch | **All segments equally** | Industry packs, demos and content are needed for every segment at GA |
+| D-03 | Backend language | **Go, pinned to an exact release (1.27.4 at start)** | — |
+| D-06 | Deployment models at GA | **All:** shared SaaS, dedicated cells, customer cloud, self-hosted and air-gapped | Follows from D-23 |
+| D-07 | Cloud providers | **AWS, Azure and Google Cloud from day one** | Each cloud needs its own managed database, cache, key management, marketplace listing and test runs before GA ([12 §6](12-containers-and-deployment.md#6-cloud-infrastructure-saas)) |
+| D-08 | Licensing | **Fully proprietary, SDKs included**; free self-hosted developer edition under a proprietary license | SDKs, connectors and the Terraform provider are published under a proprietary license. Public directories that require open-source code (for example the WordPress plugin directory) are replaced by our own download site and registry ([23 §7](23-sdks.md#7-distribution-versions-and-trust)) |
+| D-09 | Repository strategy | **Monorepo** for services and web apps; separate repositories per published SDK | — |
+| D-10 | Extension runtime | **WebAssembly (wazero)** | — |
+| D-12 | Event bus | **NATS JetStream** internally; Kafka and cloud streams as customer sinks | — |
+| D-13 | Compliance automation tool | **Chosen during foundations** by price and auditor network | Owner task ([25 §5](25-business-setup-guide.md#5-compliance-program)) |
+| D-15 | Version policy | **Exact pinned versions everywhere, including the dependencies our SDKs declare**; nothing upgrades automatically; every upgrade is an intentional, reviewed pull request | SDKs keep runtime dependencies to a minimum ([08 §1](08-engineering-standards.md#1-version-policy-pinned-everywhere-upgrades-on-purpose)) |
+| D-17 | SDK generation | **Generated core + hand-written idiomatic layer** | — |
+| D-18 | Front-end stack | **React + TypeScript + TanStack + Radix UI + Tailwind CSS; Lit for the hosted login** | — |
+| D-20 | Container base image | **Distroless static (Debian 13, nonroot)** | — |
+| D-21 | Audit | **100% audit with no opt-outs**: every change, login, decision and staff action is recorded; strict mode is always on | No tenant can turn off any part of the audit trail ([13](13-audit-and-change-tracking.md)) |
+| D-22 | Database change capture | **Our own Go reader on PostgreSQL logical replication** | — |
+| D-23 | Release strategy | **One release: all 298 features at GA** | Built in dependency order with integration checkpoints ([05](05-roadmap-and-delivery.md)) |
+| D-24 | Scope boundaries | **Add** the virtual waiting room (SEC-17) and Secure Payment Confirmation (AUTH-32); **leave out** the identity-aware proxy, password vaulting and desktop login | See the [feature catalog](02-feature-catalog.md#scope-boundaries) |
+| D-27 | Partners and services | **Partner-led implementation**, with a small in-house team for migrations and key accounts | — |
+| D-28 | Implementation model | **Claude implements the platform** once the plan is complete, workstream by workstream in dependency order | Team sizes and the calendar timeline no longer apply; the timeline is re-estimated after foundations from measured progress ([05 §3](05-roadmap-and-delivery.md#3-implementation-model)) |
+| D-29 | Code review | **Claude reviews only:** every pull request gets an independent review pass, with security-focused reviews on security-critical code; no human approval is required | Mitigated by automated security gates and external penetration tests before GA; recorded as risk R9 ([08 §5](08-engineering-standards.md#5-git-workflow-reviews-and-releases)) |
+| D-31 | Company-side work | **The owner leads it, with guidance** from the business setup guide | [25 — Business setup guide](25-business-setup-guide.md) |
+| D-32 | Starting mode for new organizations | **Chosen when each organization is created**, with the parent's configurable default pre-selected (Parent out of the box), and changeable at any time | [15 §2.2](15-hierarchy-and-shared-settings.md#22-before-any-change-the-starting-state) |
+
+### 1.2 Accepted with a foundations spike
+
+| ID | Decision | Direction | Spike decides |
+|----|----------|-----------|---------------|
+| D-04 | Protocol layer | **Own implementation on vetted primitives**, using existing frameworks as references | Which primitive libraries pass the hardening review (JOSE, SAML/XML signature) |
+| D-05 | Authorization engine | **Embeddable Zanzibar engine behind our own model language and interface, plus `cedar-go` for guardrails** | OpenFGA, SpiceDB or our own implementation |
+| D-11 | Global data strategy | **Region-homed PostgreSQL per cell; distributed SQL for tenants needing global active-active** | CockroachDB or YugabyteDB |
+| D-16 | OpenAPI → Go server generator | **Generated, strictly typed interfaces with request validation** | ogen or oapi-codegen, by OpenAPI 3.1/3.2 support |
+| D-19 | Service-to-service mTLS | **mTLS between all services inside a cell** | Service mesh, SPIFFE/SPIRE certificates or application-level mTLS |
+
+### 1.3 Deferred
+
+| ID | Decision | Decide by | Notes |
+|----|----------|-----------|-------|
+| D-14 | Budget | Before cloud accounts are opened | With Claude implementing, the main costs are cloud infrastructure, third-party services (auditors, penetration tests, translation, certifications) and any people hired for operations and sales ([25](25-business-setup-guide.md)) |
+| D-25 | Pricing and packaging | Before the release candidate | The edition table in [22](22-commercialization.md) is the starting proposal; packaging is configuration, so it can change without engineering |
+| D-26 | Go-to-market team | Before hardening | Options: start lean, a full team, or partners and marketplaces only ([22 §8](22-commercialization.md#8-go-to-market-team-and-timeline)) |
+| D-30 | Production operations (24/7 on-call, incidents, support) | Before hardening | Options: a small human team assisted by Claude, a managed-service partner, or a mix. Someone accountable must be on call at GA ([18 §1](18-operating-the-service.md#1-operating-model-at-ga)) |
 
 ## 2. ADR backlog
 

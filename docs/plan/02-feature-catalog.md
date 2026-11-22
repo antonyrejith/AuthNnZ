@@ -3,13 +3,13 @@
 The complete capability list. Every feature has a stable **ID** so it can become
 an epic in the issue tracker.
 
-**All 296 features are part of the first release** (decision D-23). None is
+**All 298 features are part of the first release** (decision D-23). None is
 deferred to a later phase; see the [delivery plan](05-roadmap-and-delivery.md).
 
 ## Workstream ownership
 
 Each section is built end to end (engine, API, console, SDK, Terraform, docs,
-tests) by one workstream ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)):
+tests) by one workstream ([05 §4](05-roadmap-and-delivery.md#4-workstreams)):
 
 | Section | Workstream |
 |---------|-----------|
@@ -55,7 +55,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | TEN-14 | Linked templates and push | Versioned templates for organizations, partner → tenant templates and platform baselines; push modes automatic, staged (waves with health checks), opt-in with deadline, manual, forced (four-eyes); three-way conflict handling; drift reports |
 | TEN-15 | Copy mode | Create a child as an independent copy of a template or another node, with "update available" notices |
 | TEN-16 | Allocation down the hierarchy | Parents allocate quotas and entitlements (users, AI usage, connections, features) to children within their own limits; usage roll-up |
-| TEN-17 | Setting modes | Every setting is in Default, Parent, Template or Own mode, switchable at any time in either direction; new tenants start in Default, new children in the mode the parent chooses (Parent out of the box) |
+| TEN-17 | Setting modes | Every setting is in Default, Parent, Template or Own mode, switchable at any time in either direction; new tenants start in Default; for each new organization the admin chooses the starting mode at creation (console and API), with the parent's configurable default pre-selected (Parent out of the box) |
 | TEN-18 | Reset | Reset to Default, Parent or Template for one setting, selected settings, a section, an object or a whole level (complete reset), optionally including descendants; preview, simulation, reason, approval and one-click undo; data is never touched |
 | TEN-19 | Versioned product defaults | Each tenant environment uses a pinned defaults version; new versions are reviewed as a diff and adopted deliberately; security minimums arrive as platform baselines |
 | TEN-20 | Partner base domains | White-label default URLs for every tenant of a partner (`{tenant}.login.partner.com`), and automatic organization subdomains from a tenant base domain |
@@ -123,6 +123,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTH-29 | Regional social providers | WeChat, LINE, Kakao, Naver, VK, Yahoo! JAPAN |
 | AUTH-30 | Passkeys on white-label domains | Relying-party ID chosen per tenant, WebAuthn related origins across brands and countries, native-app association files, guided re-enrollment if the domain changes |
 | AUTH-31 | Verifiable credential issuance | Issue SD-JWT VC and mDoc credentials to digital wallets with OpenID4VCI, alongside verification (AUTH-16); revocation through status lists |
+| AUTH-32 | Secure Payment Confirmation | Passkey-based confirmation of card and account payments (W3C Secure Payment Confirmation), bound to amount and payee, for the banking pack and PSD2 strong customer authentication |
 
 ## D. Federation & SSO (`FED`)
 
@@ -197,7 +198,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | AUTHZ-11 | Data filtering | Partial evaluation into query filters (SQL, Elasticsearch/OpenSearch, MongoDB) |
 | AUTHZ-12 | Edge / local PDP | Sidecar, embedded library and WASM builds with data sync; < 1 ms checks |
 | AUTHZ-13 | Gateway and mesh plugins | Envoy `ext_authz`, Istio, Kong, NGINX, AWS API Gateway, Azure APIM, Apigee, Kubernetes admission |
-| AUTHZ-14 | Decision logs | Every decision recorded by default through a durable spool, with strict mode (refuse rather than leave unrecorded); explanation references; SIEM and analytics streaming. See [13](13-audit-and-change-tracking.md) |
+| AUTHZ-14 | Decision logs | Every decision recorded, always, with no opt-out, through a durable spool with strict mode always on (refuse rather than leave unrecorded); explanation references; SIEM and analytics streaming. See [13](13-audit-and-change-tracking.md) |
 | AUTHZ-15 | JIT and time-bound access | Requests, approvals, automatic expiry; break-glass with alerting |
 | AUTHZ-16 | Field and row-level helpers | SDK helpers to mask fields and filter rows |
 | AUTHZ-17 | Permissions in tokens | Scopes, roles and permissions claims with size controls |
@@ -287,6 +288,7 @@ Standards references are listed in [03](03-standards-and-compliance.md).
 | SEC-14 | Device trust integrations | Device posture signals from device management and endpoint security tools (for example Microsoft Intune, Jamf, Google endpoint management, CrowdStrike, SentinelOne) and managed-device certificates, usable in MFA, session and authorization policies |
 | SEC-15 | Sign-up fraud protection | Disposable email and phone detection, phone-number intelligence, sign-up velocity and device-reuse rules, free-trial and promotion abuse detection |
 | SEC-16 | Security posture center | Tenant security score with findings and one-click fixes (weak policies, admins without phishing-resistant MFA, stale admins and keys, risky settings), and access recommendations from real usage (unused permissions and roles, over-privileged accounts) |
+| SEC-17 | Virtual waiting room | Fair queuing of sign-ins and sign-ups during extreme surges (ticket sales, launches), with branded waiting pages, position and wait estimates, and bot-resistant queue tokens |
 
 ## L. Governance, audit & privacy (`GOV`)
 
@@ -423,18 +425,18 @@ vertical. See [03 — Industry packs](03-standards-and-compliance.md#5-industry-
 
 ## Scope boundaries
 
-So that nothing is assumed silently, these items are listed explicitly and need
-a decision (D-24 in [06](06-decisions.md)).
+Decided with the owner (D-24 in [06](06-decisions.md)).
 
-**Optional additions (not in the 296 features yet):**
+**Added to GA:** the virtual waiting room (SEC-17) and Secure Payment
+Confirmation (AUTH-32).
 
-| Item | What it is | Recommendation |
-|------|-----------|----------------|
-| Virtual waiting room | Queue users fairly during extreme login surges (ticket sales, launches) | Add: valuable for consumer apps, moderate effort |
-| Secure Payment Confirmation | Passkey-based confirmation of card payments (W3C) in the banking pack | Add: small, strengthens the banking pack |
-| Identity-aware proxy | Put SSO and authorization in front of internal web apps that cannot integrate | Later product; partners cover it today |
-| Password vaulting for legacy apps | Store and replay passwords for apps without SSO | Leave out: weaker security model, separate product category |
-| Desktop operating-system login | Windows and macOS sign-in with passkeys and the platform's policies | Leave out of GA: needs device agents; revisit with demand |
+**Left out of GA:**
+
+| Item | What it is | Why |
+|------|-----------|-----|
+| Identity-aware proxy | Put SSO and authorization in front of internal web apps that cannot integrate | Separate product category; partners cover it |
+| Password vaulting for legacy apps | Store and replay passwords for apps without SSO | Weaker security model; separate product category |
+| Desktop operating-system login | Windows and macOS sign-in with passkeys and the platform's policies | Needs device agents |
 
 **Out of scope (we integrate rather than build):**
 
@@ -442,4 +444,3 @@ a decision (D-24 in [06](06-decisions.md)).
 - Device management and endpoint security themselves (we consume their signals, SEC-14).
 - Identity verification, payment processing, email and SMS delivery networks (we connect to providers).
 - Customer data platforms and marketing automation (we stream events to them).
-

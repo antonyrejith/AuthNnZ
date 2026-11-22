@@ -107,7 +107,7 @@ All errors use **RFC 9457 Problem Details** (`application/problem+json`):
 
 ```json
 {
-  "type": "https://docs.authnnz.io/errors/validation-failed",
+  "type": "https://docs.portun.io/errors/validation-failed",
   "title": "Request validation failed",
   "status": 422,
   "code": "validation_failed",

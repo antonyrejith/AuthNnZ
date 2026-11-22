@@ -118,6 +118,7 @@ Terms used across the plan, in alphabetical order within each group.
 | **SDK** | Software development kit: libraries developers add to their code to use the platform |
 | **SBOM** | Software bill of materials: the exact list of components and versions in a release |
 | **Server-driven UI** | Screens described as data by the server and rendered by web and native clients |
+| **Spike** | A short, time-boxed experiment that settles a technical choice, recorded in an ADR |
 | **SLA / SLO** | Contractual service level / internal reliability target |
 | **SLSA** | A framework for supply-chain integrity of builds |
 | **Trust center** | Public site with security, compliance and privacy information for buyers and auditors |

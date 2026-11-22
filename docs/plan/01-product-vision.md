@@ -149,8 +149,8 @@ the foundations stage (task PM-02 in the delivery plan). Vendors change offering
 - Add-ons: advanced security, governance, industry packs, data residency
   regions, dedicated cell, HSM, premium SLA and support
 
-Set price points after market research during the foundations stage. Usage
-metering is built in from the start, so any pricing model can be applied; this is a dynamic,
+Price points are decided later (D-25), from market research and
+design-partner validation. Usage metering is built in from the start, so any pricing model can be applied; this is a dynamic,
 configurable rate plan in itself.
 
 The detailed edition-by-feature table, pricing principles, routes to market and
@@ -159,7 +159,7 @@ commercial readiness are in [22 — Commercialization](22-commercialization.md).
 ## 8. Go-to-market notes
 
 - **Developer-led acquisition:** free tier, excellent docs, quick-starts,
-  a local emulator, open-source SDKs.
+  a local emulator, free SDKs.
 - **Switching accelerators:** migration tooling for Auth0, Cognito, Firebase,
   Keycloak, Okta and Azure AD B2C. Lazy migration means no forced password reset.
 - **Trust signals as sales enablers:** SOC 2 Type II, ISO 27001/27017/27018/27701,

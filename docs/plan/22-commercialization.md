@@ -72,9 +72,9 @@ research and design partners (D-25).
 | **Self-hosted** | Annual subscription by identities under management, including updates and support |
 | **Partners and OEM** | Wholesale pricing with volume tiers; partners set their own prices for their customers |
 
-Price points come from market research and design-partner validation during
-foundations (D-25). Usage metering exists from the first build, so any model
-can be applied.
+Price points are decided later (D-25, deferred until before the release
+candidate), from market research and design-partner validation. Usage metering
+exists from the first build, so any model can be applied.
 
 ## 4. Routes to market
 
@@ -89,7 +89,7 @@ can be applied.
 
 ## 5. Selling and buying, step by step
 
-1. **Discover:** developer content, docs, open-source SDKs, comparison pages,
+1. **Discover:** developer content, docs, free SDKs, comparison pages,
    cloud marketplaces, partners, analyst coverage.
 2. **Try:** free tenant in minutes; interactive tours and practice mode
    ([20](20-guided-tours.md)); 30-day trial of paid features.
@@ -148,15 +148,17 @@ To prepare with legal counsel during the build:
 
 ## 8. Go-to-market team and timeline
 
-| From | Who joins | Focus |
-|------|-----------|-------|
-| Month 9 | Head of go-to-market, 2 product marketers, developer marketing and content (2) | Positioning, website, docs strategy, analyst relations, design-partner case studies |
-| Month 12 | Sales leader, 2 solutions engineers, partner manager, commercial counsel | POC kit, contracts, first partners, marketplace listings |
-| Month 15 | 5 account executives, 1 more solutions engineer, 1 more partner manager, demand generation and marketing operations (2), sales operations (1), customer education (1) | Pipeline for GA, pricing page and calculator, academy |
+**Decision deferred (D-26), to be made before hardening.** The options:
 
-**About 20 go-to-market people at GA**, for an organization of **about 142
-people** in total, including the 122 in engineering, design, product and
-operations ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
+| Option | What it means |
+|--------|---------------|
+| **Start lean** | The owner leads sales, with 2–3 hires before GA (solutions engineer, developer relations, partner manager); grow with revenue |
+| **Full team** | About 20 people joining from about nine months before GA: product marketing, developer marketing, sales leadership, account executives, solutions engineers, partner managers, marketing and sales operations, customer education |
+| **Partners and marketplaces only** | Resellers, system integrators and cloud marketplaces sell; no own sales team at first |
+
+Whichever option is chosen, Claude prepares the sales and marketing material:
+website and docs content, demos, the POC kit, comparison sheets, the ROI
+calculator, and trust-center content.
 
 **Before GA:**
 - design partners convert to paid early-access contracts and public references;
@@ -192,10 +194,10 @@ operations ([05 §3](05-roadmap-and-delivery.md#3-workstreams-and-team)).
 | Time to first value | Branded login working in under 10 minutes |
 | Sales cycle (enterprise) | Tracked by segment; shortened by the POC kit and trust center |
 
-## 11. Decisions needed
+## 11. Decisions
 
-| ID | Decision | Recommendation |
-|----|----------|----------------|
-| D-25 | Pricing and packaging | Validate the edition table and usage dimensions with design partners and pricing research during foundations; publish self-service prices, quote Enterprise and Regulated |
-| D-26 | Go-to-market organization and budget | Approve the team and timeline in §8 |
-| D-27 | Partner and services model | Partner-led implementation services, with a small in-house team for migrations and strategic accounts |
+| ID | Decision | Status |
+|----|----------|--------|
+| D-25 | Pricing and packaging | Deferred until before the release candidate; the edition table in §2 is the starting proposal |
+| D-26 | Go-to-market team | Deferred until before hardening; options in §8 |
+| D-27 | Partner and services model | **Accepted:** partner-led implementation, with a small in-house team for migrations and key accounts |

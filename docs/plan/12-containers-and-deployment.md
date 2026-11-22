@@ -10,7 +10,7 @@ and air-gapped data centers.
 
 | Rule | How |
 |------|-----|
-| One image per deployable | `idp-runtime`, `pdp`, `directory-api`, `mgmt-api`, `worker`, `ext-runtime`, `router`, `edge-pdp`, `connector-agent`, plus the all-in-one `authnnz` and the static `console`/`login` assets |
+| One image per deployable | `idp-runtime`, `pdp`, `directory-api`, `mgmt-api`, `worker`, `ext-runtime`, `router`, `edge-pdp`, `connector-agent`, plus the all-in-one `portun` and the static `console`/`login` assets |
 | Minimal base | Distroless static (Debian 13, `nonroot`): no shell, no package manager, CA certificates and time zones only |
 | Static binaries | `CGO_ENABLED=0`, `-trimpath`, version stamped at build time |
 | Multi-architecture | `linux/amd64` and `linux/arm64` from one build (Buildx) |
@@ -69,7 +69,7 @@ Helm chart in a local kind cluster for chart and operator work.
 
 ```yaml
 # deploy/compose/compose.yaml (excerpt)
-name: authnnz
+name: portun
 services:
   postgres:
     image: postgres:19.0@sha256:<digest>
@@ -89,18 +89,18 @@ services:
   otel:                             # Grafana, Tempo, Loki, Prometheus in one container; UI on :3000
     image: grafana/otel-lgtm:0.41.1@sha256:<digest>
     ports: ["3000:3000"]
-  authnnz:                          # all-in-one binary
+  portun:                          # all-in-one binary
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile
-      args: { SERVICE: authnnz }
+      args: { SERVICE: portun }
     depends_on:
       postgres: { condition: service_healthy }
     environment:
-      AUTHNNZ_DATABASE_URL: postgres://postgres:dev-only-password@postgres:5432/postgres
-      AUTHNNZ_CACHE_URL: redis://valkey:6379
-      AUTHNNZ_BUS_URL: nats://nats:4222
-      AUTHNNZ_SMTP_URL: smtp://mailpit:1025
+      PORTUN_DATABASE_URL: postgres://postgres:dev-only-password@postgres:5432/postgres
+      PORTUN_CACHE_URL: redis://valkey:6379
+      PORTUN_BUS_URL: nats://nats:4222
+      PORTUN_SMTP_URL: smtp://mailpit:1025
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4317
     ports: ["8080:8080"]
   clickhouse:
@@ -118,7 +118,7 @@ containerized test identity providers (SAML and OIDC) for federation work.
 ### 3.1 Helm chart
 
 ```
-deploy/helm/authnnz/
+deploy/helm/portun/
 ├── Chart.yaml
 ├── values.yaml
 ├── values.schema.json          # validates every value; bad values fail at install time
@@ -152,7 +152,7 @@ spec:
       labelSelector: { matchLabels: { app.kubernetes.io/name: idp-runtime } }
   containers:
     - name: idp-runtime
-      image: registry.example.com/authnnz/idp-runtime@sha256:<digest>
+      image: registry.example.com/portun/idp-runtime@sha256:<digest>
       ports:
         - { name: http, containerPort: 8080 }
         - { name: admin, containerPort: 9090 }
@@ -232,9 +232,11 @@ flowchart LR
 
 ## 6. Cloud infrastructure (SaaS)
 
-OpenTofu modules create each region and cell: network, Kubernetes cluster
-(EKS first, per D-07), managed PostgreSQL (multi-AZ), managed Valkey, KMS keys,
-object storage, CDN and WAF, and DNS. OpenTofu, its providers, and every
+OpenTofu modules create each region and cell on **AWS, Azure and Google Cloud
+from day one** (D-07): network, Kubernetes cluster (EKS, AKS or GKE), managed
+PostgreSQL (multi-AZ), managed Valkey, KMS keys (AWS KMS, Azure Key Vault,
+Google Cloud KMS), object storage, CDN and WAF, and DNS. Staging and
+performance cells run on all three clouds, so every release is tested on each. OpenTofu, its providers, and every
 engine, cluster and node-image version are pinned exactly; automatic minor
 upgrades and auto-upgrading release channels are turned off, and a policy check
 on every plan rejects anything unpinned. A new cell is one module instance plus a

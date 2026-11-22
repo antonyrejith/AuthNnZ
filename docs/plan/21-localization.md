@@ -108,8 +108,9 @@ its own conventions:
 
 - Every UI string is extracted automatically in CI and goes through a
   continuous localization pipeline with a translation management system.
-- Professional translators translate each string, in-country reviewers check
-  it, and translators see screenshots for context.
+- Claude drafts the translations; professional translators and in-country
+  reviewers check them before release, with screenshots for context. The owner
+  contracts the translation vendor ([25](25-business-setup-guide.md)).
 - Pseudo-localization runs on every build: expanded and accented text, plus
   right-to-left mirroring. It catches hard-coded strings and layouts that break.
 - A release cannot ship with a missing translation in a GA language.

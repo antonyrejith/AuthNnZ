@@ -205,7 +205,7 @@ flowchart TB
 | `console` / `hosted-ui` | Control / Edge | Static SPAs and assets served by CDN | CDN |
 | `edge-pdp` | Customer | Local authorization decisions from synced data | Sidecar or library |
 | `connector-agent` | Customer | Outbound-only tunnel to on-prem AD/LDAP/RADIUS/Kerberos | Per customer site |
-| `authnnz` (all-in-one) | All | Every module in one process, for local development, small installs and air-gapped deployments | Single node or small cluster |
+| `portun` (all-in-one) | All | Every module in one process, for local development, small installs and air-gapped deployments | Single node or small cluster |
 
 All deployables are built from one repository; they are compositions of the
 same internal modules (see section 13).
@@ -434,7 +434,7 @@ when { context.risk.score >= 80 };
 | Dedicated cell | Whole data plane stack for one tenant | Enterprise and Regulated |
 | Customer VPC / on-prem | Same software in the customer's account or data center | Regulated, Self-hosted |
 
-- **Tenant resolution:** a custom domain or `{tenant}.{region}.authnnz.io`
+- **Tenant resolution:** a custom domain or `{tenant}.{region}.portun.io`
   becomes (tenant, environment, region, cell) through the global tenant
   directory, cached at the edge.
 - **Noisy neighbors:** per-tenant concurrency limits, weighted fair queuing in
@@ -568,7 +568,7 @@ available through gRPC for SDKs and internal callers.
 
 | Layer | Choice | Why | Alternatives |
 |-------|--------|-----|--------------|
-| Backend language | **Go, pinned to an exact release (1.27.4 at start)** (D-03, accepted) | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, easy hiring | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
+| Backend language | **Go, pinned to an exact release (1.27.4 at start)** (D-03, accepted) | Fast, small static binaries (ideal for edge PDP and on-prem), strong identity ecosystem (OpenFGA, SpiceDB, Ory, Dex, Vault), native FIPS 140-3 crypto module, simple and easy to review | Java/Kotlin (Spring Authorization Server, OpenSAML maturity), Rust (performance, slower delivery) |
 | Protocol layer | Our own, on vetted primitives (JOSE, WebAuthn, SAML/XML-DSig libraries) | The authorization server is core IP and must be fully dynamic | Adopt a framework (fosite, zitadel/oidc) — see D-04 |
 | Expressions | CEL (`cel-go`) | Safe, fast, typed; also used by Kubernetes and Zanzibar implementations | Expr, JSONLogic |
 | Policies | Cedar (`cedar-go`) | Analyzable, fast, Apache 2.0 | OPA/Rego |

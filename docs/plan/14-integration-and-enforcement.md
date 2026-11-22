@@ -23,7 +23,7 @@ This document follows one B2B customer from configuration to runtime and shows
 
 ```mermaid
 flowchart LR
-    U[End user at Globex<br/>browser or mobile] -->|1. sign in| IDP[AuthNnZ hosted login<br/>login.acme.com]
+    U[End user at Globex<br/>browser or mobile] -->|1. sign in| IDP[Portun hosted login<br/>login.acme.com]
     IDP -->|SSO + MFA| EIDP[Globex's own IdP<br/>for example Entra ID]
     IDP -->|2. tokens| UI
     EXT[External AI client<br/>for example an IDE agent] -->|OAuth 2.1 + user consent| IDP
@@ -41,10 +41,10 @@ flowchart LR
     API --> SC
     AI --> SC
     MCP --> SC
-    GW -.->|check| PDP[AuthNnZ PDP]
+    GW -.->|check| PDP[Portun PDP]
     UI -.->|permission snapshot| PDP
     PDP -.->|model and data sync| SC
-    SC -.->|decision logs| AUD[AuthNnZ audit trail]
+    SC -.->|decision logs| AUD[Portun audit trail]
     PDP -.->|decision logs| AUD
 ```
 
@@ -152,16 +152,16 @@ again.
 ### 4.2 API module
 
 ```go
-authz := authnnz.NewMiddleware(authnnz.Config{
+authz := portun.NewMiddleware(portun.Config{
 	Issuer:   "https://login.acme.com",
 	Audience: "https://api.acme.com",
-	PDP:      authnnz.Sidecar("unix:///var/run/authnnz/pdp.sock"),
+	PDP:      portun.Sidecar("unix:///var/run/portun/pdp.sock"),
 })
 
 mux := http.NewServeMux()
 mux.Handle("GET /invoices", authz.Require("api:invoices:read")(listInvoices))
 mux.Handle("POST /invoices/{id}/approve",
-	authz.RequireOn("api:invoices:approve", authnnz.Resource("invoice", authnnz.PathValue("id")))(approveInvoice))
+	authz.RequireOn("api:invoices:approve", portun.Resource("invoice", portun.PathValue("id")))(approveInvoice))
 ```
 
 Route-to-permission mappings can also live in Acme's OpenAPI document
@@ -209,7 +209,7 @@ MCP guard does three things:
 
 ```ts
 const server = new McpServer({ name: 'acme-billing', version: '1.4.0' });
-const guard = authnnz.mcpGuard({ issuer: 'https://login.acme.com', resource: 'https://mcp.acme.com' });
+const guard = portun.mcpGuard({ issuer: 'https://login.acme.com', resource: 'https://mcp.acme.com' });
 
 guard.tool(server, 'issue_refund', {
   permission: 'mcp:billing-server.issue_refund:invoke',

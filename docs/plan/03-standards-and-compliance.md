@@ -170,7 +170,7 @@ generic engine feature first.
 |------|----------|
 | **B2B SaaS** (IND-01) | Organizations with RBAC, invitations, per-org SSO/SCIM, admin portal, domain capture, audit streaming |
 | **Retail & e-commerce** (IND-02) | Passwordless and social, guest checkout to account, progressive profiling, marketing consent, bot and fraud defense |
-| **Banking & open banking** (IND-03) | FAPI 2.0, PAR, JAR/JARM, DPoP or mTLS, CIBA, PSD2 SCA with dynamic linking and exemptions, RAR consents and Grant Management, mandate and account authorization models, profiles for UK Open Banking, Berlin Group, Brazil Open Finance, Australia CDR |
+| **Banking & open banking** (IND-03) | FAPI 2.0, PAR, JAR/JARM, DPoP or mTLS, CIBA, PSD2 SCA with dynamic linking and exemptions, Secure Payment Confirmation with passkeys (AUTH-32), RAR consents and Grant Management, mandate and account authorization models, profiles for UK Open Banking, Berlin Group, Brazil Open Finance, Australia CDR |
 | **Insurance** (IND-04) | Agent and broker delegation, policyholder and beneficiary relationships, claims step-up |
 | **Healthcare** (IND-05) | SMART App Launch v2 on FHIR, patient/practitioner/proxy relationships, UMA consent, break-glass with justification, HIPAA reports, EPCS-style two-factor signing |
 | **Government** (IND-06) | NIST 800-63 IAL/AAL/FAL profiles, PIV/CAC, FIPS mode, national eID connectors (OIDC/SAML), citizen and delegate (power of attorney) models |
