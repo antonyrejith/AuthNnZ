@@ -60,6 +60,14 @@ not produced by an actual run.
 - **Reviews:** every change gets an independent review pass and, for
   security-critical code, a security review (D-29). Implementers never approve
   their own work.
+- **Agent workflow (owner's instruction):** the main session (higher model)
+  plans each task, writes an exact brief (files owned, signatures, schema,
+  behaviors, required tests, gates) and reviews the result. Implementation
+  agents run on a lower model (`sonnet`) and follow the brief without making
+  design decisions. The main session reviews the diff, re-runs the gates and
+  probes security-critical paths; defects go back to the same agent as a
+  correction brief, repeated until the work passes (escalate to the owner
+  after 3 failed cycles).
 - **Tracker:** update [`TRACKER.md`](docs/implementation/TRACKER.md) when a task
   changes status, with evidence (commands and results).
 
