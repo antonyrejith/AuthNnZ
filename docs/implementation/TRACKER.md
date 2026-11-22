@@ -3,13 +3,13 @@
 Live status of implementation tasks. Status values: Not started, In progress, In review, Done (with evidence), Blocked (with reason).
 Tasks for later increments are added at the start of each increment ([plan §4.3](00-implementation-plan.md#43-later-increments)).
 
-**Overall:** plan awaiting owner approval; no implementation started.
+**Overall:** plan approved by the owner; increment B0 in progress.
 
 | Increment | Task | Work | Owner role | Status | Evidence |
 |-----------|------|------|-----------|--------|----------|
-| B0 | T0.1 | Repository bootstrap: `go.mod` (Go 1.27, toolchain 1.27.4), tool directives, Makefile, golangci-lint config, `tools/pincheck`, Renovate … | DevOps | Not started | — |
-| B0 | T0.2 | `CLAUDE.md` working rules; ADRs 0001, 0002, 0003, 0007, 0008, 0009, 0014, 0016, 0017 | Principal Architect | Not started | — |
-| B0 | T0.3 | `platform/ids`, `errs`, `log` (redaction types), `config`, `version` | Backend | Not started | — |
+| B0 | T0.1 | Repository bootstrap: `go.mod` (Go 1.27, toolchain 1.27.4), tool directives, Makefile, golangci-lint config, `tools/pincheck`, Renovate … | DevOps | In review | Commit d6ec801. `make pincheck lint build test` passed (pincheck tests: 25 cases); awaiting independent review |
+| B0 | T0.2 | `CLAUDE.md` working rules; ADRs 0001, 0002, 0003, 0007, 0008, 0009, 0014, 0016, 0017 | Principal Architect | In review | `CLAUDE.md` and ADRs 0001, 0002, 0003, 0007, 0008, 0009, 0014, 0016, 0017 written; awaiting independent review |
+| B0 | T0.3 | `platform/ids`, `errs`, `log` (redaction types), `config`, `version` | Backend | In review | Packages `ids`, `errs`, `secret`, `scope`, `log`, `config`, `version` with tests. `make pincheck lint build test test-integration tidy-check` passed; `FuzzParse` 20 s, ~694k execs, no failures; TypeID vectors checked against an independent encoder; awaiting independent review |
 | B0 | T0.4 | `platform/db`: pgx pool, tenant-bound transactions with RLS, migrations runner, keyset pagination; `testkit` PostgreSQL template databases | Database | Not started | — |
 | B0 | T0.5 | `platform/crypto` and `kms`: approved algorithms, envelope encryption, local and OpenBao KMS, per-tenant KEK, crypto-shredding | Security | Not started | — |
 | B0 | T0.6 | `platform/bus`: NATS JetStream with embedded server | Backend | Not started | — |
