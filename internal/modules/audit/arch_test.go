@@ -13,10 +13,13 @@ import (
 
 // writePathAllowlist lists the package trees that may open transactions or
 // hold a pgx.Tx: the audit module (audit.Tx is the only write path), the
-// outbox relay, the database layer and the key store (which works inside a
-// caller's audited transaction).
+// outbox relay, the database layer, the key store (which works inside a
+// caller's audited transaction) and the tenancy repository, which opens
+// read-only platform transactions (db.ReadOnly) for host resolution and
+// lookups before any tenant is known; its writes take an audit.Tx.
 var writePathAllowlist = []string{
 	"internal/modules/audit",
+	"internal/modules/tenancy/internal/adapters/postgres",
 	"internal/platform/outbox",
 	"internal/platform/db",
 	"internal/platform/keystore",
