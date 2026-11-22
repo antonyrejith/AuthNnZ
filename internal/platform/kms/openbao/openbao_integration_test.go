@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -84,7 +85,7 @@ func run(m *testing.M) int {
 	for _, mount := range []struct {
 		path   string
 		config bool
-	}{{"transit", true}, {"portun/transit", true}, {"upsert", false}} {
+	}{{"transit", true}, {"portun/transit", true}, {"upsert", false}, {"flip", true}} {
 		if err := setupMount(ctx, mount.path, mount.config); err != nil {
 			fmt.Fprintln(os.Stderr, "set up transit mount:", err)
 			return 1
@@ -189,7 +190,7 @@ func TestDestroyedAcrossInstances(t *testing.T) {
 // TestRefusesUpsertMount checks Encrypt fails closed on a mount that would
 // silently create missing keys.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestRefusesUpsertMount(t *testing.T) {
 	t.Parallel()
 	k := newKMS(t, "upsert")
@@ -205,10 +206,80 @@ func TestRefusesUpsertMount(t *testing.T) {
 	}
 }
 
+// TestConcurrentCreateKey proves that of several concurrent CreateKey calls
+// for one name exactly one succeeds and the others get CodeConflict, for the
+// same and for different purposes.
+//
+// Covers: SEC-08
+func TestConcurrentCreateKey(t *testing.T) {
+	t.Parallel()
+	for _, mixed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("mixed purposes %v", mixed), func(t *testing.T) {
+			t.Parallel()
+			name := kmstest.UniqueName(t, "c")
+			const callers = 8
+			results := make(chan error, callers)
+			var start sync.WaitGroup
+			start.Add(1)
+			for i := range callers {
+				purpose := kms.PurposeEncrypt
+				if mixed && i%2 == 1 {
+					purpose = kms.PurposeSign
+				}
+				go func() {
+					start.Wait()
+					_, err := newKMS(t, "transit").CreateKey(context.Background(), name, purpose)
+					results <- err
+				}()
+			}
+			start.Done()
+			won := 0
+			for range callers {
+				switch err := <-results; {
+				case err == nil:
+					won++
+				case errs.CodeOf(err) != errs.CodeConflict:
+					t.Errorf("CreateKey: %v, want success or conflict", err)
+				}
+			}
+			if won != 1 {
+				t.Fatalf("%d callers created the key, want exactly 1", won)
+			}
+		})
+	}
+}
+
+// TestEncryptNoticesUpsertEnabledAtRuntime proves that a mount reconfigured
+// to allow upsert after startup is refused on the next key-cache miss.
+//
+// Covers: SEC-08
+func TestEncryptNoticesUpsertEnabledAtRuntime(t *testing.T) {
+	t.Parallel()
+	k := newKMS(t, "flip")
+	a, err := k.CreateKey(t.Context(), kmstest.UniqueName(t, "a"), kms.PurposeEncrypt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := k.Encrypt(t.Context(), a, []byte("x"), nil); err != nil {
+		t.Fatal(err)
+	}
+	b, err := newKMS(t, "flip").CreateKey(t.Context(), kmstest.UniqueName(t, "b"), kms.PurposeEncrypt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := admin(t.Context(), "flip/config/keys", map[string]any{"disable_upsert": false}); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = admin(context.Background(), "flip/config/keys", map[string]any{"disable_upsert": true}) })
+	if _, err := k.Encrypt(t.Context(), b, []byte("x"), nil); errs.CodeOf(err) != errs.CodeInternal || !strings.Contains(err.Error(), "disable_upsert") {
+		t.Fatalf("Encrypt after upsert was enabled: %v, want refusal", err)
+	}
+}
+
 // TestWrongToken checks a bad token maps to permission denied and is never
 // echoed.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestWrongToken(t *testing.T) {
 	t.Parallel()
 	const bad = "s.not-the-token-0123456789"

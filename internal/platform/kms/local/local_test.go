@@ -59,7 +59,7 @@ func TestContractFile(t *testing.T) {
 // TestFilePermissions checks the key file and its directory are private and
 // that Open refuses files other users can read.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestFilePermissions(t *testing.T) {
 	t.Parallel()
 	dir := filepath.Join(t.TempDir(), "kms")
@@ -243,7 +243,7 @@ func TestNewFromConfig(t *testing.T) {
 
 // TestFormatRedacts checks no fmt verb prints the master key.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestFormatRedacts(t *testing.T) {
 	t.Parallel()
 	k, err := local.NewMemory()

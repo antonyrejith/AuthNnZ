@@ -33,7 +33,11 @@ const (
 // EnsureRoles creates the application role (portun_app: LOGIN, NOSUPERUSER,
 // NOBYPASSRLS) and the platform role (portun_platform: LOGIN, NOSUPERUSER,
 // BYPASSRLS) if they are missing. Roles that exist are reset to exactly these
-// attributes and the given passwords, so the call is idempotent and always
+// attributes and the given passwords; their role-level settings are removed
+// (ALTER ROLE ... RESET ALL, also for every database-specific setting, so no
+// role or database default such as app.tenant_id survives); and every
+// membership they hold in another role is revoked (so they cannot inherit or
+// SET ROLE to a more privileged role). The call is idempotent and always
 // leaves the roles in the secure state. It is for development and test
 // bootstrap; production roles are provisioned by the deployment.
 //
@@ -86,11 +90,51 @@ func ensureRoles(ctx context.Context, ownerURL secret.String, specs []roleSpec) 
 			if _, err := tx.Exec(ctx, statements[i](exists)); err != nil {
 				return wrap(err, "migrate: create or alter role "+quote(s.name))
 			}
+			if err := resetRole(ctx, tx, s.name); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
 	if err != nil {
 		return wrap(err, "migrate: ensure roles")
+	}
+	return nil
+}
+
+// resetRoleQuery lists the statements that remove the role-level settings
+// and the memberships of role $1. Identifiers are quoted with quote_ident.
+const resetRoleQuery = `
+SELECT 'ALTER ROLE ' || quote_ident($1) || ' IN DATABASE ' || quote_ident(d.datname) || ' RESET ALL'
+FROM pg_db_role_setting s
+JOIN pg_database d ON d.oid = s.setdatabase
+WHERE s.setrole = (SELECT oid FROM pg_roles WHERE rolname = $1)
+UNION ALL
+SELECT 'REVOKE ' || quote_ident(g.rolname) || ' FROM ' || quote_ident($1) || ' GRANTED BY ' || quote_ident(gr.rolname)
+FROM pg_auth_members m
+JOIN pg_roles g ON g.oid = m.roleid
+JOIN pg_roles gr ON gr.oid = m.grantor
+WHERE m.member = (SELECT oid FROM pg_roles WHERE rolname = $1)`
+
+// resetRole removes every setting of the role (for all databases and for
+// each database) and revokes every membership it holds.
+func resetRole(ctx context.Context, tx pgx.Tx, name string) error {
+	ident := pgx.Identifier{name}.Sanitize()
+	if _, err := tx.Exec(ctx, "ALTER ROLE "+ident+" RESET ALL"); err != nil {
+		return wrap(err, "migrate: reset the settings of role "+quote(name))
+	}
+	rows, err := tx.Query(ctx, resetRoleQuery, name)
+	if err != nil {
+		return wrap(err, "migrate: list the settings and memberships of role "+quote(name))
+	}
+	stmts, err := pgx.CollectRows(rows, pgx.RowTo[string])
+	if err != nil {
+		return wrap(err, "migrate: list the settings and memberships of role "+quote(name))
+	}
+	for _, stmt := range stmts {
+		if _, err := tx.Exec(ctx, stmt); err != nil {
+			return wrap(err, "migrate: reset role "+quote(name))
+		}
 	}
 	return nil
 }

@@ -44,6 +44,7 @@ const (
 	DefaultServiceName    = "portun"
 	DefaultExportTimeout  = 10 * time.Second
 	DefaultMetricInterval = 60 * time.Second
+	DefaultSamplingRatio  = 1.0
 )
 
 // Config configures telemetry. It can be loaded with package config.
@@ -62,7 +63,13 @@ type Config struct {
 	Insecure bool `env:"OTLP_INSECURE" default:"false"`
 	// SamplingRatio is the share of new traces that are sampled, in [0, 1].
 	// Sampling is parent-based: a sampled parent's decision is followed.
+	// Zero means the default, DefaultSamplingRatio (1.0), so that a Config
+	// built in code samples like a loaded one; to sample no new traces, set
+	// SamplingDisabled.
 	SamplingRatio float64 `env:"SAMPLING_RATIO" default:"1"`
+	// SamplingDisabled samples no new traces (ratio 0), whatever
+	// SamplingRatio says. Span contexts stay valid for log correlation.
+	SamplingDisabled bool `env:"SAMPLING_DISABLED" default:"false"`
 	// ExportTimeout bounds each export.
 	ExportTimeout time.Duration `env:"EXPORT_TIMEOUT" default:"10s"`
 	// MetricInterval is the metric export interval.
@@ -138,6 +145,12 @@ func (c Config) validate() (Config, *endpoint, error) {
 	}
 	if c.SamplingRatio < 0 || c.SamplingRatio > 1 || c.SamplingRatio != c.SamplingRatio {
 		return c, nil, errs.New(errs.CodeInvalidRequest, "telemetry sampling ratio must be between 0 and 1")
+	}
+	switch {
+	case c.SamplingDisabled:
+		c.SamplingRatio = 0
+	case c.SamplingRatio == 0:
+		c.SamplingRatio = DefaultSamplingRatio
 	}
 	if c.ServiceInstanceID == "" {
 		c.ServiceInstanceID = uuid.NewString()

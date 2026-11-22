@@ -9,11 +9,14 @@
 // ordered per subject (see Ordering).
 //
 // With an empty Config.URL, Connect starts an embedded server (all-in-one
-// binary, tests) and connects to it in process.
+// binary, tests) and connects to it in process; that server opens no TCP
+// listener. Connections to external servers require TLS unless
+// Config.AllowInsecure is set.
 package bus
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"log/slog"
 	"strings"
@@ -42,9 +45,16 @@ type Config struct {
 	// Credentials authenticate to an external server: the contents of a NATS
 	// .creds file (user JWT and seed) or a token. Optional.
 	Credentials secret.String `env:"CREDS"`
-	// TLSCAFile is a PEM file with the CAs trusted for tls:// servers
-	// (empty: the system roots).
+	// TLSCAFile is a PEM file with the CAs trusted for the servers (empty:
+	// the system roots). Setting it requires TLS for every server.
 	TLSCAFile string `env:"TLS_CA_FILE"`
+	// TLS, if set, requires TLS with this client configuration (code only).
+	TLS *tls.Config
+	// AllowInsecure permits plaintext connections to external servers. By
+	// default every URL must use TLS: a tls:// (or wss://) URL, a TLSCAFile
+	// or a TLS configuration. Credentials and audit records would otherwise
+	// cross the network in clear text. Use it only for local development.
+	AllowInsecure bool `env:"ALLOW_INSECURE"`
 	// Replicas is the stream replication factor (1 for the embedded server).
 	Replicas int `env:"REPLICAS" default:"1"`
 	// ConnectTimeout bounds each connection attempt.
@@ -105,7 +115,21 @@ func (c Config) validate() error {
 	case c.ConnectTimeout < 0 || c.RequestTimeout < 0 || c.ReconnectWait < 0 || c.DrainTimeout < 0 || c.DuplicateWindow < 0:
 		return errs.New(errs.CodeInvalidRequest, "bus: durations must not be negative")
 	}
+	if c.URL != "" && !c.AllowInsecure && c.TLSCAFile == "" && c.TLS == nil {
+		for u := range strings.SplitSeq(c.URL, ",") {
+			if !secureURL(u) {
+				return errs.New(errs.CodeInvalidRequest,
+					"bus: server URLs must use TLS (tls:// URL, TLS CA file or TLS configuration) unless insecure connections are allowed explicitly")
+			}
+		}
+	}
 	return nil
+}
+
+// secureURL reports whether a NATS server URL requires TLS by its scheme.
+func secureURL(u string) bool {
+	u = strings.ToLower(strings.TrimSpace(u))
+	return strings.HasPrefix(u, "tls://") || strings.HasPrefix(u, "wss://")
 }
 
 func orDuration(d, def time.Duration) time.Duration {
@@ -143,7 +167,9 @@ func Connect(ctx context.Context, cfg Config, logger *slog.Logger) (*Bus, error)
 
 	opts := b.options()
 	if cfg.URL == "" {
-		emb, err := StartEmbedded(ctx, cfg.Embedded, logger)
+		// The Bus connects in process, so the owned server opens no TCP
+		// listener at all.
+		emb, err := startEmbedded(ctx, cfg.Embedded, logger, true)
 		if err != nil {
 			return nil, err
 		}
@@ -202,6 +228,9 @@ func (b *Bus) options() []nats.Option {
 // authOptions turns the configured credentials into connection options.
 func authOptions(cfg Config) ([]nats.Option, error) {
 	var opts []nats.Option
+	if cfg.TLS != nil {
+		opts = append(opts, nats.Secure(cfg.TLS.Clone()))
+	}
 	if cfg.TLSCAFile != "" {
 		opts = append(opts, nats.RootCAs(cfg.TLSCAFile))
 	}

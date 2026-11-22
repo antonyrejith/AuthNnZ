@@ -27,7 +27,7 @@ func config(addr string) openbao.Config {
 
 // TestConfigValidation checks insecure or malformed settings are refused.
 //
-// Covers: SEC-09
+// Covers: SEC-08, SEC-09
 func TestConfigValidation(t *testing.T) {
 	t.Parallel()
 	good := config("http://127.0.0.1:8200")
@@ -80,7 +80,7 @@ func TestConfigValidation(t *testing.T) {
 // TestStatusMapping checks HTTP failures map to errs codes and never echo the
 // token.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestStatusMapping(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
@@ -129,7 +129,7 @@ func TestStatusMapping(t *testing.T) {
 // TestNoRedirects checks the client does not follow redirects, so the token
 // is never sent to another host.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestNoRedirects(t *testing.T) {
 	t.Parallel()
 	var leaked atomic.Bool
@@ -224,7 +224,7 @@ func TestTLS(t *testing.T) {
 // TestCheckRequiresDisableUpsert checks Check fails closed when the mount
 // allows upsert.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestCheckRequiresDisableUpsert(t *testing.T) {
 	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -242,7 +242,7 @@ func TestCheckRequiresDisableUpsert(t *testing.T) {
 
 // TestFormatRedacts checks no fmt verb prints the token.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestFormatRedacts(t *testing.T) {
 	t.Parallel()
 	k, err := openbao.New(config("http://127.0.0.1:1"))

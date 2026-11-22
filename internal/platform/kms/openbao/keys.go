@@ -164,28 +164,35 @@ func (k *KMS) parseRef(ctx context.Context, ref kms.KeyRef) (string, error) {
 
 // use resolves ref to the name of an existing key with the wanted purpose.
 func (k *KMS) use(ctx context.Context, ref kms.KeyRef, want kms.Purpose) (string, error) {
+	name, _, err := k.useCached(ctx, ref, want)
+	return name, err
+}
+
+// useCached is use that also reports whether the key's purpose came from the
+// cache (false: it was read from OpenBao).
+func (k *KMS) useCached(ctx context.Context, ref kms.KeyRef, want kms.Purpose) (string, bool, error) {
 	name, err := k.parseRef(ctx, ref)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
-	have, ok := k.purposes.Load(name)
-	if !ok {
+	have, cached := k.purposes.Load(name)
+	if !cached {
 		data, err := k.readKey(ctx, ref, name)
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
 		p := purposeOf(data.Type)
 		if !p.Valid() {
-			return "", errs.New(errs.CodeInvalidRequest, "OpenBao key type "+data.Type+" is not supported")
+			return "", false, errs.New(errs.CodeInvalidRequest, "OpenBao key type "+data.Type+" is not supported")
 		}
 		k.purposes.Store(name, p)
 		have = p
 	}
 	if have != want {
 		p, _ := have.(kms.Purpose)
-		return "", wrap(kms.PurposeError(ref, p, want))
+		return "", false, wrap(kms.PurposeError(ref, p, want))
 	}
-	return name, nil
+	return name, cached, nil
 }
 
 // readKey reads a key's metadata. A missing key is reported as destroyed if

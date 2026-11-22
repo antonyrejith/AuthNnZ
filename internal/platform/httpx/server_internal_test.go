@@ -34,13 +34,20 @@ func TestServerSecureDefaults(t *testing.T) {
 			if hs.ReadHeaderTimeout != DefaultReadHeaderTimeout || hs.MaxHeaderBytes != DefaultMaxHeaderBytes || s.cfg.ShutdownTimeout != DefaultShutdownTimeout {
 				t.Fatalf("defaults not applied: %+v", hs)
 			}
+			// TLS 1.3 is the minimum unless 1.2 is configured explicitly.
+			s.cfg.TLS = &tls.Config{}
+			tc, err := s.cfg.tlsConfig()
+			if err != nil || tc.MinVersion != tls.VersionTLS13 {
+				t.Fatalf("default TLS minimum = %x (err %v), want TLS 1.3", tc.MinVersion, err)
+			}
 		})
 	}
 }
 
-// TestServerTLSConfig checks the TLS minimum version rules.
+// TestServerTLSConfig checks the TLS minimum version rules: TLS 1.3 by
+// default, TLS 1.2 only when configured.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestServerTLSConfig(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -51,6 +58,9 @@ func TestServerTLSConfig(t *testing.T) {
 		wantErr bool
 	}{
 		{"off", ServerConfig{TLSMinVersion: "1.2"}, 0, true, false},
+		{"default is tls13", ServerConfig{}.withDefaults(), 0, true, false},
+		{"default raises tls12 config", ServerConfig{TLS: &tls.Config{MinVersion: tls.VersionTLS12}}.withDefaults(), tls.VersionTLS13, false, false},
+		{"default cert files", ServerConfig{TLSCertFile: "c.pem", TLSKeyFile: "k.pem"}.withDefaults(), tls.VersionTLS13, false, false},
 		{"raises weak min", ServerConfig{TLSMinVersion: "1.2", TLS: &tls.Config{MinVersion: tls.VersionTLS10}}, tls.VersionTLS12, false, false},
 		{"tls13 only", ServerConfig{TLSMinVersion: "1.3", TLS: &tls.Config{}}, tls.VersionTLS13, false, false},
 		{"cert files", ServerConfig{TLSMinVersion: "1.2", TLSCertFile: "c.pem", TLSKeyFile: "k.pem"}, tls.VersionTLS12, false, false},

@@ -173,6 +173,49 @@ func TestClientIP(t *testing.T) {
 	if p, _ := httpx.ParsePrefixes([]string{"10.1.2.3/8"}); p[0] != netip.MustParsePrefix("10.0.0.0/8") {
 		t.Fatalf("prefix not masked: %v", p)
 	}
+	if p, _ := httpx.ParsePrefixes([]string{"::ffff:10.0.0.0/104"}); p[0] != netip.MustParsePrefix("10.0.0.0/8") {
+		t.Fatalf("mapped prefix not unmapped: %v", p)
+	}
+}
+
+// TestClientIPMappedTrustedPrefix proves that an IPv4-mapped trusted prefix
+// (::ffff:10.0.0.0/104), from configuration or set in code, trusts the IPv4
+// proxies it denotes, whether the peer address arrives mapped or not.
+//
+// Covers: SEC-09
+func TestClientIPMappedTrustedPrefix(t *testing.T) {
+	t.Parallel()
+	parsed, err := httpx.ParsePrefixes([]string{"::ffff:10.0.0.0/104"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name    string
+		proxies []netip.Prefix
+		remote  string
+	}{
+		{"parsed, ipv4 peer", parsed, "10.1.2.3:1000"},
+		{"parsed, mapped peer", parsed, "[::ffff:10.1.2.3]:1000"},
+		{"in code, ipv4 peer", []netip.Prefix{netip.MustParsePrefix("::ffff:10.0.0.0/104")}, "10.1.2.3:1000"},
+		{"in code, mapped peer", []netip.Prefix{netip.MustParsePrefix("::ffff:10.0.0.0/104")}, "[::ffff:10.1.2.3]:1000"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var got string
+			h := httpx.RequestID(httpx.RequestIDConfig{TrustedProxies: tt.proxies})(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+				req, _ := scope.RequestFrom(r.Context())
+				got = req.IP
+			}))
+			r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/", nil)
+			r.RemoteAddr = tt.remote
+			r.Header.Set("X-Forwarded-For", "198.51.100.20, 10.9.9.9")
+			serve(h, r)
+			if got != "198.51.100.20" {
+				t.Fatalf("client ip = %q, want the forwarded client 198.51.100.20", got)
+			}
+		})
+	}
 }
 
 // TestAccessLog checks the record keys and that query strings and

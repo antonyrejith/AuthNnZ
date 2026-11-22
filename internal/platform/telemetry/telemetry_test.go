@@ -51,6 +51,38 @@ func TestSetupWithoutEndpoint(t *testing.T) {
 	}
 }
 
+// TestSamplingDefault checks that a Config built in code without a sampling
+// ratio samples every new trace, like a loaded one, and that only
+// SamplingDisabled turns sampling off.
+func TestSamplingDefault(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		cfg     telemetry.Config
+		sampled bool
+	}{
+		{"zero config", telemetry.Config{}, true},
+		{"explicit ratio", telemetry.Config{SamplingRatio: 1}, true},
+		{"disabled", telemetry.Config{SamplingDisabled: true}, false},
+		{"disabled wins over ratio", telemetry.Config{SamplingDisabled: true, SamplingRatio: 1}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tel, err := telemetry.Setup(t.Context(), tt.cfg, discard())
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() { _ = tel.Shutdown(context.Background()) }()
+			_, span := tel.TracerProvider().Tracer("test").Start(t.Context(), "op")
+			defer span.End()
+			if got := span.SpanContext().IsSampled(); got != tt.sampled {
+				t.Fatalf("sampled = %v, want %v", got, tt.sampled)
+			}
+		})
+	}
+}
+
 func TestConfigValidation(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

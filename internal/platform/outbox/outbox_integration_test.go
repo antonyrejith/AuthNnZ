@@ -220,7 +220,7 @@ func (n *natsEnv) start(t *testing.T) {
 
 func (n *natsEnv) connect(t *testing.T) *bus.Bus {
 	t.Helper()
-	b, err := bus.Connect(t.Context(), bus.Config{URL: n.srv.ClientURL(), Credentials: n.srv.Token(), ReconnectWait: 50 * time.Millisecond}, nil)
+	b, err := bus.Connect(t.Context(), bus.Config{URL: n.srv.ClientURL(), AllowInsecure: true, Credentials: n.srv.Token(), ReconnectWait: 50 * time.Millisecond}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -24,6 +24,8 @@ const (
 	DefaultIdleTimeout       = 120 * time.Second
 	DefaultMaxHeaderBytes    = 64 << 10
 	DefaultShutdownTimeout   = 25 * time.Second
+	// DefaultTLSMinVersion is the minimum TLS version unless configured.
+	DefaultTLSMinVersion = "1.3"
 )
 
 // ServerConfig configures a Server. It can be loaded with package config;
@@ -39,9 +41,10 @@ type ServerConfig struct {
 	// TLSCertFile and TLSKeyFile enable TLS from PEM files.
 	TLSCertFile string `env:"TLS_CERT_FILE"`
 	TLSKeyFile  string `env:"TLS_KEY_FILE"`
-	// TLSMinVersion is "1.2" (default) or "1.3". Go negotiates TLS 1.3
-	// whenever the client supports it.
-	TLSMinVersion string `env:"TLS_MIN_VERSION" default:"1.2"`
+	// TLSMinVersion is "1.3" (default, SEC-08) or "1.2". TLS 1.2 is
+	// accepted only when configured explicitly, for clients that cannot
+	// speak TLS 1.3.
+	TLSMinVersion string `env:"TLS_MIN_VERSION" default:"1.3"`
 	// TLS, if set, enables TLS with this configuration (certificates or
 	// GetCertificate). Its MinVersion is raised to TLSMinVersion.
 	TLS *tls.Config
@@ -60,7 +63,7 @@ func (c ServerConfig) withDefaults() ServerConfig {
 		c.MaxHeaderBytes = DefaultMaxHeaderBytes
 	}
 	if c.TLSMinVersion == "" {
-		c.TLSMinVersion = "1.2"
+		c.TLSMinVersion = DefaultTLSMinVersion
 	}
 	return c
 }

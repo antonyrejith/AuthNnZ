@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -30,7 +31,7 @@ type instrumented struct {
 	reader  *sdkmetric.ManualReader
 }
 
-func newInstrumented(t *testing.T, public bool) instrumented {
+func newInstrumented(t *testing.T, trusted bool) instrumented {
 	t.Helper()
 	spans := tracetest.NewSpanRecorder()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))
@@ -38,8 +39,8 @@ func newInstrumented(t *testing.T, public bool) instrumented {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 	inst, err := httpx.Instrument(httpx.InstrumentConfig{
 		TracerProvider: tp, MeterProvider: mp,
-		Propagator:     propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}),
-		PublicEndpoint: public,
+		Propagator:               propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}),
+		TrustInboundTraceContext: trusted,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -48,6 +49,9 @@ func newInstrumented(t *testing.T, public bool) instrumented {
 	rt := httpx.NewRouter()
 	rt.HandleFunc("GET /v1/things/{id}", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(trace.SpanContextFromContext(r.Context()).TraceID().String()))
+	})
+	rt.HandleFunc("GET /v1/baggage", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(baggage.FromContext(r.Context()).String()))
 	})
 	rt.HandleFunc("GET /v1/fail", func(http.ResponseWriter, *http.Request) { panic("boom") })
 	return instrumented{
@@ -66,10 +70,11 @@ func attrsOf(kvs []attribute.KeyValue) map[string]attribute.Value {
 }
 
 // TestInstrument checks the server span (named by route, parented by the
-// inbound traceparent) and the RED metrics with the route attribute.
+// inbound traceparent when inbound trace context is trusted) and the RED
+// metrics with the route attribute.
 func TestInstrument(t *testing.T) {
 	t.Parallel()
-	in := newInstrumented(t, false)
+	in := newInstrumented(t, true)
 	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/things/123?secret=x", nil)
 	r.Header.Set("Traceparent", traceparent)
 	rec := serve(in.handler, r)
@@ -148,22 +153,45 @@ func TestInstrument(t *testing.T) {
 	}
 }
 
-// TestInstrumentPublicEndpoint checks that a public endpoint starts a new
-// trace and links the caller's context instead of adopting it.
+// TestInstrumentUntrustedTraceContext checks the default: inbound trace
+// context is untrusted, so each request starts a new trace that links the
+// caller's context, and inbound baggage does not reach the handler. With
+// TrustInboundTraceContext the trace and baggage are adopted.
 //
 // Covers: SEC-09
-func TestInstrumentPublicEndpoint(t *testing.T) {
+func TestInstrumentUntrustedTraceContext(t *testing.T) {
 	t.Parallel()
-	in := newInstrumented(t, true)
-	r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/things/1", nil)
-	r.Header.Set("Traceparent", traceparent)
-	serve(in.handler, r)
-	s := in.spans.Ended()[0]
-	if s.SpanContext().TraceID().String() == inboundTraceID || s.Parent().IsValid() {
-		t.Fatal("public endpoint adopted the inbound trace")
+	tests := []struct {
+		name    string
+		trusted bool
+	}{
+		{"default untrusted", false},
+		{"trusted", true},
 	}
-	if len(s.Links()) != 1 || s.Links()[0].SpanContext.TraceID().String() != inboundTraceID {
-		t.Fatalf("links = %v", s.Links())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			in := newInstrumented(t, tt.trusted)
+			r := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/baggage", nil)
+			r.Header.Set("Traceparent", traceparent)
+			r.Header.Set("Baggage", "tenant=evil")
+			rec := serve(in.handler, r)
+			s := in.spans.Ended()[0]
+			adopted := s.SpanContext().TraceID().String() == inboundTraceID && s.Parent().IsRemote()
+			if adopted != tt.trusted {
+				t.Fatalf("adopted the inbound trace = %v, want %v", adopted, tt.trusted)
+			}
+			if gotBaggage := rec.Body.String() != ""; gotBaggage != tt.trusted {
+				t.Fatalf("handler baggage = %q, trusted %v", rec.Body.String(), tt.trusted)
+			}
+			if !tt.trusted && (len(s.Links()) != 1 || s.Links()[0].SpanContext.TraceID().String() != inboundTraceID) {
+				t.Fatalf("links = %v, want the caller's span context", s.Links())
+			}
+		})
+	}
+	// The zero config is untrusted.
+	if (httpx.InstrumentConfig{}).TrustInboundTraceContext {
+		t.Fatal("inbound trace context must be untrusted by default")
 	}
 }
 

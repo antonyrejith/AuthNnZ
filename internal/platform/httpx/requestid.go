@@ -42,7 +42,7 @@ type RequestIDConfig struct {
 func RequestID(cfg RequestIDConfig) Middleware {
 	proxies := make([]netip.Prefix, 0, len(cfg.TrustedProxies))
 	for _, p := range cfg.TrustedProxies {
-		proxies = append(proxies, p.Masked())
+		proxies = append(proxies, unmapPrefix(p))
 	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func ParsePrefixes(values []string) ([]netip.Prefix, error) {
 	for _, v := range values {
 		v = strings.TrimSpace(v)
 		if p, err := netip.ParsePrefix(v); err == nil {
-			out = append(out, p.Masked())
+			out = append(out, unmapPrefix(p))
 			continue
 		}
 		a, err := netip.ParseAddr(v)
@@ -95,6 +95,19 @@ func ParsePrefixes(values []string) ([]netip.Prefix, error) {
 		out = append(out, netip.PrefixFrom(a, a.BitLen()))
 	}
 	return out, nil
+}
+
+// unmapPrefix masks p and turns an IPv4-mapped IPv6 prefix
+// (::ffff:a.b.c.d/n with n >= 96) into the IPv4 prefix a.b.c.d/(n-96).
+// Peer and forwarded addresses are unmapped before matching, so a mapped
+// prefix would otherwise never match and the proxy would not be trusted.
+// A prefix shorter than /96 that starts in the mapped range is left as is.
+func unmapPrefix(p netip.Prefix) netip.Prefix {
+	a := p.Addr()
+	if a.Is4In6() && p.Bits() >= 96 {
+		return netip.PrefixFrom(a.Unmap(), p.Bits()-96).Masked()
+	}
+	return p.Masked()
 }
 
 func safeRequestID(s string) bool {

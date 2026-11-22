@@ -665,7 +665,7 @@ func embeddedBus(t *testing.T) (*bus.Bus, jetstream.JetStream) {
 		t.Fatal(err)
 	}
 	t.Cleanup(srv.Shutdown)
-	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
+	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), AllowInsecure: true, Credentials: srv.Token()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

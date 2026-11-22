@@ -4,6 +4,7 @@ package bus_test
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"sync"
@@ -67,8 +68,8 @@ func TestRedeliveryAfterHandlerError(t *testing.T) {
 	}
 }
 
-// TestPoisonAndMaxDeliver checks that CodeInvalidRequest terminates a message
-// at once, that MaxDeliver terminates a message that keeps failing, and that
+// TestPoisonAndMaxDeliver checks that ErrPoison terminates a message at
+// once, that CodeInvalidRequest does not (it is retried), that MaxDeliver terminates a message that keeps failing, and that
 // later messages are processed in both cases.
 func TestPoisonAndMaxDeliver(t *testing.T) {
 	t.Parallel()
@@ -84,7 +85,9 @@ func TestPoisonAndMaxDeliver(t *testing.T) {
 				rec.add(d)
 				switch d.ID {
 				case "poison":
-					return errs.New(errs.CodeInvalidRequest, "undecodable")
+					return fmt.Errorf("decode: %w", bus.ErrPoison)
+				case "invalid":
+					return errs.New(errs.CodeInvalidRequest, "rejected by a dependency")
 				case "failing":
 					return errs.New(errs.CodeInternal, "always fails")
 				default:
@@ -97,12 +100,16 @@ func TestPoisonAndMaxDeliver(t *testing.T) {
 			defer c.Stop()
 			publish(t, b, subject, "poison", nil)
 			publish(t, b, subject, "failing", nil)
+			publish(t, b, subject, "invalid", nil)
 			publish(t, b, subject, "ok", nil)
 			js := rawJS(t, srv)
 			waitFor(t, "all settled", func() bool {
 				info := consumerInfo(t, js, bus.StreamEvents, "poison")
-				return rec.count("ok") == 1 && info.NumAckPending == 0 && info.AckFloor.Stream == 3
+				return rec.count("ok") == 1 && info.NumAckPending == 0 && info.AckFloor.Stream == 4
 			})
+			if n := rec.count("invalid"); n != 3 {
+				t.Errorf("invalid_request message handled %d times; want MaxDeliver=3 (not poison)", n)
+			}
 			if n := rec.count("poison"); n != 1 {
 				t.Errorf("poison message handled %d times; want 1", n)
 			}
@@ -386,7 +393,7 @@ func TestOrderedRewindOnGap(t *testing.T) {
 	t.Parallel()
 	srv := startServer(t, t.TempDir())
 	logs := &logCapture{}
-	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, slog.New(logs))
+	b, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token()}, slog.New(logs))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -488,7 +495,7 @@ func TestCloseDrainsInFlight(t *testing.T) {
 		t.Run(o.name, func(t *testing.T) {
 			t.Parallel()
 			srv := startServer(t, t.TempDir())
-			b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
+			b, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -535,7 +542,7 @@ func TestCloseDrainsInFlight(t *testing.T) {
 func TestCloseDeadlineCancelsHandlers(t *testing.T) {
 	t.Parallel()
 	srv := startServer(t, t.TempDir())
-	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
+	b, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

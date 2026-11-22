@@ -45,13 +45,15 @@ func txOptions(opts []TxOption) pgx.TxOptions {
 	return o
 }
 
-const (
-	setTenantSQL            = `SELECT set_config('` + TenantSetting + `', $1, true)`
-	setTenantEnvironmentSQL = `SELECT set_config('` + TenantSetting + `', $1, true), set_config('` + EnvironmentSetting + `', $2, true)`
-)
+// setScopeSQL binds a transaction to a tenant scope. Both settings are always
+// set transaction-locally: without an environment, app.environment_id is the
+// empty string, so environment-scoped policies fail closed on the uuid cast
+// instead of reading a value left on the connection.
+const setScopeSQL = `SELECT set_config('` + TenantSetting + `', $1, true), set_config('` + EnvironmentSetting + `', $2, true)`
 
 // InTenantTx runs fn in a transaction on the application pool, bound to the
-// tenant (and environment, if any) of the context scope. Row-level security
+// tenant and environment of the context scope (the environment setting is
+// the empty string when the scope has none). Row-level security
 // limits every statement in fn to that tenant's rows. Without a tenant scope
 // it fails with CodeInternal before touching the database.
 //
@@ -64,13 +66,11 @@ func (d *DB) InTenantTx(ctx context.Context, fn func(ctx context.Context, tx pgx
 		return err //nolint:wrapcheck // already an *errs.Error with CodeInternal
 	}
 	bind := func(ctx context.Context, tx pgx.Tx) error {
-		var err error
-		if t.EnvironmentID.IsZero() {
-			_, err = tx.Exec(ctx, setTenantSQL, t.TenantID.UUID().String())
-		} else {
-			_, err = tx.Exec(ctx, setTenantEnvironmentSQL, t.TenantID.UUID().String(), t.EnvironmentID.UUID().String())
+		environment := ""
+		if !t.EnvironmentID.IsZero() {
+			environment = t.EnvironmentID.UUID().String()
 		}
-		if err != nil {
+		if _, err := tx.Exec(ctx, setScopeSQL, t.TenantID.UUID().String(), environment); err != nil {
 			return fmt.Errorf("bind the transaction to the tenant scope: %w", err)
 		}
 		return nil

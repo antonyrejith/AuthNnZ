@@ -50,7 +50,7 @@ func TestEnsureStreams(t *testing.T) {
 func TestEnsureStreamsUpdates(t *testing.T) {
 	t.Parallel()
 	srv, _ := newEnv(t)
-	b2, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token(), EventsMaxAge: time.Hour}, nil)
+	b2, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token(), EventsMaxAge: time.Hour}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestPublishHeadersRoundTrip(t *testing.T) {
 func TestReady(t *testing.T) {
 	t.Parallel()
 	srv := startServer(t, t.TempDir())
-	b, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
+	b, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL(), Credentials: srv.Token()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,6 +172,8 @@ func TestReady(t *testing.T) {
 
 // TestEmbeddedRequiresToken checks the embedded server rejects clients
 // without its token.
+//
+// Covers: SEC-09
 func TestEmbeddedRequiresToken(t *testing.T) {
 	t.Parallel()
 	srv := startServer(t, t.TempDir())
@@ -183,7 +185,7 @@ func TestEmbeddedRequiresToken(t *testing.T) {
 	if !errors.Is(err, nats.ErrAuthorization) {
 		t.Fatalf("connect error = %v; want authorization violation", err)
 	}
-	if _, err := bus.Connect(t.Context(), bus.Config{URL: srv.ClientURL()}, nil); !errs.Is(err, errs.CodeUnavailable) {
+	if _, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv.ClientURL()}, nil); !errs.Is(err, errs.CodeUnavailable) {
 		t.Fatalf("bus.Connect without token = %v; want unavailable", err)
 	}
 }
@@ -211,7 +213,7 @@ func TestEmbeddedPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b1, err := bus.Connect(t.Context(), bus.Config{URL: srv1.ClientURL(), Credentials: srv1.Token()}, nil)
+	b1, err := bus.Connect(t.Context(), bus.Config{AllowInsecure: true, URL: srv1.ClientURL(), Credentials: srv1.Token()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,14 +272,20 @@ func TestEmbeddedPersistence(t *testing.T) {
 }
 
 // TestConnectOwnsEmbeddedServer checks Connect without a URL starts an
-// embedded server, works end to end and shuts the server down on Close,
-// leaving the store reusable.
+// embedded server without a TCP listener (in-process connections only),
+// works end to end and shuts the server down on Close, leaving the store
+// reusable.
+//
+// Covers: SEC-09
 func TestConnectOwnsEmbeddedServer(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	b, err := bus.Connect(t.Context(), bus.Config{Embedded: bus.EmbeddedConfig{StoreDir: dir}}, nil)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !bus.OwnsEmbedded(b) || bus.EmbeddedListens(b) {
+		t.Fatalf("owned embedded server: owned %v, listening %v; want owned without a listener", bus.OwnsEmbedded(b), bus.EmbeddedListens(b))
 	}
 	if err := b.EnsureStreams(t.Context()); err != nil {
 		t.Fatal(err)

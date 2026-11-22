@@ -27,6 +27,9 @@ func key(tb testing.TB) []byte {
 	return k
 }
 
+// TestRandomBytes checks the lengths and limits of random byte requests.
+//
+// Covers: SEC-08
 func TestRandomBytes(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
@@ -55,7 +58,7 @@ func TestRandomBytes(t *testing.T) {
 // TestRandomToken checks tokens are base64url without padding and at least
 // 128 bits.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestRandomToken(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
@@ -158,6 +161,9 @@ func TestSealOpen(t *testing.T) {
 	}
 }
 
+// TestKeyLength checks that keys of the wrong length are refused.
+//
+// Covers: SEC-08
 func TestKeyLength(t *testing.T) {
 	t.Parallel()
 	for _, n := range []int{0, 16, 24, 31, 33, 64} {
@@ -250,6 +256,9 @@ func TestHMAC(t *testing.T) {
 	}
 }
 
+// TestDeriveKey checks key derivation and its input validation.
+//
+// Covers: SEC-08
 func TestDeriveKey(t *testing.T) {
 	t.Parallel()
 	ikm := key(t)
@@ -281,6 +290,8 @@ func TestDeriveKey(t *testing.T) {
 }
 
 // TestDeriveKeyVector checks HKDF-SHA256 against RFC 5869 test case 1.
+//
+// Covers: SEC-08
 func TestDeriveKeyVector(t *testing.T) {
 	t.Parallel()
 	ikm := bytes.Repeat([]byte{0x0b}, 22)
@@ -300,7 +311,7 @@ func TestDeriveKeyVector(t *testing.T) {
 // TestSigningAlgorithms checks the allow-list and rejects none, HMAC and
 // unknown or miscased names.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestSigningAlgorithms(t *testing.T) {
 	t.Parallel()
 	cases := map[string]bool{
@@ -337,7 +348,7 @@ func TestSigningAlgorithms(t *testing.T) {
 // TestCheckSigningKey checks key kinds and sizes per algorithm, including the
 // RSA minimum.
 //
-// Covers: SEC-09
+// Covers: SEC-08
 func TestCheckSigningKey(t *testing.T) {
 	t.Parallel()
 	p256, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

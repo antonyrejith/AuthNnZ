@@ -29,7 +29,7 @@ func encodings(b []byte) map[string][]byte {
 // material appears in the key file in any common encoding, and that destroyed
 // material leaves the file.
 //
-// Covers: SEC-08, SEC-09
+// Covers: SEC-08
 func TestMaterialEncryptedAtRest(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
