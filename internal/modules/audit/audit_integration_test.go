@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	os.Exit(dbtest.Main(m, dbtest.Options{Sets: []migrate.Set{
-		outbox.Migrations(), keystore.Migrations(), {Schema: "audittest", FS: sub},
+		outbox.Migrations(), keystore.Migrations(), {Schema: "audittest", FS: sub}, audit.StoreMigrations(),
 	}}))
 }
 
