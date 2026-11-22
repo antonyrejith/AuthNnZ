@@ -10,6 +10,10 @@ export GOFLAGS := -mod=readonly
 BIN := $(CURDIR)/bin
 GOTEST_FLAGS := -race -shuffle=on -count=1
 
+# Testcontainers v0.45.0 pulls its reaper (Ryuk) by tag only, which D-15
+# forbids; test kits remove their containers themselves (see dbtest).
+INTEGRATION_ENV := TESTCONTAINERS_RYUK_DISABLED=true
+
 .PHONY: help tools pincheck lint fmt vuln tidy-check build test test-integration test-all cover generate
 
 help: ## List targets
@@ -45,12 +49,12 @@ test: ## Unit tests
 	go -C tools test $(GOTEST_FLAGS) ./...
 
 test-integration: ## Integration tests (needs Docker)
-	go test $(GOTEST_FLAGS) -tags integration ./...
+	$(INTEGRATION_ENV) go test $(GOTEST_FLAGS) -tags integration ./...
 
 test-all: test test-integration ## Unit and integration tests
 
 cover: ## Coverage report for unit and integration tests
-	go test -count=1 -tags integration -coverprofile=coverage.out ./...
+	$(INTEGRATION_ENV) go test -count=1 -tags integration -coverprofile=coverage.out ./...
 	go tool cover -func=coverage.out | tail -1
 
 generate: tools ## Regenerate code (sqlc, OpenAPI); CI fails on any diff
