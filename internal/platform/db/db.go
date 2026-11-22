@@ -39,6 +39,7 @@ package db
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -64,12 +65,14 @@ const (
 type DB struct {
 	app      *pgxpool.Pool
 	platform *pgxpool.Pool
+	logger   *slog.Logger
 }
 
 // Open creates both pools, connects, and verifies the roles they connect as
 // (see the package documentation). It fails if either database is
-// unreachable or a role is unsafe. The caller closes the DB.
-func Open(ctx context.Context, cfg Config) (*DB, error) {
+// unreachable or a role is unsafe. The caller closes the DB. logger receives
+// the warnings the DB cannot return (a failed rollback); nil discards them.
+func Open(ctx context.Context, cfg Config, logger *slog.Logger) (*DB, error) {
 	cfg = cfg.withDefaults()
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -91,7 +94,10 @@ func Open(ctx context.Context, cfg Config) (*DB, error) {
 		app.Close()
 		return nil, errs.Wrap(errs.CodeInternal, err, "create the platform connection pool")
 	}
-	d := &DB{app: app, platform: platform}
+	if logger == nil {
+		logger = slog.New(slog.DiscardHandler)
+	}
+	d := &DB{app: app, platform: platform, logger: logger}
 	if err := d.verifyRoles(ctx); err != nil {
 		d.Close()
 		return nil, err

@@ -11,6 +11,11 @@ import (
 	"net/http"
 )
 
+// StatusClientClosedRequest (499) is the de-facto "client closed request"
+// status, recorded for CodeCanceled. The client never sees it (it has gone);
+// it keeps cancellations out of 5xx error rates in logs and metrics.
+const StatusClientClosedRequest = 499
+
 // Code is a stable, machine-readable error code.
 type Code string
 
@@ -21,12 +26,14 @@ const (
 	CodeUnauthenticated    Code = "unauthenticated"     // no valid credentials
 	CodePermissionDenied   Code = "permission_denied"   // authenticated but not allowed
 	CodeNotFound           Code = "not_found"           // missing or not visible to this tenant
+	CodeMethodNotAllowed   Code = "method_not_allowed"  // the resource does not support the method
 	CodeConflict           Code = "conflict"            // state conflict (including already exists)
 	CodePreconditionFailed Code = "precondition_failed" // stale version (If-Match)
 	CodePayloadTooLarge    Code = "payload_too_large"
 	CodeRateLimited        Code = "rate_limited"
 	CodeUnavailable        Code = "unavailable"       // dependency down; retry later
 	CodeDeadlineExceeded   Code = "deadline_exceeded" // operation timed out
+	CodeCanceled           Code = "canceled"          // the client canceled the request (context.Canceled)
 	CodeInternal           Code = "internal"          // unexpected failure
 )
 
@@ -39,12 +46,14 @@ var codeInfo = map[Code]struct { //nolint:gochecknoglobals // immutable lookup t
 	CodeUnauthenticated:    {http.StatusUnauthorized, "Authentication required"},
 	CodePermissionDenied:   {http.StatusForbidden, "Permission denied"},
 	CodeNotFound:           {http.StatusNotFound, "Not found"},
+	CodeMethodNotAllowed:   {http.StatusMethodNotAllowed, "Method not allowed"},
 	CodeConflict:           {http.StatusConflict, "Conflict"},
 	CodePreconditionFailed: {http.StatusPreconditionFailed, "Precondition failed"},
 	CodePayloadTooLarge:    {http.StatusRequestEntityTooLarge, "Payload too large"},
 	CodeRateLimited:        {http.StatusTooManyRequests, "Too many requests"},
 	CodeUnavailable:        {http.StatusServiceUnavailable, "Service unavailable"},
 	CodeDeadlineExceeded:   {http.StatusGatewayTimeout, "Deadline exceeded"},
+	CodeCanceled:           {StatusClientClosedRequest, "Client closed request"},
 	CodeInternal:           {http.StatusInternalServerError, "Internal error"},
 }
 
@@ -104,15 +113,24 @@ func Wrap(code Code, cause error, message string) *Error {
 	return &Error{code: code, message: message, cause: cause}
 }
 
-// WithFields returns a copy of e with field errors attached.
+// WithFields returns a copy of e with field errors attached. On a nil *Error
+// it returns an internal error carrying the fields.
 func (e *Error) WithFields(fields ...FieldError) *Error {
+	if e == nil {
+		e = &Error{code: CodeInternal, message: CodeInternal.Title()}
+	}
 	c := *e
 	c.fields = append(append([]FieldError(nil), e.fields...), fields...)
 	return &c
 }
 
 // Error implements error. It includes the internal cause and is for logs only.
+// A typed-nil *Error (a nil pointer stored in an error interface, which is
+// not a nil error) reports itself as internal; no method panics on it.
 func (e *Error) Error() string {
+	if e == nil {
+		return string(CodeInternal) + ": nil *errs.Error"
+	}
 	if e.cause == nil {
 		return string(e.code) + ": " + e.message
 	}
@@ -120,33 +138,54 @@ func (e *Error) Error() string {
 }
 
 // Unwrap returns the internal cause.
-func (e *Error) Unwrap() error { return e.cause }
+func (e *Error) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.cause
+}
 
-// Code returns the error code.
-func (e *Error) Code() Code { return e.code }
+// Code returns the error code (CodeInternal for a nil *Error).
+func (e *Error) Code() Code {
+	if e == nil {
+		return CodeInternal
+	}
+	return e.code
+}
 
 // Message returns the client-safe message.
-func (e *Error) Message() string { return e.message }
+func (e *Error) Message() string {
+	if e == nil {
+		return CodeInternal.Title()
+	}
+	return e.message
+}
 
 // Fields returns the field errors.
-func (e *Error) Fields() []FieldError { return append([]FieldError(nil), e.fields...) }
+func (e *Error) Fields() []FieldError {
+	if e == nil {
+		return nil
+	}
+	return append([]FieldError(nil), e.fields...)
+}
 
 // CodeOf returns the code of the first *Error in err's chain. Context
-// cancellation and deadlines map to their own codes; anything else unknown is
-// CodeInternal. A nil error has no code ("").
+// cancellation (CodeCanceled) and deadlines map to their own codes; anything
+// else unknown, including a typed-nil *Error, is CodeInternal. A nil error
+// has no code ("").
 func CodeOf(err error) Code {
 	if err == nil {
 		return ""
 	}
 	var e *Error
 	if errors.As(err, &e) {
-		return e.code
+		return e.Code()
 	}
 	switch {
 	case errors.Is(err, context.DeadlineExceeded):
 		return CodeDeadlineExceeded
 	case errors.Is(err, context.Canceled):
-		return CodeUnavailable
+		return CodeCanceled
 	default:
 		return CodeInternal
 	}
@@ -162,7 +201,7 @@ func Is(err error, code Code) bool {
 // internal details never leak.
 func Public(err error) (Code, string, []FieldError) {
 	var e *Error
-	if errors.As(err, &e) {
+	if errors.As(err, &e) && e != nil {
 		return e.code, e.message, e.Fields()
 	}
 	code := CodeOf(err)

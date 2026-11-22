@@ -47,7 +47,7 @@ func TestUpIsIdempotentWithOneVersionTablePerSchema(t *testing.T) {
 	t.Parallel()
 	env := dbtest.New(t)
 	for range 2 {
-		if err := migrate.Up(t.Context(), env.OwnerURL, sets(t)...); err != nil {
+		if err := migrate.Up(t.Context(), nil, env.OwnerURL, sets(t)...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -95,7 +95,7 @@ func TestUpConcurrent(t *testing.T) {
 	ss := sets(t)
 	errc := make(chan error, 4)
 	for range cap(errc) {
-		go func() { errc <- migrate.Up(context.Background(), env.OwnerURL, ss...) }()
+		go func() { errc <- migrate.Up(context.Background(), nil, env.OwnerURL, ss...) }()
 	}
 	for range cap(errc) {
 		if err := <-errc; err != nil {

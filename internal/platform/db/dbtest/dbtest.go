@@ -193,7 +193,7 @@ func (i *instance) prepare(ctx context.Context, opts Options) error {
 		}
 	}
 	if len(opts.Sets) > 0 {
-		if err := migrate.Up(ctx, i.url(OwnerRole, templateName), opts.Sets...); err != nil {
+		if err := migrate.Up(ctx, nil, i.url(OwnerRole, templateName), opts.Sets...); err != nil {
 			return fmt.Errorf("migrate template: %w", err)
 		}
 	}
@@ -270,7 +270,7 @@ func New(tb testing.TB) *Env {
 		AdminURL:    inst.url(adminUser, name),
 		Name:        name,
 	}
-	d, err := db.Open(ctx, db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 4, PlatformMaxConns: 2})
+	d, err := db.Open(ctx, db.Config{AppURL: env.AppURL, PlatformURL: env.PlatformURL, MaxConns: 4, PlatformMaxConns: 2}, nil)
 	if err != nil {
 		tb.Fatalf("dbtest: open database: %v", err)
 	}

@@ -59,7 +59,8 @@ func TestRecover(t *testing.T) {
 		t.Fatalf("server stopped serving: %d", resp.StatusCode)
 	}
 	rec := logs.find(t, "panic serving request")
-	if rec["level"] != "ERROR" || !strings.Contains(rec["stack"].(string), "goroutine") || rec["request_id"] == nil {
+	stack, _ := rec["stack"].(string)
+	if rec["level"] != "ERROR" || !strings.Contains(stack, "goroutine") || rec["request_id"] == nil {
 		t.Fatalf("panic log = %v", rec)
 	}
 }

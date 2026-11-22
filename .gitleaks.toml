@@ -1,0 +1,10 @@
+# Secret scanning (gitleaks, pinned in tools/gitleaks). The default rules
+# apply; only build output and local agent worktrees are skipped.
+title = "portun"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "build output, local tool binaries and agent worktrees"
+paths = ['''^bin/''', '''^dist/''', '''^\.claude/worktrees/''', '''(^|/)coverage\.out$''']

@@ -99,7 +99,7 @@ func logProblem(r *http.Request, p Problem, err error) {
 		ctx = st.enrich(ctx)
 	}
 	level, msg := levelFor(p.Status), "request failed"
-	if errors.Is(err, context.Canceled) && r.Context().Err() != nil {
+	if p.Code == errs.CodeCanceled || (errors.Is(err, context.Canceled) && r.Context().Err() != nil) {
 		// The client went away; this is not a server fault worth an error.
 		level, msg = slog.LevelInfo, "request canceled by client"
 	}

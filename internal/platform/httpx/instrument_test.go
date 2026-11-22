@@ -2,6 +2,7 @@ package httpx_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,6 +51,9 @@ func newInstrumented(t *testing.T, public bool) instrumented {
 		_, _ = w.Write([]byte(trace.SpanContextFromContext(r.Context()).TraceID().String()))
 	})
 	rt.HandleFunc("GET /v1/fail", func(http.ResponseWriter, *http.Request) { panic("boom") })
+	rt.HandleFunc("GET /v1/canceled", func(w http.ResponseWriter, r *http.Request) {
+		httpx.WriteProblem(w, r, fmt.Errorf("query: %w", context.Canceled))
+	})
 	return instrumented{
 		handler: httpx.Chain(rt, httpx.Recover(logger), httpx.RequestID(httpx.RequestIDConfig{}), inst, httpx.AccessLog(logger)),
 		spans:   spans,
@@ -79,9 +83,10 @@ func TestInstrument(t *testing.T) {
 	serve(in.handler, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/things/456", nil))
 	serve(in.handler, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/fail", nil))
 	serve(in.handler, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/unknown/path", nil))
+	serve(in.handler, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/canceled", nil))
 
 	ended := in.spans.Ended()
-	if len(ended) != 4 {
+	if len(ended) != 5 {
 		t.Fatalf("spans = %d", len(ended))
 	}
 	first := ended[0]
@@ -104,6 +109,12 @@ func TestInstrument(t *testing.T) {
 	}
 	if ended[3].Name() != "GET" {
 		t.Fatalf("unmatched span name %q", ended[3].Name())
+	}
+	// A canceled request (499) is not a server error.
+	if c := ended[4]; c.Status().Code == codes.Error || attrsOf(c.Attributes())["http.response.status_code"].AsInt64() != 499 {
+		t.Fatalf("canceled span status %v attrs %v", c.Status(), c.Attributes())
+	} else if _, ok := attrsOf(c.Attributes())["error.type"]; ok {
+		t.Fatalf("canceled span has error.type: %v", c.Attributes())
 	}
 
 	var rm metricdata.ResourceMetrics
@@ -137,7 +148,7 @@ func TestInstrument(t *testing.T) {
 			}
 		}
 	}
-	want := map[string]uint64{"/v1/things/{id} 200": 2, "/v1/fail 500": 1, " 404": 1}
+	want := map[string]uint64{"/v1/things/{id} 200": 2, "/v1/fail 500": 1, " 404": 1, "/v1/canceled 499": 1}
 	for k, v := range want {
 		if counts[k] != v {
 			t.Fatalf("request count %q = %d, want %d (all %v)", k, counts[k], v, counts)

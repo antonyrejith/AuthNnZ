@@ -19,12 +19,14 @@ func TestCodeTable(t *testing.T) {
 		errs.CodeUnauthenticated:    http.StatusUnauthorized,
 		errs.CodePermissionDenied:   http.StatusForbidden,
 		errs.CodeNotFound:           http.StatusNotFound,
+		errs.CodeMethodNotAllowed:   http.StatusMethodNotAllowed,
 		errs.CodeConflict:           http.StatusConflict,
 		errs.CodePreconditionFailed: http.StatusPreconditionFailed,
 		errs.CodePayloadTooLarge:    http.StatusRequestEntityTooLarge,
 		errs.CodeRateLimited:        http.StatusTooManyRequests,
 		errs.CodeUnavailable:        http.StatusServiceUnavailable,
 		errs.CodeDeadlineExceeded:   http.StatusGatewayTimeout,
+		errs.CodeCanceled:           499,
 		errs.CodeInternal:           http.StatusInternalServerError,
 	}
 	if got := len(errs.AllCodes()); got != len(want) {
@@ -61,7 +63,10 @@ func TestCodeOf(t *testing.T) {
 		{"wrapped by fmt", fmt.Errorf("load: %w", errs.New(errs.CodeConflict, "exists")), errs.CodeConflict},
 		{"outermost wins", errs.Wrap(errs.CodeUnavailable, errs.New(errs.CodeNotFound, "x"), "y"), errs.CodeUnavailable},
 		{"deadline", fmt.Errorf("query: %w", context.DeadlineExceeded), errs.CodeDeadlineExceeded},
-		{"canceled", context.Canceled, errs.CodeUnavailable},
+		{"canceled", context.Canceled, errs.CodeCanceled},
+		{"canceled wrapped", fmt.Errorf("query: %w", context.Canceled), errs.CodeCanceled},
+		{"typed nil", error((*errs.Error)(nil)), errs.CodeInternal},
+		{"typed nil wrapped", fmt.Errorf("x: %w", (*errs.Error)(nil)), errs.CodeInternal},
 		{"plain", errors.New("boom"), errs.CodeInternal},
 	}
 	for _, tt := range tests {
@@ -110,5 +115,43 @@ func TestWithFieldsDoesNotMutate(t *testing.T) {
 	got[0].Pointer = "/changed"
 	if a.Fields()[0].Pointer != "/email" {
 		t.Fatal("Fields() must return a copy")
+	}
+}
+
+// TestTypedNil: a nil *Error stored in an error interface never panics and
+// is treated as an internal error (review finding R15).
+func TestTypedNil(t *testing.T) {
+	t.Parallel()
+	var e *errs.Error
+	var err error = e
+	tests := []struct {
+		name string
+		fn   func() string
+	}{
+		{"Error", func() string { return err.Error() }},
+		{"Code", func() string { return string(e.Code()) }},
+		{"Message", func() string { return e.Message() }},
+		{"Fields", func() string { return fmt.Sprint(len(e.Fields())) }},
+		{"Unwrap", func() string { return fmt.Sprint(e.Unwrap()) }},
+		{"WithFields", func() string { return string(e.WithFields(errs.FieldError{Pointer: "/a"}).Code()) }},
+		{"CodeOf", func() string { return string(errs.CodeOf(err)) }},
+		{"Public", func() string {
+			code, msg, _ := errs.Public(fmt.Errorf("wrap: %w", err))
+			return string(code) + " " + msg
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := tt.fn() // must not panic
+			if tt.name == "CodeOf" || tt.name == "Code" || tt.name == "WithFields" {
+				if got != string(errs.CodeInternal) {
+					t.Fatalf("%s = %q, want internal", tt.name, got)
+				}
+			}
+			if tt.name == "Public" && got != "internal Internal error" {
+				t.Fatalf("Public = %q", got)
+			}
+		})
 	}
 }

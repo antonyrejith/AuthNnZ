@@ -13,4 +13,4 @@
 - [ ] Tests at the right levels, with `// Covers:` feature IDs
 - [ ] Audit events for every change; no secrets in logs
 - [ ] API spec, docs and tracker updated
-- [ ] `make pincheck lint test test-integration` pass locally
+- [ ] `make gates` passes locally (pincheck lint build test test-integration tidy-check vuln secrets cover-check), and `make generate-check`

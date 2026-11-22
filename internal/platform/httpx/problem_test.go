@@ -56,6 +56,13 @@ func TestWriteProblemEveryCode(t *testing.T) {
 			if diff := cmp.Diff(want, got); diff != "" {
 				t.Fatalf("problem (-want +got):\n%s", diff)
 			}
+			if code == errs.CodeCanceled {
+				// A canceled request is the client's doing: info, not error.
+				if logged := logs.find(t, "request canceled by client"); logged["level"] != "INFO" {
+					t.Fatalf("canceled must be logged at info: %v", logged)
+				}
+				return
+			}
 			rec5xx := code.HTTPStatus() >= 500
 			logged := logs.find(t, "request failed")
 			if rec5xx && (logged["level"] != "ERROR" || !strings.Contains(fmt.Sprint(logged["error"]), "password")) {

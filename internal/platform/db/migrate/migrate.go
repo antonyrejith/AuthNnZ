@@ -10,7 +10,7 @@
 //	//go:embed migrations/*.sql
 //	var migrations embed.FS
 //	sub, _ := fs.Sub(migrations, "migrations")
-//	err := migrate.Up(ctx, ownerURL, migrate.Set{Schema: "audit", FS: sub})
+//	err := migrate.Up(ctx, logger, ownerURL, migrate.Set{Schema: "audit", FS: sub})
 //
 // Up runs as the owner role, which owns the schemas and tables (never the
 // application or platform role). It holds a PostgreSQL advisory lock for the
@@ -104,8 +104,12 @@ const migrationLockID int64 = 0x706f7274756e6d67
 var identPattern = regexp.MustCompile(`^[a-z_][a-z0-9_]{0,62}$`)
 
 // Up applies every pending migration of sets, in order, connecting with
-// ownerURL. It is idempotent: a second call applies nothing.
-func Up(ctx context.Context, ownerURL secret.String, sets ...Set) error {
+// ownerURL. It is idempotent: a second call applies nothing. Each applied
+// migration is logged to logger (nil discards).
+func Up(ctx context.Context, logger *slog.Logger, ownerURL secret.String, sets ...Set) error {
+	if logger == nil {
+		logger = slog.New(slog.DiscardHandler)
+	}
 	if err := validateSets(sets); err != nil {
 		return err
 	}
@@ -124,7 +128,7 @@ func Up(ctx context.Context, ownerURL secret.String, sets ...Set) error {
 		return wrap(err, "migrate: take the migration lock")
 	}
 	for _, s := range sets {
-		if err := upSet(ctx, cfg, s); err != nil {
+		if err := upSet(ctx, logger, cfg, s); err != nil {
 			return err
 		}
 	}
@@ -153,7 +157,7 @@ func validateSets(sets []Set) error {
 }
 
 // upSet creates the schema if needed and applies its pending migrations.
-func upSet(ctx context.Context, base *pgx.ConnConfig, s Set) error {
+func upSet(ctx context.Context, logger *slog.Logger, base *pgx.ConnConfig, s Set) error {
 	cfg := base.Copy()
 	cfg.RuntimeParams["search_path"] = s.Schema
 	sqlDB := stdlib.OpenDB(*cfg)
@@ -176,7 +180,7 @@ func upSet(ctx context.Context, base *pgx.ConnConfig, s Set) error {
 		return wrap(err, "migrate: apply the migrations of schema "+quote(s.Schema))
 	}
 	for _, r := range results {
-		slog.InfoContext(ctx, "database migration applied",
+		logger.InfoContext(ctx, "database migration applied",
 			slog.String("schema", s.Schema),
 			slog.Int64("version", r.Source.Version),
 			slog.Duration("duration", r.Duration),
@@ -199,10 +203,11 @@ func wrap(err error, msg string) error {
 	return errs.Wrap(errs.CodeInternal, err, msg)
 }
 
+// closeConn closes a connection whose work is done. A failed close needs no
+// action: the server ends the session (and releases its advisory locks) when
+// the connection drops, and the work's own result is already decided.
 func closeConn(ctx context.Context, conn *pgx.Conn) {
-	if err := conn.Close(context.WithoutCancel(ctx)); err != nil {
-		slog.WarnContext(ctx, "migrate: close the database connection", slog.String("error", err.Error()))
-	}
+	_ = conn.Close(context.WithoutCancel(ctx))
 }
 
 func quote(s string) string { return `"` + s + `"` }

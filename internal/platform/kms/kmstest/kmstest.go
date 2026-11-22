@@ -208,7 +208,8 @@ func testSignVerify(t *testing.T, k kms.KMS) {
 	if err != nil {
 		t.Fatalf("PublicKey: %v", err)
 	}
-	if ec, ok := pub1.(*ecdsa.PublicKey); !ok || ec.Curve != elliptic.P256() {
+	ec1, ok := pub1.(*ecdsa.PublicKey)
+	if !ok || ec1.Curve != elliptic.P256() {
 		t.Fatalf("PublicKey is %T, want P-256 *ecdsa.PublicKey", pub1)
 	}
 	if sig1.KeyVersion != 1 {
@@ -217,7 +218,7 @@ func testSignVerify(t *testing.T, k kms.KMS) {
 	if err := kms.Verify(pub1, msg, sig1.DER); err != nil {
 		t.Fatalf("Verify: %v", err)
 	}
-	if !ecdsa.VerifyASN1(pub1.(*ecdsa.PublicKey), kms.Digest(msg), sig1.DER) { //nolint:forcetypeassert // checked above
+	if !ecdsa.VerifyASN1(ec1, kms.Digest(msg), sig1.DER) {
 		t.Fatal("ecdsa.VerifyASN1 over SHA-256(message) failed")
 	}
 	if err := kms.Verify(pub1, []byte("other"), sig1.DER); !errors.Is(err, kms.ErrInvalidSignature) {
@@ -239,7 +240,8 @@ func testSignVerify(t *testing.T, k kms.KMS) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !latest.(*ecdsa.PublicKey).Equal(keys[2]) || !pub1.(*ecdsa.PublicKey).Equal(keys[1]) { //nolint:forcetypeassert // checked above
+	ecLatest, ok := latest.(*ecdsa.PublicKey)
+	if !ok || !ecLatest.Equal(keys[2]) || !ec1.Equal(keys[1]) {
 		t.Fatal("PublicKey must be the latest version and PublicKeys must keep version 1")
 	}
 	if err := kms.Verify(keys[sig1.KeyVersion], msg, sig1.DER); err != nil {

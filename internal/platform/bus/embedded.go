@@ -114,7 +114,7 @@ func StartEmbedded(ctx context.Context, cfg EmbeddedConfig, logger *slog.Logger)
 		ns.WaitForShutdown()
 		return nil, errs.New(errs.CodeUnavailable, "embedded bus: server did not become ready")
 	}
-	logger.Info("embedded nats server started", slog.String("client_url", ns.ClientURL()), slog.String("store_dir", cfg.StoreDir))
+	logger.InfoContext(ctx, "embedded nats server started", slog.String("client_url", ns.ClientURL()), slog.String("store_dir", cfg.StoreDir))
 	return &EmbeddedServer{ns: ns, token: token, logger: logger}, nil
 }
 
