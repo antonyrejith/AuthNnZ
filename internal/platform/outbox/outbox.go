@@ -34,7 +34,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/antonyrejith/portun/internal/platform/bus"
 	"github.com/antonyrejith/portun/internal/platform/db"
@@ -135,13 +135,20 @@ func (m Message) validateConfig() error {
 	return nil
 }
 
+// DBTX is the part of a transaction the outbox needs: Exec. Both pgx.Tx and
+// the audit module's *audit.Tx satisfy it, so a module can insert outbox
+// messages in its audited transaction.
+type DBTX interface {
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+}
+
 const insertSQL = `INSERT INTO outbox.messages (tenant_id, id, stream, subject, payload) VALUES ($1, $2, $3, $4, $5)`
 
 // Insert adds m to the outbox within tx, the transaction of the change it
 // describes. Tenant messages are inserted through db.InTenantTx (row-level
 // security checks the tenant); platform-level messages through
 // db.InPlatformTx.
-func Insert(ctx context.Context, tx pgx.Tx, m Message) error {
+func Insert(ctx context.Context, tx DBTX, m Message) error {
 	if err := m.Validate(); err != nil {
 		return err
 	}
@@ -156,7 +163,7 @@ const deleteSQL = `DELETE FROM outbox.messages WHERE tenant_id = $1 AND id = $2`
 // Delete removes one message, for the audit writer once the event is stored.
 // tx must run as the platform role (db.InPlatformTx). Deleting a message that
 // is already gone succeeds, so the writer stays idempotent.
-func Delete(ctx context.Context, tx pgx.Tx, tenantID ids.TenantID, id uuid.UUID) error {
+func Delete(ctx context.Context, tx DBTX, tenantID ids.TenantID, id uuid.UUID) error {
 	if _, err := tx.Exec(ctx, deleteSQL, tenantID.UUID(), id); err != nil {
 		return mapErr(err)
 	}

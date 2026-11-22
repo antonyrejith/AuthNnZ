@@ -37,7 +37,7 @@ INTEGRATION_ENV := TESTCONTAINERS_RYUK_DISABLED=true
 COVER_MIN := 80
 COVER_STRICT_MIN := 90
 COVER_STRICT := internal/platform/crypto,internal/platform/kms,internal/platform/db,internal/platform/secret
-COVER_EXCLUDE := internal/platform/db/dbtest,internal/platform/kms/kmstest,internal/modules/audit/internal/store/storetest,internal/modules/audit/internal/checkpoint/tsatest,internal/modules/audit/audittest,internal/modules/tenancy/tenancytest
+COVER_EXCLUDE := internal/platform/db/dbtest,internal/platform/kms/kmstest,internal/modules/audit/internal/store/storetest,internal/modules/audit/internal/checkpoint/tsatest,internal/modules/audit/audittest,internal/modules/tenancy/tenancytest,internal/modules/config/configtest
 
 GATES := pincheck lint build test test-integration tidy-check vuln secrets cover-check
 
