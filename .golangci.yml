@@ -1,0 +1,80 @@
+version: "2"
+run:
+  build-tags:
+    - integration
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - contextcheck
+    - depguard
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - gocritic
+    - gosec
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - revive
+    - rowserrcheck
+    - sloglint
+    - sqlclosecheck
+    - tagliatelle
+    - thelper
+    - tparallel
+    - unparam
+    - usestdlibvars
+    - wrapcheck
+  settings:
+    gocognit:
+      min-complexity: 20
+    sloglint:
+      attr-only: true
+      key-naming-case: snake
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Join(
+        - errs.New(
+        - errs.Wrap(
+        - (context.Context).Err()
+    depguard:
+      rules:
+        banned:
+          deny:
+            - pkg: "math/rand$"
+              desc: "use crypto/rand for anything security related, math/rand/v2 otherwise"
+            - pkg: "log$"
+              desc: "use log/slog"
+            - pkg: "github.com/pkg/errors"
+              desc: "use the standard errors package and fmt.Errorf with %w"
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gochecknoglobals
+          - wrapcheck
+          - gocognit
+          - gosec
+          - forbidigo
+      - path: tools/pincheck/
+        linters:
+          - forbidigo
+          - gochecknoglobals
+formatters:
+  enable:
+    - gofumpt
+    - goimports

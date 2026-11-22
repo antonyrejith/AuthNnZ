@@ -1,0 +1,19 @@
+# Build output and local tool binaries
+/bin/
+/dist/
+*.test
+*.out
+coverage.*
+
+# Local environment
+.env
+.env.*
+*.local
+
+# Editors and OS files
+.idea/
+.vscode/
+.DS_Store
+
+# Front-end dependencies
+node_modules/

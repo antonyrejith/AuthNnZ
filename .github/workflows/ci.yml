@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# GitHub-hosted runner images cannot be pinned; every toolchain the jobs use
+# is installed at an exact, checksum-verified version instead (see ADR-0017).
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Go toolchain (pinned by the Makefile)
+        run: make --no-print-directory -s help >/dev/null && GOTOOLCHAIN=go1.27.4 go version
+      - name: Tools
+        run: make tools
+      - name: Pinned versions
+        run: make pincheck
+      - name: Modules tidy
+        run: make tidy-check
+      - name: Lint
+        run: make lint
+      - name: Vulnerabilities
+        run: make vuln
+      - name: Build
+        run: make build
+      - name: Unit tests
+        run: make test
+
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Integration tests (PostgreSQL, Valkey, NATS in Docker)
+        run: make test-integration

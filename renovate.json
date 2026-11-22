@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Propose-only (decision D-15): upgrades are listed on the dependency dashboard, a pull request opens only when an owner requests it, and nothing is merged automatically.",
+  "dependencyDashboard": true,
+  "dependencyDashboardApproval": true,
+  "automerge": false,
+  "rangeStrategy": "pin",
+  "pinDigests": true,
+  "minimumReleaseAge": "14 days",
+  "postUpdateOptions": ["gomodTidy"],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "minimumReleaseAge": null,
+    "automerge": false
+  }
+}
