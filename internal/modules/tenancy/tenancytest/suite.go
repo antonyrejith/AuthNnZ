@@ -145,6 +145,9 @@ func lifecycle(t *testing.T) {
 	if g := must(f.Module.GetTenant(ctx, tn.ID)); g.Slug != tn.Slug || g.Region != "eu" {
 		t.Fatalf("GetTenant = %+v", g)
 	}
+	if listed := must(f.Module.ListEnvironments(ctx, tn.ID)); len(listed) != 3 || listed[0].TenantID != tn.ID {
+		t.Fatalf("ListEnvironments = %+v", listed)
+	}
 	_, _, err := f.Module.ResolveHost(ctx, tn.Slug+"-production."+BaseDomain)
 	if err != nil {
 		t.Fatal(err)
@@ -226,6 +229,8 @@ func lifecycleDelete(t *testing.T, f *Fixture, tn tenancy.Tenant) {
 		t.Fatal("the data key of a deleted tenant can still be unwrapped")
 	}
 	_, err = f.Module.GetTenant(ctx, tn.ID)
+	wantCode(t, err, errs.CodeNotFound)
+	_, err = f.Module.ListEnvironments(ctx, tn.ID)
 	wantCode(t, err, errs.CodeNotFound)
 	_, err = f.Module.SuspendTenant(ctx, tn.ID, 7, "x")
 	wantCode(t, err, errs.CodeNotFound)

@@ -1,0 +1,92 @@
+# vacuum ruleset of every Portun API specification (ADR-0018, ADR-0009).
+#
+# The recommended rules plus the rules that make the conventions of ADR-0009
+# machine-checked: every operation has an operationId, a permission and an
+# audit event; every error response is an RFC 9457 problem described by the
+# shared Problem schema. Run it with `make api-lint` (vacuum --no-update-check).
+extends: [[vacuum:oas, recommended]]
+
+rules:
+  # Portun spells its JSON properties in snake_case (ADR-0009).
+  camel-case-properties: off
+  # Contact and license are filled in; examples are not required for every schema.
+  oas3-missing-example: off
+
+  portun-operation-id:
+    description: Every operation has an operationId.
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][get,put,post,delete,options,head,patch,trace,query]
+    then:
+      field: operationId
+      function: truthy
+
+  portun-required-permission:
+    description: Every operation names the permission it needs in x-required-permission (for example platform.tenants.read).
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][get,put,post,delete,options,head,patch,trace,query]
+    then:
+      - field: x-required-permission
+        function: truthy
+      - field: x-required-permission
+        function: pattern
+        functionOptions:
+          match: ^[a-z]+(\.[a-z_]+)+$
+
+  portun-audit-event:
+    description: Every operation names the audit event it writes in x-audit-event, or the literal none for read-only operations.
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][get,put,post,delete,options,head,patch,trace,query]
+    then:
+      - field: x-audit-event
+        function: truthy
+      - field: x-audit-event
+        function: pattern
+        functionOptions:
+          match: ^(none|[a-z_]+(\.[a-z_]+)+)$
+
+  portun-audit-reason:
+    description: x-audit-reason, when present, is the literal required.
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][get,put,post,delete,options,head,patch,trace,query]
+    then:
+      field: x-audit-reason
+      function: pattern
+      functionOptions:
+        match: ^required$
+
+  portun-error-problem-json:
+    description: Every 4xx and 5xx response uses application/problem+json.
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][*].responses[?(@property.match(/^[45]/))]
+    then:
+      field: content
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [application/problem+json]
+          maxProperties: 1
+
+  # vacuum resolves $ref before it applies a rule, so the schema is checked by
+  # its shape: the required properties of the shared Problem schema.
+  portun-error-problem-schema:
+    description: Every 4xx and 5xx response describes its body with the shared Problem schema (type, title, status and code).
+    message: "{{error}}"
+    severity: error
+    given: $.paths[*][*].responses[?(@property.match(/^[45]/))].content['application/problem+json'].schema
+    then:
+      field: required
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          allOf:
+            - contains: {const: type}
+            - contains: {const: title}
+            - contains: {const: status}
+            - contains: {const: code}

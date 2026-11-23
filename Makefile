@@ -37,12 +37,12 @@ INTEGRATION_ENV := TESTCONTAINERS_RYUK_DISABLED=true
 COVER_MIN := 80
 COVER_STRICT_MIN := 90
 COVER_STRICT := internal/platform/crypto,internal/platform/kms,internal/platform/db,internal/platform/secret
-COVER_EXCLUDE := internal/platform/db/dbtest,internal/platform/kms/kmstest,internal/modules/audit/internal/store/storetest,internal/modules/audit/internal/checkpoint/tsatest,internal/modules/audit/audittest,internal/modules/tenancy/tenancytest,internal/modules/config/configtest
+COVER_EXCLUDE := internal/platform/db/dbtest,internal/platform/kms/kmstest,internal/modules/audit/internal/store/storetest,internal/modules/audit/internal/checkpoint/tsatest,internal/modules/audit/audittest,internal/modules/tenancy/tenancytest,internal/modules/config/configtest,internal/api/platformgen
 
-GATES := pincheck lint build test test-integration tidy-check vuln secrets cover-check
+GATES := pincheck lint build test test-integration tidy-check vuln secrets cover-check generate-check
 
 .PHONY: help tools pincheck lint fmt vuln tidy-check build test test-integration test-all \
-	cover cover-check generate generate-check secrets secrets-history hooks gates
+	cover cover-check generate generate-check secrets secrets-history hooks gates api-lint api-diff
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -50,6 +50,8 @@ help: ## List targets
 tools: ## Build pinned developer tools into ./bin
 	GOBIN=$(BIN) go -C tools install tool
 	GOBIN=$(BIN) go -C tools/gitleaks install tool
+	GOBIN=$(BIN) go -C tools/vacuum install tool
+	GOBIN=$(BIN) go -C tools/oasdiff install tool
 	go -C tools build -o $(BIN)/pincheck ./pincheck
 	go -C tools build -o $(BIN)/covercheck ./covercheck
 	go -C tools build -o $(BIN)/layercheck ./layercheck
@@ -59,10 +61,23 @@ gates: $(GATES) ## Every gate a change must pass (CI runs the same list)
 pincheck: tools ## Fail on any unpinned version
 	$(BIN)/pincheck .
 
-lint: tools ## Static analysis and module layer rules (zero warnings)
+lint: tools api-lint api-diff ## Static analysis, module layer rules and API checks (zero warnings)
 	$(BIN)/golangci-lint run ./...
 	$(BIN)/layercheck ./...
 	cd tools && $(BIN)/golangci-lint run ./...
+
+# Every API spec under api/openapi is linted with the Portun ruleset
+# (api/openapi/ruleset.yaml). vacuum must not contact the network.
+API_SPECS := $(shell find api/openapi -name openapi.yaml -not -path 'api/openapi/baseline/*' 2>/dev/null | sort)
+
+api-lint: tools ## Lint OpenAPI specs (vacuum, Portun ruleset)
+	@set -e; for spec in $(API_SPECS); do \
+		echo "vacuum lint $$spec"; \
+		$(BIN)/vacuum lint --no-update-check --no-banner --errors --ruleset api/openapi/ruleset.yaml $$spec; \
+	done
+
+api-diff: tools ## Fail on breaking API changes against the committed baseline (oasdiff)
+	$(BIN)/oasdiff breaking --fail-on ERR api/openapi/baseline/platform.yaml api/openapi/platform/openapi.yaml
 
 fmt: tools ## Format code
 	$(BIN)/golangci-lint fmt ./...
@@ -75,6 +90,8 @@ tidy-check: ## go.mod and go.sum must already be tidy
 	go mod tidy -diff
 	go -C tools mod tidy -diff
 	go -C tools/gitleaks mod tidy -diff
+	go -C tools/vacuum mod tidy -diff
+	go -C tools/oasdiff mod tidy -diff
 
 secrets: tools ## Secret scan of the working tree (tracked and untracked, not ignored)
 	$(BIN)/gitleaks dir --no-banner --redact --config .gitleaks.toml .

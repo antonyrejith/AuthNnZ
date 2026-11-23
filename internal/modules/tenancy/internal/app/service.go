@@ -252,6 +252,19 @@ func (s *Service) GetTenant(ctx context.Context, id ids.TenantID) (domain.Tenant
 	return t, nil
 }
 
+// ListEnvironments returns the environments of a tenant; a deleted tenant is
+// errs.CodeNotFound.
+func (s *Service) ListEnvironments(ctx context.Context, id ids.TenantID) ([]domain.Environment, error) {
+	rec, err := s.repo.TenantRecords(ctx, id)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // repository errors are *errs.Error
+	}
+	if rec.Tenant.Status == domain.TenantDeleted {
+		return nil, errs.New(errs.CodeNotFound, "tenant not found")
+	}
+	return rec.Environments, nil
+}
+
 // ListTenantsInput selects a page of tenants.
 type ListTenantsInput struct {
 	PartnerID ids.PartnerID

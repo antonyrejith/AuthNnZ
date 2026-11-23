@@ -25,6 +25,10 @@ import (
 // OutboxTable is the transactional outbox (ADR-0007).
 const OutboxTable = "outbox.messages"
 
+// IdempotencyTable is the API idempotency cache: an ephemeral platform-level
+// table of stored HTTP responses, never tenant business data (ADR-0008).
+const IdempotencyTable = "api.idempotency_keys"
+
 // AuditStream is the outbox stream of audit records.
 const AuditStream = "AUDIT"
 
@@ -42,7 +46,7 @@ type Unaudited struct {
 type Exclusions []string
 
 func (x Exclusions) excluded(schema, table string) bool {
-	if schema == "audit" || table == "goose_db_version" {
+	if schema == "audit" || table == "goose_db_version" || schema+"."+table == IdempotencyTable {
 		return true
 	}
 	for _, e := range x {

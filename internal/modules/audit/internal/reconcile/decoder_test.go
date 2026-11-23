@@ -47,6 +47,7 @@ func TestDecoder(t *testing.T) {
 		rel(2, "outbox", "messages", "tenant_id", "id", "stream", "subject", "payload"),
 		rel(3, "app", "cache", "k", "v"),
 		rel(4, "app", "nokey", "v"),
+		rel(5, "api", "idempotency_keys", "scope_id", "key", "request_hash"),
 	}
 	tests := []struct {
 		name string
@@ -96,6 +97,7 @@ func TestDecoder(t *testing.T) {
 			name: "excluded and bookkeeping tables ignored",
 			msgs: []pglogrepl.Message{
 				&pglogrepl.InsertMessage{RelationID: 3, Tuple: text("k", "v")},
+				&pglogrepl.InsertMessage{RelationID: 5, Tuple: text("s", "key-1", "h")}, // the API idempotency cache
 				&pglogrepl.UpdateMessage{RelationID: 2, NewTuple: text("t1", "o1", "AUDIT", "s", "{}")},
 				&pglogrepl.DeleteMessage{RelationID: 2, OldTuple: text("t1", "o1", "", "", "")},
 			},

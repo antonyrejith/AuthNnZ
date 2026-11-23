@@ -13,14 +13,18 @@ import (
 
 // writePathAllowlist lists the package trees that may open transactions or
 // hold a pgx.Tx: the audit module (audit.Tx is the only write path), the
-// outbox relay, the database layer and the key store (which works inside a
-// caller's audited transaction). Reads elsewhere use db.ReadTenant and
-// db.ReadPlatform, which are read-only and hand out only a db.Querier.
+// outbox relay, the database layer, the key store (which works inside a
+// caller's audited transaction) and the API idempotency cache (the one
+// approved exception: an ephemeral platform-level table without business
+// data, excluded from reconciliation, see ADR-0008). Reads elsewhere use
+// db.ReadTenant and db.ReadPlatform, which are read-only and hand out only a
+// db.Querier.
 var writePathAllowlist = []string{
 	"internal/modules/audit",
 	"internal/platform/outbox",
 	"internal/platform/db",
 	"internal/platform/keystore",
+	"internal/platform/idempotency",
 }
 
 const (

@@ -43,6 +43,10 @@ jobs:
         run: make generate-check
       - name: Lint
         run: make lint
+      - name: OpenAPI lint (vacuum, Portun ruleset)
+        run: make api-lint
+      - name: OpenAPI breaking changes (oasdiff against the baseline)
+        run: make api-diff
       - name: Vulnerabilities
         run: make vuln
       - name: Secrets (working tree)

@@ -243,6 +243,16 @@ func (m *Module) GetTenant(ctx context.Context, id ids.TenantID) (Tenant, error)
 	return tenantOf(t), err
 }
 
+// ListEnvironments returns the environments of a tenant; a deleted tenant is
+// errs.CodeNotFound.
+func (m *Module) ListEnvironments(ctx context.Context, id ids.TenantID) ([]Environment, error) {
+	envs, err := m.svc.ListEnvironments(ctx, id)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // already an *errs.Error
+	}
+	return environmentsOf(envs), nil
+}
+
 // ListTenantsInput selects tenants.
 type ListTenantsInput struct {
 	PartnerID ids.PartnerID

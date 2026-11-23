@@ -166,3 +166,41 @@ func TestHealthCheckTimeout(t *testing.T) {
 		synctest.Wait()
 	})
 }
+
+// TestSetRoute: a handler mounted on a prefix pattern can report the route
+// template of the operation it dispatched to; the Router's own pattern does
+// not replace it, and without a request state or with an empty route the call
+// does nothing.
+func TestSetRoute(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		route     string
+		wantRoute string
+	}{
+		{"template replaces the prefix", "/api/v1/things/{thing_id}", "/api/v1/things/{thing_id}"},
+		{"empty route keeps the pattern", "", "/api/v1/"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			rt := httpx.NewRouter()
+			rt.HandleFunc("/api/v1/", func(_ http.ResponseWriter, r *http.Request) {
+				httpx.SetRoute(r.Context(), tt.route)
+			})
+			var route string
+			h := httpx.Chain(rt, httpx.RequestID(httpx.RequestIDConfig{}), func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					next.ServeHTTP(w, r)
+					route = httpx.Route(r)
+				})
+			})
+			serve(h, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/v1/things/x", nil))
+			if route != tt.wantRoute {
+				t.Fatalf("route = %q, want %q", route, tt.wantRoute)
+			}
+		})
+	}
+	// No request state: nothing happens, nothing panics.
+	httpx.SetRoute(context.Background(), "/x")
+}

@@ -34,6 +34,7 @@ const stateKey ctxKey = 0
 type requestState struct {
 	mu               sync.Mutex
 	route            string
+	routeFixed       bool
 	scheme           string
 	inboundRequestID string
 	request          scope.Request
@@ -57,10 +58,21 @@ func stateFrom(ctx context.Context) *requestState {
 	return st
 }
 
+// setRoute records the route of the matching pattern, unless a handler fixed
+// the route with SetRoute.
 func (st *requestState) setRoute(route string) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	st.route = route
+	if !st.routeFixed {
+		st.route = route
+	}
+}
+
+// fixRoute records route and keeps later pattern matches from replacing it.
+func (st *requestState) fixRoute(route string) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	st.route, st.routeFixed = route, true
 }
 
 func (st *requestState) getRoute() string {
@@ -168,6 +180,23 @@ func Route(r *http.Request) string {
 		}
 	}
 	return routeTemplate(r.Pattern)
+}
+
+// SetRoute sets the route template reported for the request in access logs,
+// traces and metrics, replacing the pattern the Router matched. A generated
+// API server mounted on a prefix pattern (such as "/platform/v1/") uses it to
+// report the template of the operation it dispatched to
+// ("/platform/v1/tenants/{tenant_id}"). It does nothing when ctx does not
+// belong to a request served through this package's middleware, or when route
+// is empty. Pass a template, never a concrete path, so that the label stays
+// low-cardinality.
+func SetRoute(ctx context.Context, route string) {
+	if route == "" {
+		return
+	}
+	if st := stateFrom(ctx); st != nil {
+		st.fixRoute(route)
+	}
 }
 
 // routeTemplate strips the method and host from a ServeMux pattern

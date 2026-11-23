@@ -1,0 +1,8 @@
+# ogen generator configuration (ADR-0018): server code only. Clients are not
+# generated; the integration tests use net/http.
+generator:
+  features:
+    disable:
+      - paths/client
+      - webhooks/client
+      - webhooks/server

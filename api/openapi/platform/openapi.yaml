@@ -1,0 +1,958 @@
+openapi: 3.2.0
+info:
+  title: Portun Platform API
+  version: 1.0.0
+  summary: Operator API of the Portun platform.
+  description: |
+    The Platform API is used by Portun operators and automation to manage
+    partners, tenants, their environments and host names (decision D-16,
+    ADR-0009, ADR-0018).
+
+    **Conventions.** Request and response bodies use `snake_case`. Identifiers
+    are TypeIDs (`ten_...`). Every error is an RFC 9457 problem
+    (`application/problem+json`, schema `Problem`). A tenant carries a
+    `version`; it is returned as the `ETag` header and must be sent back in
+    `If-Match` to change the tenant. A missing or stale `If-Match` is answered
+    with `412 precondition_failed` (the platform has no 428 error code).
+    Operations that change state may be sent with an `Idempotency-Key` header:
+    a repeated request with the same key and the same content returns the
+    stored response with `Idempotent-Replayed: true` for 24 hours.
+
+    **Authentication (B0).** A bootstrap operator bearer token. It is replaced
+    by OIDC client credentials and per-scope administrator authorization in
+    release B1 (T1.8).
+
+    **Vendor extensions.** Every operation declares `x-required-permission`
+    (the permission it needs) and `x-audit-event` (the audit event type it
+    writes, or `none` for read-only operations). `x-audit-reason: required`
+    marks operations that need a `Change-Reason` header.
+  contact:
+    name: Portun platform team
+    url: https://docs.portun.io
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Portun
+servers:
+  - url: https://api.portun.io
+    description: Production (placeholder domain until decision D-01)
+tags:
+  - name: Partners
+    description: Resellers and managed service providers that own tenants.
+  - name: Tenants
+    description: Customers of the platform and their lifecycle.
+  - name: Environments
+    description: The environments of a tenant.
+  - name: Hosts
+    description: Host names that resolve to a tenant environment.
+  - name: Operations
+    description: Long-running operations.
+security:
+  - operatorToken: []
+paths:
+  /platform/v1/partners:
+    post:
+      operationId: createPartner
+      tags: [Partners]
+      summary: Create a partner
+      description: Creates a partner, optionally nested under a parent partner (at most three levels).
+      x-required-permission: platform.partners.write
+      x-audit-event: partner.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+      requestBody:
+        required: true
+        description: The partner to create.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePartnerRequest'
+      responses:
+        '201':
+          description: The partner was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Partner'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants:
+    post:
+      operationId: createTenant
+      tags: [Tenants]
+      summary: Create a tenant
+      description: >-
+        Provisions a tenant with its environments (development, staging and
+        production unless others are given), default host names and a
+        key-encryption key.
+      x-required-permission: platform.tenants.write
+      x-audit-event: tenant.created
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+      requestBody:
+        required: true
+        description: The tenant to create.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: The tenant was created.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            Location:
+              description: The URL of the new tenant.
+              required: true
+              schema:
+                type: string
+                maxLength: 200
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCreated'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+    get:
+      operationId: listTenants
+      tags: [Tenants]
+      summary: List tenants
+      description: >-
+        Returns a page of tenants ordered by creation. Without a status
+        filter, deleted tenants are not listed.
+      x-required-permission: platform.tenants.read
+      x-audit-event: none
+      parameters:
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageToken'
+        - name: partner_id
+          in: query
+          description: Only tenants of this partner.
+          required: false
+          schema:
+            $ref: '#/components/schemas/PartnerId'
+        - name: status
+          in: query
+          description: Only tenants with this status.
+          required: false
+          schema:
+            $ref: '#/components/schemas/TenantStatus'
+      responses:
+        '200':
+          description: A page of tenants.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantList'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants/{tenant_id}:
+    get:
+      operationId: getTenant
+      tags: [Tenants]
+      summary: Get a tenant
+      description: Returns a tenant. A deleted tenant is reported as not found.
+      x-required-permission: platform.tenants.read
+      x-audit-event: none
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: The tenant.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: updateTenant
+      tags: [Tenants]
+      summary: Update a tenant
+      description: >-
+        Changes the name or the plan of a tenant (JSON merge patch, RFC 7396).
+        `If-Match` is required; a missing or stale value is answered with 412.
+      x-required-permission: platform.tenants.write
+      x-audit-event: tenant.updated
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+      requestBody:
+        required: true
+        description: The fields to change (JSON merge patch).
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/TenantPatch'
+      responses:
+        '200':
+          description: The updated tenant.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants/{tenant_id}:suspend:
+    post:
+      operationId: suspendTenant
+      tags: [Tenants]
+      summary: Suspend a tenant
+      description: >-
+        Suspends an active tenant: its hosts stop resolving to it. Requires
+        `If-Match` and a `Change-Reason`.
+      x-required-permission: platform.tenants.write
+      x-audit-event: tenant.suspended
+      x-audit-reason: required
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/ChangeReasonRequired'
+        - $ref: '#/components/parameters/ChangeTicket'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The suspended tenant.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants/{tenant_id}:resume:
+    post:
+      operationId: resumeTenant
+      tags: [Tenants]
+      summary: Resume a tenant
+      description: Resumes a suspended tenant. Requires `If-Match` and a `Change-Reason`.
+      x-required-permission: platform.tenants.write
+      x-audit-event: tenant.resumed
+      x-audit-reason: required
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/ChangeReasonRequired'
+        - $ref: '#/components/parameters/ChangeTicket'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The resumed tenant.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants/{tenant_id}:delete:
+    post:
+      operationId: deleteTenant
+      tags: [Tenants]
+      summary: Delete a tenant
+      description: >-
+        Deletes a tenant and destroys its key-encryption key (crypto-shredding):
+        its encrypted data becomes unreadable and its hosts stop resolving.
+        Requires `If-Match` and a `Change-Reason`.
+      x-required-permission: platform.tenants.write
+      x-audit-event: tenant.deleted
+      x-audit-reason: required
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/ChangeReasonRequired'
+        - $ref: '#/components/parameters/ChangeTicket'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: The deleted tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '412': {$ref: '#/components/responses/PreconditionFailed'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/tenants/{tenant_id}:export:
+    post:
+      operationId: exportTenant
+      tags: [Tenants]
+      summary: Export a tenant's data
+      description: >-
+        Starts the export of a tenant's data. The export runs in the
+        background: poll the operation named by the `Location` header.
+      x-required-permission: platform.tenants.export
+      x-audit-event: tenant.export_requested
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          description: The export was accepted.
+          headers:
+            Location:
+              description: The URL of the operation (`/platform/v1/operations/{operation_id}`).
+              required: true
+              schema:
+                type: string
+                maxLength: 200
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /platform/v1/tenants/{tenant_id}/environments:
+    get:
+      operationId: listEnvironments
+      tags: [Environments]
+      summary: List the environments of a tenant
+      description: Returns every environment of a tenant.
+      x-required-permission: platform.tenants.read
+      x-audit-event: none
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: The environments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentList'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /platform/v1/tenants/{tenant_id}/hosts:
+    post:
+      operationId: addHost
+      tags: [Hosts]
+      summary: Add a host name
+      description: Registers a host name that resolves to an environment of the tenant.
+      x-required-permission: platform.hosts.write
+      x-audit-event: tenant_host.added
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+      requestBody:
+        required: true
+        description: The host name and the environment it resolves to.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddHostRequest'
+      responses:
+        '201':
+          description: The host name was registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Host'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/hosts/{host}:
+    delete:
+      operationId: removeHost
+      tags: [Hosts]
+      summary: Remove a host name
+      description: Unregisters a host name.
+      x-required-permission: platform.hosts.write
+      x-audit-event: tenant_host.removed
+      parameters:
+        - name: host
+          in: path
+          description: The host name (a DNS name without port).
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 253
+        - $ref: '#/components/parameters/ChangeReason'
+        - $ref: '#/components/parameters/ChangeTicket'
+      responses:
+        '204':
+          description: The host name was removed.
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+  /platform/v1/operations/{operation_id}:
+    get:
+      operationId: getOperation
+      tags: [Operations]
+      summary: Get an operation
+      description: Returns the state of a long-running operation.
+      x-required-permission: platform.operations.read
+      x-audit-event: none
+      parameters:
+        - name: operation_id
+          in: path
+          description: The operation.
+          required: true
+          schema:
+            $ref: '#/components/schemas/OperationId'
+      responses:
+        '200':
+          description: The operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/PermissionDenied'}
+        '404': {$ref: '#/components/responses/NotFound'}
+components:
+  securitySchemes:
+    operatorToken:
+      type: http
+      scheme: bearer
+      description: The bootstrap operator token (release B0).
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      description: The tenant.
+      required: true
+      schema:
+        $ref: '#/components/schemas/TenantId'
+    IfMatch:
+      name: If-Match
+      in: header
+      description: >-
+        The tenant's current `ETag` (a strong validator such as `"3"`). A
+        missing or stale value is answered with 412.
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+    ChangeReason:
+      name: Change-Reason
+      in: header
+      description: Why the change is made (recorded in the audit record; at most 500 characters).
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 500
+    ChangeReasonRequired:
+      name: Change-Reason
+      in: header
+      description: Why the change is made (recorded in the audit record; at most 500 characters).
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 500
+    ChangeTicket:
+      name: Change-Ticket
+      in: header
+      description: The change ticket that authorizes the change (at most 100 characters).
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: >-
+        A client-chosen key (1 to 255 printable ASCII characters). A repeated
+        request with the same key and content returns the stored response with
+        `Idempotent-Replayed: true`; the same key with other content is
+        rejected with 422; a request still running is answered with 409.
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+    PageSize:
+      name: page_size
+      in: query
+      description: The number of items to return.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+    PageToken:
+      name: page_token
+      in: query
+      description: The `next_page_token` of the previous page.
+      required: false
+      schema:
+        type: string
+        maxLength: 2048
+  headers:
+    ETag:
+      description: The tenant's version as a strong validator, for example `"3"`.
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+  responses:
+    BadRequest:
+      description: The request is malformed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthenticated:
+      description: Authentication is required (`unauthenticated`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PermissionDenied:
+      description: The caller is not allowed to do this (`permission_denied`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: The resource does not exist (`not_found`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: The request conflicts with the state of the resource (`conflict`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PreconditionFailed:
+      description: '`If-Match` is missing or does not match the current version (`precondition_failed`).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    ValidationFailed:
+      description: The request is well formed but invalid (`validation_failed`); `errors` locates the fields.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    PartnerId:
+      type: string
+      description: A partner identifier.
+      pattern: '^ptn_[0-9a-z]{26}$'
+      minLength: 30
+      maxLength: 30
+      examples: [ptn_01h455vb4pex5vsknk084sn02q]
+    TenantId:
+      type: string
+      description: A tenant identifier.
+      pattern: '^ten_[0-9a-z]{26}$'
+      minLength: 30
+      maxLength: 30
+      examples: [ten_01h455vb4pex5vsknk084sn02q]
+    EnvironmentId:
+      type: string
+      description: An environment identifier.
+      pattern: '^env_[0-9a-z]{26}$'
+      minLength: 30
+      maxLength: 30
+      examples: [env_01h455vb4pex5vsknk084sn02q]
+    OperationId:
+      type: string
+      description: An operation identifier.
+      pattern: '^opr_[0-9a-z]{26}$'
+      minLength: 30
+      maxLength: 30
+      examples: [opr_01h455vb4pex5vsknk084sn02q]
+    TenantStatus:
+      type: string
+      description: The lifecycle status of a tenant.
+      enum: [active, suspended, deleting, deleted]
+    Problem:
+      type: object
+      description: An RFC 9457 problem details document.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          description: A URI that identifies the problem type.
+          maxLength: 200
+        title:
+          type: string
+          description: A short summary of the problem type.
+          maxLength: 200
+        status:
+          type: integer
+          description: The HTTP status code.
+          minimum: 400
+          maximum: 599
+        code:
+          type: string
+          description: A stable, machine-readable error code.
+          maxLength: 64
+          examples: [validation_failed]
+        detail:
+          type: string
+          description: An explanation specific to this occurrence.
+          maxLength: 2000
+        instance:
+          type: string
+          description: The path of the request.
+          maxLength: 2000
+        trace_id:
+          type: string
+          description: The trace of the request.
+          maxLength: 64
+        request_id:
+          type: string
+          description: The identifier of the request.
+          maxLength: 64
+        errors:
+          type: array
+          description: The invalid fields of a validation failure.
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/FieldError'
+    FieldError:
+      type: object
+      description: One invalid field.
+      required: [pointer, code, detail]
+      properties:
+        pointer:
+          type: string
+          description: A JSON Pointer (RFC 6901) to the field.
+          maxLength: 500
+        code:
+          type: string
+          description: A stable code of the problem with the field.
+          maxLength: 64
+        detail:
+          type: string
+          description: A description of the problem with the field.
+          maxLength: 1000
+    Partner:
+      type: object
+      description: A reseller or managed service provider that owns tenants.
+      required: [id, name, status, version, created_at, updated_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/PartnerId'
+        parent_id:
+          $ref: '#/components/schemas/PartnerId'
+        name:
+          type: string
+          maxLength: 200
+        status:
+          type: string
+          enum: [active, suspended]
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreatePartnerRequest:
+      type: object
+      description: The input of createPartner.
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        parent_id:
+          $ref: '#/components/schemas/PartnerId'
+    Tenant:
+      type: object
+      description: A customer of the platform.
+      required: [id, slug, name, status, region, plan, version, created_at, updated_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/TenantId'
+        partner_id:
+          $ref: '#/components/schemas/PartnerId'
+        slug:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 200
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+        region:
+          type: string
+          maxLength: 64
+        plan:
+          type: string
+          maxLength: 64
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TenantCreated:
+      type: object
+      description: A new tenant with its environments.
+      required: [id, slug, name, status, region, plan, version, created_at, updated_at, environments]
+      properties:
+        id:
+          $ref: '#/components/schemas/TenantId'
+        partner_id:
+          $ref: '#/components/schemas/PartnerId'
+        slug:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 200
+        status:
+          $ref: '#/components/schemas/TenantStatus'
+        region:
+          type: string
+          maxLength: 64
+        plan:
+          type: string
+          maxLength: 64
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        environments:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Environment'
+    CreateTenantRequest:
+      type: object
+      description: The input of createTenant.
+      required: [slug, name, region, plan]
+      additionalProperties: false
+      properties:
+        slug:
+          type: string
+          description: The URL-safe name of the tenant, used in its default host names.
+          pattern: '^[a-z][a-z0-9-]{1,38}[a-z0-9]$'
+          minLength: 3
+          maxLength: 40
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        region:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          minLength: 1
+          maxLength: 64
+        plan:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          minLength: 1
+          maxLength: 64
+        partner_id:
+          $ref: '#/components/schemas/PartnerId'
+        environments:
+          type: array
+          description: The environments to create; development, staging and production by default.
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/EnvironmentSpec'
+    EnvironmentSpec:
+      type: object
+      description: A requested environment.
+      required: [name, kind]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 63
+        kind:
+          $ref: '#/components/schemas/EnvironmentKind'
+    EnvironmentKind:
+      type: string
+      description: The kind of an environment.
+      enum: [development, staging, production]
+    TenantPatch:
+      type: object
+      description: >-
+        The fields of a tenant that can change (JSON merge patch). At least
+        one field must be given, else the request is answered with 422.
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        plan:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          minLength: 1
+          maxLength: 64
+    TenantList:
+      type: object
+      description: A page of tenants.
+      required: [items, next_page_token]
+      properties:
+        items:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/Tenant'
+        next_page_token:
+          type: string
+          description: The token of the next page; empty on the last page.
+          maxLength: 2048
+    Environment:
+      type: object
+      description: An environment of a tenant.
+      required: [id, tenant_id, name, kind, version, created_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvironmentId'
+        tenant_id:
+          $ref: '#/components/schemas/TenantId'
+        name:
+          type: string
+          maxLength: 63
+        kind:
+          $ref: '#/components/schemas/EnvironmentKind'
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+    EnvironmentList:
+      type: object
+      description: The environments of a tenant.
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/Environment'
+    AddHostRequest:
+      type: object
+      description: The input of addHost.
+      required: [environment_id, host]
+      additionalProperties: false
+      properties:
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+        host:
+          type: string
+          description: A DNS name without port.
+          minLength: 1
+          maxLength: 253
+    Host:
+      type: object
+      description: A host name registered for an environment.
+      required: [host, tenant_id, environment_id]
+      properties:
+        host:
+          type: string
+          maxLength: 253
+        tenant_id:
+          $ref: '#/components/schemas/TenantId'
+        environment_id:
+          $ref: '#/components/schemas/EnvironmentId'
+    Operation:
+      type: object
+      description: A long-running operation on a tenant.
+      required: [id, tenant_id, kind, status, created_at, updated_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/OperationId'
+        tenant_id:
+          $ref: '#/components/schemas/TenantId'
+        kind:
+          type: string
+          enum: [export]
+        status:
+          type: string
+          enum: [running, succeeded, failed]
+        error_code:
+          type: string
+          description: The error code of a failed operation.
+          maxLength: 64
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
